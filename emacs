@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.24 2002/08/06 16:02:21 tonytung Exp $
+;; $Id: emacs,v 8.25 2002/08/20 18:05:44 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -421,7 +421,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 (set-face-foreground 'default "WHITE")
 (set-face-foreground 'highlight "WHITE")
 (set-face-foreground 'modeline "CYAN")
-(set-face-foreground 'region "CYAN")
 (when (> emacs-version-num 19.34)
   (set-face-foreground 'show-paren-match-face "CYAN")
   (set-face-foreground 'show-paren-mismatch-face "WHITE"))
@@ -429,10 +428,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set up colors dependent on window-system
 (if window-system
     (progn                              ; with a window system
+      (set-face-foreground 'region "CYAN")
       (set-background-color "BLACK")
       (set-face-background 'default "BLACK"))
 
   (progn                                ; naked terminal
+    (set-face-foreground 'region "WHITE")
     (set-background-color "unspecified-bg")
     (set-face-background 'default "unspecified-bg")))
 
