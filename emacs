@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.21
-;; 2001 May 30
+;; version 7.22
+;; 2001 June 8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -235,6 +235,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (setq-default indent-tabs-mode nil)
 (setq compilation-scroll-output t)
+
+(add-hook 'comint-output-filter-functions
+          'comint-watch-for-password-prompt)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
