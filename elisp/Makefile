@@ -1,5 +1,4 @@
 LISP_FILES = andersl-java-font-lock.el \
-		cscope.el \
 		generic-extras.el \
 		generic-mode.el \
 		gnuserv.el \
@@ -8,6 +7,7 @@ LISP_FILES = andersl-java-font-lock.el \
 		pc-bufsw.el \
 		verilog-mode.el \
 		vhdl-mode.el \
+		xcscope.el \
 
 ELC_FILES = ${LISP_FILES:.el=.elc}
 
@@ -18,5 +18,11 @@ compile-psgml	:	psgml
 	cd psgml; \
 	emacs -batch -l psgml-maint.el -f psgml-compile-files
 
+generic-extras.elc	:	generic-extras.el generic-mode.elc
+	emacs -batch -l generic-mode.elc --eval '(byte-compile-file "generic-extras.el")'
+
 %.elc	:	%.el Makefile
 	emacs -batch --eval '(byte-compile-file "$<")'
+
+clean	:	
+	find . -name '*.elc' -exec rm {} \;
