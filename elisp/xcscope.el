@@ -2,7 +2,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; File:         xcscope.el
-; RCS:          $RCSfile: xcscope.el,v $ $Revision: 1.14 $ $Date: 2002/04/10 16:59:00 $ $Author: darrylo $
+; RCS:          $RCSfile: xcscope.el,v $ $Revision: 1.2 $ $Date: 2004/02/17 22:01:50 $ $Author: tonytung $
 ; Description:  cscope interface for (X)Emacs
 ; Author:       Darryl Okahata
 ; Created:      Wed Apr 19 17:03:38 2000
@@ -1113,6 +1113,10 @@ buffer.")
 directory should begin.")
 
 
+(defvar cscope-bind-default-keys t
+  "When set, cscope will bind the default keymappings.")
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar cscope:map nil
@@ -1120,36 +1124,37 @@ directory should begin.")
 (if cscope:map
     nil
   (setq cscope:map (make-sparse-keymap))
-  ;; The following line corresponds to be beginning of the "Cscope" menu.
-  (define-key cscope:map "\C-css" 'cscope-find-this-symbol)
-  (define-key cscope:map "\C-csd" 'cscope-find-global-definition)
-  (define-key cscope:map "\C-csg" 'cscope-find-global-definition)
-  (define-key cscope:map "\C-csG" 'cscope-find-global-definition-no-prompting)
-  (define-key cscope:map "\C-csc" 'cscope-find-functions-calling-this-function)
-  (define-key cscope:map "\C-csC" 'cscope-find-called-functions)
-  (define-key cscope:map "\C-cst" 'cscope-find-this-text-string)
-  (define-key cscope:map "\C-cse" 'cscope-find-egrep-pattern)
-  (define-key cscope:map "\C-csf" 'cscope-find-this-file)
-  (define-key cscope:map "\C-csi" 'cscope-find-files-including-file)
-  ;; --- (The '---' indicates that this line corresponds to a menu separator.)
-  (define-key cscope:map "\C-csb" 'cscope-display-buffer)
-  (define-key cscope:map "\C-csB" 'cscope-display-buffer-toggle)
-  (define-key cscope:map "\C-csn" 'cscope-next-symbol)
-  (define-key cscope:map "\C-csN" 'cscope-next-file)
-  (define-key cscope:map "\C-csp" 'cscope-prev-symbol)
-  (define-key cscope:map "\C-csP" 'cscope-prev-file)
-  (define-key cscope:map "\C-csu" 'cscope-pop-mark)
-  ;; ---
-  (define-key cscope:map "\C-csa" 'cscope-set-initial-directory)
-  (define-key cscope:map "\C-csA" 'cscope-unset-initial-directory)
-  ;; ---
-  (define-key cscope:map "\C-csL" 'cscope-create-list-of-files-to-index)
-  (define-key cscope:map "\C-csI" 'cscope-index-files)
-  (define-key cscope:map "\C-csE" 'cscope-edit-list-of-files-to-index)
-  (define-key cscope:map "\C-csW" 'cscope-tell-user-about-directory)
-  (define-key cscope:map "\C-csS" 'cscope-tell-user-about-directory)
-  (define-key cscope:map "\C-csT" 'cscope-tell-user-about-directory)
-  (define-key cscope:map "\C-csD" 'cscope-dired-directory))
+  (when cscope-bind-default-keys
+    ;; The following line corresponds to be beginning of the "Cscope" menu.
+    (define-key cscope:map "\C-css" 'cscope-find-this-symbol)
+    (define-key cscope:map "\C-csd" 'cscope-find-global-definition)
+    (define-key cscope:map "\C-csg" 'cscope-find-global-definition)
+    (define-key cscope:map "\C-csG" 'cscope-find-global-definition-no-prompting)
+    (define-key cscope:map "\C-csc" 'cscope-find-functions-calling-this-function)
+    (define-key cscope:map "\C-csC" 'cscope-find-called-functions)
+    (define-key cscope:map "\C-cst" 'cscope-find-this-text-string)
+    (define-key cscope:map "\C-cse" 'cscope-find-egrep-pattern)
+    (define-key cscope:map "\C-csf" 'cscope-find-this-file)
+    (define-key cscope:map "\C-csi" 'cscope-find-files-including-file)
+    ;; --- (The '---' indicates that this line corresponds to a menu separator.)
+    (define-key cscope:map "\C-csb" 'cscope-display-buffer)
+    (define-key cscope:map "\C-csB" 'cscope-display-buffer-toggle)
+    (define-key cscope:map "\C-csn" 'cscope-next-symbol)
+    (define-key cscope:map "\C-csN" 'cscope-next-file)
+    (define-key cscope:map "\C-csp" 'cscope-prev-symbol)
+    (define-key cscope:map "\C-csP" 'cscope-prev-file)
+    (define-key cscope:map "\C-csu" 'cscope-pop-mark)
+    ;; ---
+    (define-key cscope:map "\C-csa" 'cscope-set-initial-directory)
+    (define-key cscope:map "\C-csA" 'cscope-unset-initial-directory)
+    ;; ---
+    (define-key cscope:map "\C-csL" 'cscope-create-list-of-files-to-index)
+    (define-key cscope:map "\C-csI" 'cscope-index-files)
+    (define-key cscope:map "\C-csE" 'cscope-edit-list-of-files-to-index)
+    (define-key cscope:map "\C-csW" 'cscope-tell-user-about-directory)
+    (define-key cscope:map "\C-csS" 'cscope-tell-user-about-directory)
+    (define-key cscope:map "\C-csT" 'cscope-tell-user-about-directory)
+    (define-key cscope:map "\C-csD" 'cscope-dired-directory)))
   ;; The previous line corresponds to be end of the "Cscope" menu.
 
 (easy-menu-define cscope:menu
