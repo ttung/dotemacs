@@ -693,7 +693,8 @@ If ARG is negative, delete that many comment characters instead."
                                       (buffer-file-name "%f" "%b")))
 
 (defun text-tab5 ()
-  (setq tab-width 5))
+  (setq tab-width 5)
+  (auto-fill-mode))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
