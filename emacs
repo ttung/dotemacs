@@ -127,18 +127,6 @@ See require. Return non-nil if FEATURE is or was loaded."
                          '("\\.html" . html-mode) 
                          auto-mode-alist)))
 
-
-;; set up the java system
-(when (and (not (boundp 'fast-load)) (want 'andersl-java-font-lock))
-  (setq auto-mode-alist (cons 
-                         '("\\.java" . java-mode) 
-                         auto-mode-alist))
-
-  (add-hook 'java-mode-hook 'my-java-mode-hook)
-  (defun my-java-mode-hook ()
-;;           (want 'andersl-java-font-lock)
-           (turn-on-font-lock)))
-
 ;; set up the verilog system
 (when (and (not (boundp 'fast-load)) (want 'verilog-mode))
   (autoload 'verilog-mode "verilog-mode" "Verilog mode" t)
@@ -221,32 +209,19 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-cleanup-list                 . (scope-operator brace-else-brace)))
   "cisco c-style for cc-mode")
 
-;; c-mode customizations that load c-mode and font-lock mode (and should be delayed)
-(defun add-my-c-customizations ()
-  (defvar my-c-customizations-done t "Flag to indicate that my C styles have been added")
-  (c-add-style "cisco-c-style" cisco-c-style)
-  (font-lock-add-keywords
-   'c-mode
-   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)))
-  (font-lock-add-keywords
-   'c++-mode
-   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)))
-  (font-lock-add-keywords
-   'c-mode
-   '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
-  (font-lock-add-keywords
-   'c++-mode
-   '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
-  (font-lock-add-keywords
-   'c-mode
-   '(("\\<\\(TODO\\):" 1 font-lock-warning-face t)))
-  (font-lock-add-keywords
-   'c++-mode
-   '(("\\<\\(TODO\\):" 1 font-lock-warning-face t))))
+(defvar my-c-style
+  '("bsd"
+    (c-basic-offset			. 2))
+  "my c style")
+
+(defvar my-java-style
+  '("java"
+    (c-basic-offset			. 2)
+    (c-offsets-alist			. ((substatement-open	.	0))))
+  "my java style")
 
 ;; c-mode customizations that don't load c-mode nor font-lock mode
 (defun my-c-mode-common-hook ()
-  (setq c-basic-offset 2)
   (setq comment-column 60)
   (auto-fill-mode)
   (setq fill-column 100)
@@ -257,21 +232,39 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-c\C-f" 'c-insert-fixme)
   (local-set-key "\C-c\C-m" 'man)
   (local-set-key "\C-d" 'my-delete)
-  (local-set-key "\361" 'indent-region)
-  (unless (boundp 'my-c-customizations-done)
-    (add-my-c-customizations))
-  (when (string-match "cisco.com" system-name)
-    (c-set-style "cisco-c-style")))
+  (c-add-style "cisco-c-style" cisco-c-style)
+  (c-add-style "my-java-style" my-java-style)
+  (c-add-style "my-c-style" my-c-style)
+  (font-lock-add-keywords
+   'c-mode
+   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
+     ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
+     ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (font-lock-add-keywords
+   'c++-mode
+   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
+     ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
+     ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (if (string-match "cisco.com" system-name)
+      (c-set-style "cisco-c-style")
+    (c-set-style "my-c-style")))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
-;; set the indent key correctly
-(defun my-lisp-mode-hook ()
-  (local-set-key "\361" 'indent-region))
+;; set up the java system
+(setq auto-mode-alist (cons 
+                       '("\\.java" . java-mode) 
+                       auto-mode-alist))
 
-;; set hooks
-(add-hook 'lisp-mode-hook 'my-lisp-mode-hook)
+(defun my-java-mode-hook ()
+  (font-lock-add-keywords
+   'java-mode
+   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
+     ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
+     ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (c-set-style "my-java-style"))
+(add-hook 'java-mode-hook 'my-java-mode-hook)
 
 ;; set up the font-lock system
 (cond ((and (not (boundp 'fast-load)) (fboundp 'global-font-lock-mode))
@@ -597,11 +590,6 @@ With a prefix argument, it does not insert the dashes below and above the time."
       (insert "\n\n"))))
 
 ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
-
-(defun insert-tab-char ()
-  "Insert a tab"
-  (interactive)
-  (insert "\t"))
 
 (defun my-list-buffers ()
   "Display a list of names of existing buffers and sets the active
@@ -932,6 +920,8 @@ it is put to the start of the list."
 (global-set-key [f3] 'find-file)
 (global-set-key [f4] 'match-paren)
 (global-set-key [f5] 'insert-time)
+(when (boundp 'fast-load)
+  (global-set-key [f6] 'save-buffers-kill-emacs))
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
 (global-set-key [S-f9] 'previous-error)
@@ -943,7 +933,6 @@ it is put to the start of the list."
 (global-set-key [C-f5] 'make-frame-command)
 (global-set-key "\356" 'goto-line)      ;M-n
 (global-set-key "\362" 'revert-buffer)  ;M-r
-(global-set-key "\221" 'indent-region) ;C-M-q
 ;;(global-set-key "\361" 'my-reindent)    ;M-q
 ;; (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
@@ -953,7 +942,6 @@ it is put to the start of the list."
   (global-set-key "\C-c\C-r" 'region-remove-comment))
 (global-set-key "\C-c\C-l" 'comment-line)
 (global-set-key "\C-d" 'my-delete)
-(global-set-key "\C-t" 'insert-tab-char)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
