@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.1
+;; version 8.2
 ;; 2001 October 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -331,7 +331,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; and set the default font to 
 (when (not (eq system-type 'windows-nt))
   (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)
-  (when (>= emacs-version-num 21)
+  (when (and (>= emacs-version-num 21) window-system)
     (set-face-font 'default "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
 
 
