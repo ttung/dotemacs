@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.27
-;; 2000 November 11
+;; version 7.0
+;; 2000 November 13
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -466,8 +466,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq display-time-24hr-format t)
 (if (eq window-system nil)
     ()
-  (setq display-time-day-and-date t))
-(display-time)
+  (progn
+    (setq display-time-day-and-date t)
+    (display-time)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -633,6 +634,50 @@ If ARG is negative, delete that many comment characters instead."
   "Kills the current buffer."
   (interactive)
   (kill-buffer (buffer-name)))
+
+;; Put a nice version of every visited file's file-name into the
+;; variable `nice-buffer-file-name'
+;; Original code by Miles Bader <miles@gnu.org>
+(defun record-nice-file-name ()
+  (defun limit-tree (bn count)
+    (let ((splitted (split-string bn "/"))
+          (retval "")
+          (lc 0)
+          (cntr 0))
+      (setq lc (safe-length splitted))
+      (if (>= count lc)
+          (setq count (- lc 1)))
+      (setq cntr (- lc (+ count 1)))
+      (while (< cntr lc)
+        (setq retval (concat retval (nth cntr splitted)))
+        (if (>= (- lc cntr) 2)
+            (setq retval (concat retval "/")))
+        (setq cntr (+ 1 cntr)))
+      retval))
+    
+  (defun get-unique-tag (bfn bn)
+    (let ((splitted (split-string bfn "/"))
+          (lp 0))
+      (setq lp (car (last splitted)))
+      (let ((remainder (split-string bn lp)))
+        (if (null remainder)
+            ""
+          (car (last remainder))))))
+
+  (let ((shortened-file-name 
+         (limit-tree (abbreviate-file-name buffer-file-name) 1))
+        (buffer-num 
+         (get-unique-tag buffer-file-name (buffer-name))))
+    (set (make-local-variable 'nice-buffer-file-name)
+         (concat shortened-file-name buffer-num))))
+(add-hook 'find-file-hooks 'record-nice-file-name)
+
+;; Make the mode-line identify buffers using their `nice-buffer-file-name'
+;; if such a variable exists, otherwise, the buffer's file name, if it
+;; has one, otherwise the buffer name.
+(setq-default mode-line-buffer-identification
+              '(nice-buffer-file-name nice-buffer-file-name
+                                      (buffer-file-name "%f" "%b")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
