@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.15
-;; 2001 March 4
+;; version 7.16
+;; 2001 March 24
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -305,7 +305,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; command-line shell - remove the ^M
-(if (eq system-type 'usg-unix-v)
+(if (not (eq system-type 'windows-nt))
     (progn
       (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)))
 
