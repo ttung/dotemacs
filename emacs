@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.21
-;; 2000 August 7
+;; version 6.22
+;; 2000 August 8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -190,7 +190,11 @@ See require. Return non-nil if FEATURE is or was loaded."
     (setq comment-column 60)
     (auto-fill-mode)
     (setq fill-column 100)
-    (local-set-key "\C-c\C-w" 'c-wrap-conditional)))
+    (local-unset-key "\C-c\C-t")
+    (local-set-key "\C-c\C-w" 'c-wrap-conditional)
+    (local-set-key "\C-c\C-h" 'c-toggle-auto-hungry-state)
+    (local-set-key "\C-c\C-t" 'c-insert-todo)
+    (local-set-key "\C-c\C-f" 'c-insert-fixme)))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -562,6 +566,18 @@ The R column contains a % for buffers that are read-only."
   "Removes comments from the beginning of lines within a region."
   (interactive "r")
   (comment-region from to -1))
+
+(defun c-insert-todo ()
+  "Inserts a TODO comment."
+  (interactive)
+  (insert "// TODO: ")
+  (indent-according-to-mode))
+
+(defun c-insert-fixme ()
+  "Inserts a FIXME comment."
+  (interactive)
+  (insert "// FIXME: ")
+  (indent-according-to-mode))
 
 (defun c-wrap-conditional (from to string)
   "Wraps the region with a preprocessor conditional."
