@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.18
-;; 2000 August 1
+;; version 6.19
+;; 2000 August 3
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -552,13 +552,13 @@ The R column contains a % for buffers that are read-only."
 (defun c-wrap-conditional (from to string)
   "Wraps the region with a preprocessor conditional."
   (interactive "r\nMConditional (default #if): ")
-  (if (> (mark) (point))
-      (exchange-point-and-mark))
-  (insert "#endif" "\n")
-  (backward-char 7)
-  (exchange-point-and-mark)
   (if (equal string "")
       (setq string "#if "))
+  (if (> (mark) (point))
+      (exchange-point-and-mark))
+  (insert "#endif" " // " string "\n")
+  (backward-char 7)
+  (exchange-point-and-mark)
   (insert string "\n")
   (backward-char))
 
