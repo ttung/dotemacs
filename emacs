@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.22
-;; 2001 June 8
+;; version 7.24
+;; 2001 July 27
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -83,7 +83,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                        auto-mode-alist))
 
 (setq completion-ignored-extensions
-      (append completion-ignored-extensions '(".ps" ".pdf")))
+      (append completion-ignored-extensions '(".ps" ".pdf" ".tar" ".gz")))
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'upcase-region 'disabled nil)
