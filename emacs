@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 2.2
-;; 1999 October 31
+;; version 2.3
+;; 1999 November 8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -40,7 +40,23 @@
        load-path))
 
 (setq auto-mode-alist (cons 
-		       '("\\.emt" . text-mode) 
+		       '("\\.emt\\'" . text-mode) 
+		       auto-mode-alist))
+
+(setq auto-mode-alist (cons 
+		       '("\\.c\\'" . c++-mode) 
+		       auto-mode-alist))
+
+(setq auto-mode-alist (cons 
+		       '("\\.h\\'" . c++-mode) 
+		       auto-mode-alist))
+
+(setq auto-mode-alist (cons 
+		       '("\\.y\\'" . c++-mode) 
+		       auto-mode-alist))
+
+(setq auto-mode-alist (cons 
+		       '("\\.lex\\'" . c++-mode) 
 		       auto-mode-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
