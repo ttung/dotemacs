@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.7
-;; 2000 March 31
+;; version 5.8
+;; 2000 April 14
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -509,7 +509,7 @@
 
 ;; enable auto-save
 (setq auto-save-default 1)
-(setq auto-save-interval 100)
+(setq auto-save-interval 250)
 
 ;; keybindings...
 (if (eq window-system nil)
