@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.2
-;; 2000 March 4
+;; version 5.3
+;; 2000 March 13
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -505,8 +505,13 @@
 (setq auto-save-interval 100)
 
 ;; keybindings...
+(keyboard-translate ?\C-h ?\C-?)
+(keyboard-translate ?\C-? ?\C-h)
+
 (global-unset-key "\362")		;M-r
 (global-unset-key "\361")		;M-q
+(global-unset-key [backspace])
+(global-unset-key [delete])
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
@@ -519,6 +524,9 @@
 (global-set-key "\362" 'revert-buffer)	;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
 (global-set-key "\361" 'my-reindent)	;M-q
+(global-set-key [backspace] 'delete-backward-char)
+(global-set-key [delete] 'delete-char)
+(global-set-key [67108927] 'help)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
@@ -532,4 +540,3 @@
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(setq debug-on-error nil)
-
