@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.19
-;; 2000 June 12
+;; version 6.0
+;; 2000 June 13
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -64,6 +64,7 @@
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'downcase-region 'disabled nil)
+(setq inhibit-startup-message t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Extra modes
@@ -142,7 +143,7 @@
     (setq comment-column 60)
     (auto-fill-mode)
     (setq fill-column 100)
-    (local-set-key "\C-c\C-r" 'region-remove-comment)))
+    (local-set-key "\C-c\C-w" 'c-wrap-conditional)))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -253,21 +254,6 @@
 ;;(if (eq system-type 'windows-nt)
 ;;    (progn
 ;;      (setq comint-process-echoes t)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Custom functions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;Scroll buffer without moving point 
-(defun scroll-down-line () 
-"Scroll one line down." 
-(interactive) 
-(scroll-down 1)) 
-
-(defun scroll-up-line () 
-"Scroll one line up." 
-(interactive) 
-(scroll-up 1)) 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Basic stuff)
@@ -415,6 +401,17 @@
 ;; My own functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;Scroll buffer without moving point 
+(defun scroll-down-line () 
+  "Scroll one line down." 
+  (interactive) 
+  (scroll-down 1)) 
+
+(defun scroll-up-line () 
+  "Scroll one line up." 
+  (interactive) 
+  (scroll-up 1)) 
+
 (defun my-reindent (FROM TO)
   "Refill the region as a paragraph and reindent."
   (interactive "r")
@@ -479,6 +476,41 @@ The R column contains a % for buffers that are read-only."
   "Removes comments from the beginning of lines within a region."
   (interactive "r")
   (comment-region from to -1))
+
+(defun c-wrap-conditional (from to string)
+  "Wraps the region with a preprocessor conditional."
+  (interactive "r\nMConditional (default #if): ")
+  (if (> (mark) (point))
+      (exchange-point-and-mark))
+  (insert "#endif" "\n")
+  (backward-char 7)
+  (exchange-point-and-mark)
+  (if (equal string "")
+      (setq string "#if "))
+  (insert string "\n")
+  (backward-char))
+
+(defun comment-line (&optional ARG)
+  "Comments the current line.
+With just C-u prefix arg, uncomment current line.
+Numeric prefix arg ARG means use ARG comment characters.
+If ARG is negative, delete that many comment characters instead."
+  (interactive "P")
+  (beginning-of-line)
+  (let ((start (point)))
+    (forward-line 1)
+  (comment-region start (point) ARG)))
+
+(defun my-delete (&optional arg)
+  "Deletes the region if the mark is active.  Otherwise runs delete-char."
+  (interactive "P")
+  (if mark-active
+      (delete-region (point) (mark))
+    (if (eq arg nil)
+        (delete-char 1 nil)             ;no prefix
+      (if (consp arg)
+          (delete-char 1 t)             ;null prefix
+        (delete-char arg t)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
@@ -582,6 +614,7 @@ The R column contains a % for buffers that are read-only."
 (global-unset-key "\C-xb")
 (global-unset-key "\C-x\C-b")
 (global-unset-key ";")
+(global-unset-key "\C-d")
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
@@ -598,6 +631,9 @@ The R column contains a % for buffers that are read-only."
 (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
+(global-set-key "\C-c\C-r" 'region-remove-comment)
+(global-set-key "\C-c\C-l" 'comment-line)
+(global-set-key "\C-d" 'my-delete)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
