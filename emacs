@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.4
-;; 2000 March 23
+;; version 5.5
+;; 2000 March 24
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -286,7 +286,7 @@
 
 ;; set up some colors
 (if (eq window-system nil)
-    ()
+    (menu-bar-mode 0)
   (progn
     (set-face-background 'modeline "MIDNIGHTBLUE")
     (set-face-foreground 'modeline "CYAN")
@@ -542,3 +542,4 @@
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(setq debug-on-error nil)
+
