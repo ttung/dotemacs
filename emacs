@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.17
-;; 2001 May 23
+;; version 7.18
+;; 2001 May 24
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -63,13 +63,15 @@ See require. Return non-nil if FEATURE is or was loaded."
                        '("\\.emt\\'" . text-mode) 
                        auto-mode-alist))
 
-(setq auto-mode-alist (cons 
-                       '("\\.c\\'" . c++-mode) 
-                       auto-mode-alist))
+(if (eq (string-match "crhc.uiuc.edu" system-name) nil)
+    (progn 
+      (setq auto-mode-alist (cons 
+                             '("\\.c\\'" . c++-mode) 
+                             auto-mode-alist))
 
-(setq auto-mode-alist (cons 
-                       '("\\.h\\'" . c++-mode) 
-                       auto-mode-alist))
+      (setq auto-mode-alist (cons 
+                             '("\\.h\\'" . c++-mode) 
+                             auto-mode-alist))))
 
 (setq auto-mode-alist (cons 
                        '("\\.sched" . text-tab5) 
@@ -185,6 +187,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
+(defconst allegro-c-style
+  '("whitesmith"
+    (c-offsets-alist . ((case-label . +)))) )
+
+(c-add-style "allegro-c-style" allegro-c-style)
+
 ;; set the indent correctly
 (defun my-c-mode-common-hook ()
   (progn
@@ -197,7 +205,9 @@ See require. Return non-nil if FEATURE is or was loaded."
     (local-set-key "\C-c\C-h" 'c-toggle-auto-hungry-state)
     (local-set-key "\C-c\C-t" 'c-insert-todo)
     (local-set-key "\C-c\C-f" 'c-insert-fixme)
-    (local-set-key "\C-c\C-m" 'man)))
+    (local-set-key "\C-c\C-m" 'man)
+    (if (not (eq (string-match "allegrosys.com" system-name) nil))
+        (c-set-style "allegro-c-style"))))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
