@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.22 2002/06/11 22:04:42 tonytung Exp $
+;; $Id: emacs,v 8.23 2002/06/11 23:36:38 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -101,7 +101,7 @@ See require. Return non-nil if FEATURE is or was loaded."
        (expand-file-name "~/emacs/elisp/psgml")
        load-path))
 
-(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.34) (locate-library "psgml"))
+(when (and (> emacs-version-num 19.34) (locate-library "psgml"))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
   (setq sgml-catalog-files '("~/emacs/etc/sgml/CATALOG" "CATALOG"))
   (setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
@@ -114,20 +114,8 @@ See require. Return non-nil if FEATURE is or was loaded."
                          '("\\.html" . html-mode) 
                          auto-mode-alist)))
 
-;; set up the verilog system
-(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.34) (locate-library "verilog-mode"))
-  (autoload 'verilog-mode "verilog-mode" "Verilog mode" t)
-  (setq auto-mode-alist (cons
-                         '("\\.v\\'" . verilog-mode) auto-mode-alist))
-  (add-hook 'verilog-mode-hook '(lambda () (font-lock-mode 1))))
-
-;; set up the VHDL system
-(when (and (not (boundp 'fast-load)) (> emacs-version-num 20.03) (locate-library "vhdl-mode"))
-  (autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
-  (setq auto-mode-alist (append '(("\\.vhdl?$" . vhdl-mode)) auto-mode-alist)))
-
 ;; set up generic modes, html-ize, and pc-buffer switch
-(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.28))
+(when (> emacs-version-num 19.28)
 ;;   (want 'generic-mode)
 ;;   (want 'generic-extras)
   (when window-system
@@ -135,7 +123,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (when (want 'pc-bufsw)
     (pc-bufsw::bind-keys [C-tab] [C-S-tab])))
 
-(when (and (not (boundp 'fast-load)) window-system)
+(when window-system
     (if (eq system-type 'windows-nt)
         (when (want 'gnuserv)
             (gnuserv-start))
@@ -259,10 +247,10 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-hook 'java-mode-hook 'my-java-mode-hook)
 
 ;; set up the font-lock system
-(cond ((and (not (boundp 'fast-load)) (fboundp 'global-font-lock-mode))
+(when (fboundp 'global-font-lock-mode)
        (global-font-lock-mode t)
        (setq font-lock-maximum-decoration t)
-       (setq font-lock-maximum-size nil)))
+       (setq font-lock-maximum-size nil))
 
 (setq-default indent-tabs-mode nil)
 (setq compilation-scroll-output t)
@@ -383,7 +371,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq standard-indent 2)
 
 ;; set up matching parentheses
-(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.30))
+(when (> emacs-version-num 19.30)
     (show-paren-mode 1))
 
 ;; set the scroll bar to the right side
@@ -529,7 +517,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq display-time-day-and-date t))
 ;;(setq display-time-mail-file t)
 (setq display-time-interval 30)
-(and (not (boundp 'fast-load)) (display-time))
+(display-time)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -889,7 +877,7 @@ it is put to the start of the list."
          (or (< last-access-hi last-modified-hi)
              (and (= last-access-hi last-modified-hi)
                   (< last-access-lo last-modified-lo))))))
-(and (not (boundp 'fast-load)) (display-time-update))
+(display-time-update)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -917,8 +905,6 @@ it is put to the start of the list."
 (global-set-key [f3] 'find-file)
 (global-set-key [f4] 'match-paren)
 (global-set-key [f5] 'insert-time)
-(when (boundp 'fast-load)
-  (global-set-key [f6] 'save-buffers-kill-emacs))
 (global-set-key [f7] 'grep)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
