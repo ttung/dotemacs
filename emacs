@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.3
-;; 2000 June 20
+;; version 6.4
+;; 2000 June 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -51,33 +51,33 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set up the paths for custom files
 (if (eq system-type 'windows-nt)
     (setq exec-path 
-	    (cons 
-	        (expand-file-name "~/emacs/bin") 
-		   exec-path)))
+          (cons 
+           (expand-file-name "~/emacs/bin") 
+           exec-path)))
 (setq load-path 
       (cons 
        (expand-file-name "~/emacs/elisp") 
        load-path))
 
 (setq auto-mode-alist (cons 
-		              '("\\.emt\\'" . text-mode) 
-			             auto-mode-alist))
+                       '("\\.emt\\'" . text-mode) 
+                       auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		              '("\\.c\\'" . c++-mode) 
-			             auto-mode-alist))
+                       '("\\.c\\'" . c++-mode) 
+                       auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		              '("\\.h\\'" . c++-mode) 
-			             auto-mode-alist))
+                       '("\\.h\\'" . c++-mode) 
+                       auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		              '("\\.y\\'" . c++-mode) 
-			             auto-mode-alist))
+                       '("\\.y\\'" . c++-mode) 
+                       auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		              '("\\.lex\\'" . c++-mode) 
-			             auto-mode-alist))
+                       '("\\.lex\\'" . c++-mode) 
+                       auto-mode-alist))
 
 (setq completion-ignored-extensions
       (append completion-ignored-extensions '(".ps" ".pdf")))
@@ -202,16 +202,16 @@ See require. Return non-nil if FEATURE is or was loaded."
       (autoload 'ispell-buffer "ispell4" 
 	"Check spelling of every word in the buffer" t)
       (setq ispell-command (expand-file-name "~/emacs/ispell/ispell.exe")
-	        ispell-look-dictionary (expand-file-name "~/emacs/ispell/ispell.words")
-		    ispell-look-command (expand-file-name "~/emacs/ispell/look.exe")
-		        ispell-command-options (list "-d" (expand-file-name "~/emacs/ispell/ispell.dict"))
-			    )))
+            ispell-look-dictionary (expand-file-name "~/emacs/ispell/ispell.words")
+            ispell-look-command (expand-file-name "~/emacs/ispell/look.exe")
+            ispell-command-options (list "-d" (expand-file-name "~/emacs/ispell/ispell.dict"))
+            )))
 
 ;; italic fonts
 (if (eq system-type 'windows-nt)
     (progn
-      (setq w32-enable-italics t); This must be done before font settings!
-      ; use interactive set-font-face followed by describe-face to determine this
+      (setq w32-enable-italics t)       ; This must be done before font settings!
+                                        ; use interactive set-font-face followed by describe-face to determine this
       (set-face-font 'italic "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
       (set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard")))
 
@@ -222,28 +222,28 @@ See require. Return non-nil if FEATURE is or was loaded."
 	"Patch vc-do-command to work under NT, so ediff-revision can work."
 	;; First, let's check for the case we want to patch:
 	(if (and (string= (ad-get-arg 2) "/bin/sh")
-		  (string= (ad-get-arg 5) "-c")
-		   (string-match (concat "^if \\[ x\"\\$1\" = x \\]; then shift; fi;[ \t]+"
-					        "umask [0-9]+; exec >\"\$1\" || exit;[ \t]+shift; "
-						       "umask 0; exec co \"\\$@\"") (ad-get-arg 6))
-		    (string= (ad-get-arg 7) ""))
-	        (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
-		          (ad-set-arg 5 "/c");; Convert "-c" to "/c"
-			     (ad-set-arg 6 nil);; Zap the /bin/sh script
-			        (ad-set-arg 7 "co");; Invoke the "co" command
-				   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
-				      ))
+                 (string= (ad-get-arg 5) "-c")
+                 (string-match (concat "^if \\[ x\"\\$1\" = x \\]; then shift; fi;[ \t]+"
+                                       "umask [0-9]+; exec >\"\$1\" || exit;[ \t]+shift; "
+                                       "umask 0; exec co \"\\$@\"") (ad-get-arg 6))
+                 (string= (ad-get-arg 7) ""))
+            (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
+                   (ad-set-arg 5 "/c");; Convert "-c" to "/c"
+                   (ad-set-arg 6 nil);; Zap the /bin/sh script
+                   (ad-set-arg 7 "co");; Invoke the "co" command
+                   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
+                   ))
 	;; next, let's check for the CVS case
 	(if (and (string= (ad-get-arg 2) "/bin/sh")
-		  (string= (ad-get-arg 5) "-c")
-		   (string-match "^exec" (ad-get-arg 6))
-		    (string= (ad-get-arg 7) ""))
-	        (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
-		          (ad-set-arg 5 "/c");; Convert "-c" to "/c"
-			     (ad-set-arg 6 nil);; Zap the /bin/sh script
-			        (ad-set-arg 7 "cvs update");; Invoke the "cvs" command
-				   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
-				      )))))
+                 (string= (ad-get-arg 5) "-c")
+                 (string-match "^exec" (ad-get-arg 6))
+                 (string= (ad-get-arg 7) ""))
+            (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
+                   (ad-set-arg 5 "/c");; Convert "-c" to "/c"
+                   (ad-set-arg 6 nil);; Zap the /bin/sh script
+                   (ad-set-arg 7 "cvs update");; Invoke the "cvs" command
+                   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
+                   )))))
 
 ;; set up the ange-ftp ftp program
 (if (eq system-type 'windows-nt)
@@ -254,13 +254,13 @@ See require. Return non-nil if FEATURE is or was loaded."
 (if (eq system-type 'windows-nt)
     (progn
       (setq ange-ftp-tmp-name-template 
-	        (concat 
-		      (expand-file-name (getenv "TEMP")) 
-		           "/ange-ftp"))
+            (concat 
+             (expand-file-name (getenv "TEMP")) 
+             "/ange-ftp"))
       (setq ange-ftp-gateway-tmp-name-template 
-	        (concat 
-		      (expand-file-name (getenv "TEMP")) 
-		           "/ange-ftp"))))
+            (concat 
+             (expand-file-name (getenv "TEMP")) 
+             "/ange-ftp"))))
   
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -332,40 +332,40 @@ See require. Return non-nil if FEATURE is or was loaded."
     (set-background-color "BLACK")
     (if (> emacs-version-num 19.34)
 	(progn
-	    ;; (set-face-background 'bold "BLACK")
-	    ;; (set-face-foreground 'bold "WHITE")
-	    ;; (set-face-background 'bold-italic "BLACK")
-	    ;; (set-face-foreground 'bold-italic "WHITE")
-	    ;; (set-face-background 'highlight "DARKSEAGREEN2")
-	    ;; (set-face-foreground 'highlight "WHITE")
-	    ;; (set-face-background 'italic "BLACK")
-	    ;; (set-face-foreground 'italic "WHITE")
-	    ;; (set-face-background 'secondary-selection "PALETURQUOISE")
-	    ;; (set-face-foreground 'secondary-selection "WHITE")
-	    ;; (set-face-background 'underline "BLACK")
-	    ;; (set-face-foreground 'underline "WHITE") 
-	    (set-face-background 'show-paren-match-face "NAVY")
-	      (set-face-foreground 'show-paren-match-face "CYAN")
-	        (set-face-background 'show-paren-mismatch-face "PURPLE")
-		  (set-face-foreground 'show-paren-mismatch-face "WHITE")
-		    (set-face-background 'font-lock-builtin-face "BLACK")
-		      (set-face-foreground 'font-lock-builtin-face "VIOLET")
+          ;; (set-face-background 'bold "BLACK")
+          ;; (set-face-foreground 'bold "WHITE")
+          ;; (set-face-background 'bold-italic "BLACK")
+          ;; (set-face-foreground 'bold-italic "WHITE")
+          ;; (set-face-background 'highlight "DARKSEAGREEN2")
+          ;; (set-face-foreground 'highlight "WHITE")
+          ;; (set-face-background 'italic "BLACK")
+          ;; (set-face-foreground 'italic "WHITE")
+          ;; (set-face-background 'secondary-selection "PALETURQUOISE")
+          ;; (set-face-foreground 'secondary-selection "WHITE")
+          ;; (set-face-background 'underline "BLACK")
+          ;; (set-face-foreground 'underline "WHITE") 
+          (set-face-background 'show-paren-match-face "NAVY")
+          (set-face-foreground 'show-paren-match-face "CYAN")
+          (set-face-background 'show-paren-mismatch-face "PURPLE")
+          (set-face-foreground 'show-paren-mismatch-face "WHITE")
+          (set-face-background 'font-lock-builtin-face "BLACK")
+          (set-face-foreground 'font-lock-builtin-face "VIOLET")
           (set-face-background 'font-lock-comment-face "BLACK")
           (set-face-foreground 'font-lock-comment-face "RED2")
-	    (set-face-background 'font-lock-constant-face "BLACK")
-	      (set-face-foreground 'font-lock-constant-face "CADETBLUE")
-	        (set-face-background 'font-lock-function-name-face "BLACK")
-		  (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
-		    (set-face-background 'font-lock-keyword-face "BLACK")
-		      (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
-		        (set-face-background 'font-lock-string-face "BLACK")
-			  (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
-			    (set-face-background 'font-lock-type-face "BLACK")
-			      (set-face-foreground 'font-lock-type-face "PALEGREEN")
-			        (set-face-background 'font-lock-variable-name-face "BLACK")
-				  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
-				    (set-face-background 'font-lock-warning-face "BLACK")
-				      (set-face-foreground 'font-lock-warning-face "RED") ))))
+          (set-face-background 'font-lock-constant-face "BLACK")
+          (set-face-foreground 'font-lock-constant-face "CADETBLUE")
+          (set-face-background 'font-lock-function-name-face "BLACK")
+          (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
+          (set-face-background 'font-lock-keyword-face "BLACK")
+          (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
+          (set-face-background 'font-lock-string-face "BLACK")
+          (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
+          (set-face-background 'font-lock-type-face "BLACK")
+          (set-face-foreground 'font-lock-type-face "PALEGREEN")
+          (set-face-background 'font-lock-variable-name-face "BLACK")
+          (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
+          (set-face-background 'font-lock-warning-face "BLACK")
+          (set-face-foreground 'font-lock-warning-face "RED") ))))
 
 ;; set up the font menu
 (setq
@@ -428,9 +428,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 (if (> emacs-version-num 19.28)
     (progn
       (setq frame-title-format
-	        (concat invocation-name "@" system-name " - %f"))
+            (concat invocation-name "@" system-name " - %f"))
       (setq icon-title-format
-	        (concat invocation-name "@" system-name " - %b"))))
+            (concat invocation-name "@" system-name " - %b"))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -461,7 +461,7 @@ See require. Return non-nil if FEATURE is or was loaded."
       (or (bolp) (forward-line 1))
       (while (< (point) TO)
 	(or (and (bolp) (eolp))
-	        (funcall indent-line-function))
+            (funcall indent-line-function))
 	(forward-line 1))
       (move-marker TO nil))))
 
@@ -469,21 +469,21 @@ See require. Return non-nil if FEATURE is or was loaded."
   "Insert the current time."
   (interactive)
   (let ((time-string (format-time-string "%a %b %d %H:%M:%S %Z %Y")))
-      (insert "\n")
-      (insert 
-       (make-string 
-	(length time-string)
-	?-))
-      (insert "\n")
-      (insert time-string)
-      (insert "\n")
-      (insert 
-       (make-string 
-	(length time-string)
-	?-))
-      (insert "\n\n")))
+    (insert "\n")
+    (insert 
+     (make-string 
+      (length time-string)
+      ?-))
+    (insert "\n")
+    (insert time-string)
+    (insert "\n")
+    (insert 
+     (make-string 
+      (length time-string)
+      ?-))
+    (insert "\n\n")))
 
-;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
+                                        ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
 (defun my-list-buffers ()
   "Display a list of names of existing buffers and sets the active
@@ -535,7 +535,7 @@ If ARG is negative, delete that many comment characters instead."
   (beginning-of-line)
   (let ((start (point)))
     (forward-line 1)
-  (comment-region start (point) ARG)))
+    (comment-region start (point) ARG)))
 
 (defun my-delete (&optional arg)
   "Deletes the region if the mark is active.  Otherwise runs delete-char."
@@ -573,9 +573,9 @@ If ARG is negative, delete that many comment characters instead."
   (interactive)
   (if s-remove-first-completion
       (progn (setq s-remove-first-completion nil)
-	          (if (consp minibuffer-completion-table)
-		       (setq  minibuffer-completion-table 
-			      (cdr minibuffer-completion-table)) ()))
+             (if (consp minibuffer-completion-table)
+                 (setq  minibuffer-completion-table 
+                        (cdr minibuffer-completion-table)) ()))
     ())
   (minibuffer-complete))
 
@@ -584,21 +584,21 @@ If ARG is negative, delete that many comment characters instead."
   (interactive)
   (if s-remove-first-completion
       (progn (setq s-remove-first-completion nil)
-	          (if (consp minibuffer-completion-table)
-		       (setq  minibuffer-completion-table 
-			      (cdr minibuffer-completion-table)) ()))
+             (if (consp minibuffer-completion-table)
+                 (setq  minibuffer-completion-table 
+                        (cdr minibuffer-completion-table)) ()))
     ())
   (minibuffer-complete-word)
-)
+  )
 
 (defun s-minibuffer-complete-and-exit ()
   "A shell around minibuffer-complete-and-exit which removes the name of the current buffer from the buffer completion list.  The default behaviour doesn't make sense since there is no reason to ask to switch to the buffer you are already in!"
   (interactive)
   (if s-remove-first-completion
       (progn (setq s-remove-first-completion nil)
-	          (if (consp minibuffer-completion-table)
-		       (setq  minibuffer-completion-table 
-			      (cdr minibuffer-completion-table)) ()))
+             (if (consp minibuffer-completion-table)
+                 (setq  minibuffer-completion-table 
+                        (cdr minibuffer-completion-table)) ()))
     ())
   (minibuffer-complete-and-exit))
 
@@ -627,6 +627,18 @@ If ARG is negative, delete that many comment characters instead."
         ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
         (t (self-insert-command (or arg 1)))))
 
+(defun my-shrink-window (arg &optional side)
+  (interactive "p")
+  (if (and (> (count-windows) 1)
+   (> (window-height (selected-window)) 4))
+      (shrink-window arg side)))
+
+(defun my-enlarge-window (arg &optional side)
+  (interactive "p")
+  (if (and (> (count-windows) 1)
+   (> (window-height (next-window (selected-window))) 4))
+      (enlarge-window arg side)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
@@ -647,8 +659,8 @@ If ARG is negative, delete that many comment characters instead."
       (global-set-key [delete] 'delete-char)
       (global-set-key [67108927] 'help)))
 
-(global-unset-key "\362");M-r
-(global-unset-key "\361");M-q
+(global-unset-key "\362")               ;M-r
+(global-unset-key "\361")               ;M-q
 (global-unset-key "\C-xb")
 (global-unset-key "\C-x\C-b")
 (global-unset-key ";")
@@ -666,19 +678,20 @@ If ARG is negative, delete that many comment characters instead."
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
-(global-set-key [f4] 'find-file-binary)
+(global-set-key [f4] 'match-paren)
 (global-set-key [f5] 'insert-time)
-(global-set-key [f6] 'match-paren)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
+(global-set-key [f11] 'my-shrink-window)
+(global-set-key [f12] 'my-enlarge-window)
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
 (global-set-key [C-f4] 'kill-buffer)
 (global-set-key [M-f5] 'delete-frame)
 (global-set-key [C-f5] 'make-frame-command)
-(global-set-key "\356" 'goto-line);M-n
-(global-set-key "\362" 'revert-buffer);M-r
+(global-set-key "\356" 'goto-line)      ;M-n
+(global-set-key "\362" 'revert-buffer)  ;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
-(global-set-key "\361" 'my-reindent);M-q
+(global-set-key "\361" 'my-reindent)    ;M-q
 (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
