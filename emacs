@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.1
+;; version 5.2
 ;; 2000 March 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -168,6 +168,7 @@
 (if (eq system-type 'windows-nt)
     (progn
       (setq w32-enable-italics t)	; This must be done before font settings!
+      ; use interactive set-font-face followed by describe-face to determine this
       (set-face-font 'italic "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
       (set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard")))
 
