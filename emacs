@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.16
-;; 2002 January 2
+;; version 8.17
+;; 2002 March 15
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -89,6 +89,10 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (setq auto-mode-alist (cons 
                        '("\\.sched" . text-tab5) 
+                       auto-mode-alist))
+
+(setq auto-mode-alist (cons 
+                       '("\\.crontab" . text-tab5) 
                        auto-mode-alist))
 
 (setq auto-mode-alist (cons 
@@ -275,8 +279,15 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq-default indent-tabs-mode nil)
 (setq compilation-scroll-output t)
 
+;; shell mode stuff
+(defun my-shell-mode-hook ()
+  (setq comint-scroll-show-maximum-output t))
+(add-hook 'shell-mode-hook 'my-shell-mode-hook)
+
 (add-hook 'comint-output-filter-functions
           'comint-watch-for-password-prompt)
+(add-hook 'comint-output-filter-functions
+          'comint-postoutput-scroll-to-bottom)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -348,14 +359,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; command-line shell - remove the ^M
 (unless (eq system-type 'windows-nt)
-  (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)
-  (when (and (>= emacs-version-num 21) window-system)
-    ;; set the default font
-    (if (string-match "cisco.com" system-name)
-        (add-to-list 'default-frame-alist 
-                     '(font . "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1"))
-        (add-to-list 'default-frame-alist 
-                     '(font . "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))))
+  (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
