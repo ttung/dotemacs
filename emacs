@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.19
-;; 2001 May 24
+;; version 7.20
+;; 2001 May 29
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -865,7 +865,8 @@ it is put to the start of the list."
 (setq auto-save-interval 250)
 
 ;; keybindings...
-(if (eq window-system nil)
+(if (and (eq window-system nil)
+         (eq (string-match "allegrosys.com" system-name) nil))
     (progn
       (keyboard-translate ?\C-h ?\C-?)
       (keyboard-translate ?\C-? ?\C-h)
@@ -874,6 +875,7 @@ it is put to the start of the list."
       (global-set-key [backspace] 'delete-backward-char)
       (global-set-key [delete] 'delete-char)
       (global-set-key [67108927] 'help)))
+
 
 (global-unset-key "\362")               ;M-r
 (global-unset-key "\361")               ;M-q
@@ -931,3 +933,5 @@ it is put to the start of the list."
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(setq debug-on-error nil)
+
+        (autoload 'cscope-bind-keys "cscope" nil t)
