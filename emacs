@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.27 2002/09/13 00:50:59 tonytung Exp $
+;; $Id: emacs,v 8.28 2002/09/13 22:38:21 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -264,6 +264,8 @@ See require. Return non-nil if FEATURE is or was loaded."
          'comint-watch-for-password-prompt)
 (add-hook 'comint-output-filter-functions
          'comint-postoutput-scroll-to-bottom)
+
+(setq vc-follow-symlinks t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -533,10 +535,10 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; date related stuff
 (when window-system
-  (setq display-time-day-and-date t))
+  (setq display-time-day-and-date t)
 ;;(setq display-time-mail-file t)
-(setq display-time-interval 30)
-(display-time)
+  (setq display-time-interval 30)
+  (display-time))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -884,19 +886,20 @@ it is put to the start of the list."
 	     )))))
 
 ;; hack so that the "Mail" in the modeline shows only when the file was modified more recently than it was accessed
-(defun display-time-file-nonempty-p (file)
-  (and (file-exists-p file)
-       (let* ((fa (file-attributes (file-chase-links file)))
-              (last-access (nth 4 fa))
-              (last-modified (nth 5 fa))
-              (last-access-hi (nth 0 last-access))
-              (last-access-lo (nth 1 last-access))
-              (last-modified-hi (nth 0 last-modified))
-              (last-modified-lo (nth 1 last-modified)))
-         (or (< last-access-hi last-modified-hi)
-             (and (= last-access-hi last-modified-hi)
-                  (< last-access-lo last-modified-lo))))))
-(display-time-update)
+(when window-system
+  (defun display-time-file-nonempty-p (file)
+    (and (file-exists-p file)
+         (let* ((fa (file-attributes (file-chase-links file)))
+                (last-access (nth 4 fa))
+                (last-modified (nth 5 fa))
+                (last-access-hi (nth 0 last-access))
+                (last-access-lo (nth 1 last-access))
+                (last-modified-hi (nth 0 last-modified))
+                (last-modified-lo (nth 1 last-modified)))
+           (or (< last-access-hi last-modified-hi)
+               (and (= last-access-hi last-modified-hi)
+                    (< last-access-lo last-modified-lo))))))
+  (display-time-update))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -914,6 +917,8 @@ it is put to the start of the list."
       (global-set-key [insertchar] 'overwrite-mode))
   (if (> emacs-version-num 21)
       (normal-erase-is-backspace-mode)))
+
+(define-key function-key-map [delete] [deletechar])
 
 (global-set-key "\C-f" 'forward-word)
 (global-set-key "\C-b" 'backward-word)
