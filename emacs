@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.11
+;; version 8.12
 ;; 2001 November 20
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -221,6 +221,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-cleanup-list                 . (scope-operator brace-else-brace)))
   "cisco c-style for cc-mode")
 
+;; c-mode customizations that load c-mode and font-lock mode (and should be delayed)
 (defun add-my-c-customizations ()
   (defvar my-c-customizations-done t "Flag to indicate that my C styles have been added")
   (c-add-style "cisco-c-style" cisco-c-style)
@@ -243,7 +244,7 @@ See require. Return non-nil if FEATURE is or was loaded."
    'c++-mode
    '(("\\<\\(TODO\\):" 1 font-lock-warning-face t))))
 
-;; set the indent correctly
+;; c-mode customizations that don't load c-mode nor font-lock mode
 (defun my-c-mode-common-hook ()
   (setq c-basic-offset 2)
   (setq comment-column 60)
@@ -265,8 +266,14 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
-;; set up the font-lock system
+;; set the indent key correctly
+(defun my-lisp-mode-hook ()
+  (local-set-key "\361" 'indent-region))
 
+;; set hooks
+(add-hook 'lisp-mode-hook 'my-lisp-mode-hook)
+
+;; set up the font-lock system
 (cond ((and (not (boundp 'fast-load)) (fboundp 'global-font-lock-mode))
        (global-font-lock-mode t)
        (setq font-lock-maximum-decoration t)
