@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 4.2
-;; 2000 February 16
+;; version 4.3
+;; 2000 February 21
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -352,7 +352,7 @@
 (setq default-frame-alist
       '((foreground-color  . "white")
 	(background-color  . "black")
-	(cursor-color      . "red")
+	(cursor-color      . "green")
 	(menu-bar-lines    . 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
