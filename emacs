@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.19
-;; 2002 April 19
+;; version 8.20
+;; 2002 June 11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -69,35 +69,19 @@ See require. Return non-nil if FEATURE is or was loaded."
        (expand-file-name "~/emacs/elisp") 
        load-path))
 
-(setq auto-mode-alist (cons 
-                       '("\\.emt\\'" . text-mode) 
-                       auto-mode-alist))
-
 (when (eq (string-match "crhc.uiuc.edu" system-name) nil)
-      (setq auto-mode-alist (cons 
-                             '("\\.c\\'" . c++-mode) 
-                             auto-mode-alist))
+      (setq auto-mode-alist 
+            (append '(("\\.c\\'" . c++-mode)
+                      ("\\.h\\'" . c++-mode))
+                    auto-mode-alist)))
 
-      (setq auto-mode-alist (cons 
-                             '("\\.h\\'" . c++-mode) 
-                             auto-mode-alist)))
-
-(when (string-match "cisco.com" system-name)
-  (setq auto-mode-alist (cons 
-			 '("\\.sx\\'" . asm-mode) 
-			 auto-mode-alist)))
-
-(setq auto-mode-alist (cons 
-                       '("\\.sched" . text-tab6) 
-                       auto-mode-alist))
-
-(setq auto-mode-alist (cons 
-                       '("\\.crontab" . text-tab6) 
-                       auto-mode-alist))
-
-(setq auto-mode-alist (cons 
-                       '("cshrc" . shell-script-mode) 
-                       auto-mode-alist))
+(setq auto-mode-alist 
+      (append '(("\\.emt\\'" . text-mode)
+                ("\\.sched" . text-tab5)
+                ("\\.crontab" . text-tab5)
+                ("\\.procmailrc" . text-tab5)
+                ("cshrc" . shell-script-mode))
+              auto-mode-alist))
 
 (setq completion-ignored-extensions
       (append completion-ignored-extensions '(".ps" ".pdf" ".gz")))
@@ -172,6 +156,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq default-major-mode 'text-mode)
+(setq truncate-partial-width-windows nil)
 
 (defun my-text-mode-hook ()
   (auto-fill-mode)
@@ -188,29 +173,29 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; cisco cc-mode settings 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar cisco-c-style
-  '((tab-width                      . 4)
-    (c-basic-offset                 . 4) 
-    (c-block-comments-indent-p      . t)
-    (c-comment-only-line-offset     . 0)
-    (c-echo-syntactic-information-p . nil)
-    (c-hanging-comment-starter-p    . nil)
-    (c-comment-continuation-stars   . "* ")
-    (c-hanging-comment-ender-p      . nil)
-    (c-recognize-knr-p              . t) ; use nil if only have ANSI prototyp
-    (c-tab-always-indent            . t)
-    (comment-column                 . 36)
-    (comment-end                    . " */")
-    (comment-multi-line             . t)
-    (c-block-comments-indent-p      . nil)
-    (comment-start                  . "/* ")
-    (c-offsets-alist                . ((knr-argdecl-intro   . +)
-                                       (case-label          . 0)
-                                       (knr-argdecl         . 0)
-                                       (label               . 0)
-                                       (statement-case-open . +)
-                                       (statement-cont      . +)
-                                       (substatement-open   . 0)))
-    (c-cleanup-list                 . (scope-operator brace-else-brace)))
+  '((tab-width				. 4)
+    (c-basic-offset			. 4) 
+    (c-block-comments-indent-p		. t)
+    (c-comment-only-line-offset		. 0)
+    (c-echo-syntactic-information-p	. nil)
+    (c-hanging-comment-starter-p	. nil)
+    (c-comment-continuation-stars	. "* ")
+    (c-hanging-comment-ender-p		. nil)
+    (c-recognize-knr-p			. t) ; use nil if only have ANSI prototyp
+    (c-tab-always-indent		. t)
+    (comment-column			. 36)
+    (comment-end			. " */")
+    (comment-multi-line			. t)
+    (c-block-comments-indent-p		. nil)
+    (comment-start			. "/* ")
+    (c-offsets-alist			. ((knr-argdecl-intro   . +)
+                                           (case-label          . 0)
+                                           (knr-argdecl         . 0)
+                                           (label               . 0)
+                                           (statement-case-open . +)
+                                           (statement-cont      . +)
+                                           (substatement-open   . 0)))
+    (c-cleanup-list			. (scope-operator brace-else-brace)))
   "cisco c-style for cc-mode")
 
 (defvar my-c-style
@@ -294,9 +279,6 @@ See require. Return non-nil if FEATURE is or was loaded."
          'comint-watch-for-password-prompt)
 (add-hook 'comint-output-filter-functions
          'comint-postoutput-scroll-to-bottom)
-
-;; minibuffer completion
-(define-key minibuffer-local-map "\t" 'comint-dynamic-complete)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -754,9 +736,11 @@ If ARG is negative, delete that many comment characters instead."
 (unless window-system
   (setq mode-line-frame-identification '("  ")))
 
-(defun text-tab6 ()
-  (setq tab-width 6)
-  (auto-fill-mode))
+(defun text-tab5 ()
+  (interactive)
+  (setq tab-width 5)
+  (auto-fill-mode)
+  (local-set-key "	" (quote self-insert-command)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -950,6 +934,7 @@ it is put to the start of the list."
 (global-set-key [f5] 'insert-time)
 (when (boundp 'fast-load)
   (global-set-key [f6] 'save-buffers-kill-emacs))
+(global-set-key [f7] 'grep)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
 (global-set-key [S-f9] 'previous-error)
@@ -976,6 +961,10 @@ it is put to the start of the list."
 
 (global-set-key [home] 'beginning-of-buffer)
 (global-set-key [end] 'end-of-buffer)
+
+(when (locate-library "eshell")
+  (global-set-key "!" 'eshell-command)
+  (setq eshell-prefer-to-shell t))
 
 ;; To get binding command, do this: First bind the key interactively, 
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
