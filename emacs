@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.12
-;; 2000 June 2
+;; version 5.13
+;; 2000 June 5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -561,7 +561,7 @@ The R column contains a % for buffers that are read-only."
 
 (global-unset-key "\362")		;M-r
 (global-unset-key "\361")		;M-q
-(global-unset-key "\C-x \C-b")
+(global-unset-key "\C-x\C-b")
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
@@ -575,7 +575,7 @@ The R column contains a % for buffers that are read-only."
 (global-set-key "\362" 'revert-buffer)	;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
 (global-set-key "\361" 'my-reindent)	;M-q
-(global-set-key "\C-x \C-b" 'my-list-buffers)
+(global-set-key "\C-x\C-b" 'my-list-buffers)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
