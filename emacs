@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.28 2002/09/13 22:38:21 tonytung Exp $
+;; $Id: emacs,v 8.29 2002/10/30 02:18:21 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -147,7 +147,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defun my-text-mode-hook ()
   (auto-fill-mode)
-  (setq fill-column 74))
+  (setq fill-column 74)
+  (setq indent-tabs-mode 't))
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
@@ -201,6 +202,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq comment-column 60)
   (auto-fill-mode)
   (setq fill-column 100)
+  (abbrev-mode -1)
   (local-set-key "\C-c\C-w" 'c-wrap-conditional)
   (local-set-key "\C-d" 'my-delete)
   (when (not (fboundp 'my-c-mode-common-hook-done))
@@ -704,10 +706,15 @@ If ARG is negative, delete that many comment characters instead."
         (setq cntr (+ 1 cntr)))
       retval))
     
-  (defun get-unique-tag (bfn bn)
-    (if (or (string-match "<[0-9]+>\\'" bn)
-            (not (string= bn (file-name-nondirectory bfn))))
-        (substring bn (match-beginning 0))))
+  (if (eq system-type 'windows-nt)
+      (defun get-unique-tag (bfn bn)
+        (if (or (string-match "<[0-9]+>\\'" bn)
+                (not (compare-strings bn 0 nil (file-name-nondirectory bfn) 0 nil 't)))
+            (substring bn (match-beginning 0))))
+      (defun get-unique-tag (bfn bn)
+        (if (or (string-match "<[0-9]+>\\'" bn)
+                (not (string= bn (file-name-nondirectory bfn))))
+            (substring bn (match-beginning 0)))))
 
   (let ((shortened-file-name 
          (limit-tree (abbreviate-file-name buffer-file-name) 1))
