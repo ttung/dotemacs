@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.12
-;; 2000 July 4
+;; version 6.14
+;; 2000 July 5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -566,7 +566,9 @@ If ARG is negative, delete that many comment characters instead."
 (defun previous-error (&optional arg)
   "Similar to next-error, except it visits the previous compilation error."
   (interactive "P")
-  (next-error (- arg)))
+  (if (eq arg nil)
+      (next-error -1)
+    (next-error (- arg))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -758,9 +760,9 @@ it is put to the start of the list."
 (global-set-key [f3] 'find-file)
 (global-set-key [f4] 'match-paren)
 (global-set-key [f5] 'insert-time)
-(global-set-key [f7] 'previous-error)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
+(global-set-key [S-f9] 'previous-error)
 (global-set-key [f11] 'my-shrink-window)
 (global-set-key [f12] 'my-enlarge-window)
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
