@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.24
-;; 2001 July 27
+;; version 7.25
+;; 2001 July 31
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -73,6 +73,11 @@ See require. Return non-nil if FEATURE is or was loaded."
       (setq auto-mode-alist (cons 
                              '("\\.h\\'" . c++-mode) 
                              auto-mode-alist))))
+
+(if (not (eq (string-match "allegrosys.com" system-name) nil))
+    (setq auto-mode-alist (cons 
+                           '("\\.sx\\'" . asm-mode) 
+                           auto-mode-alist)))
 
 (setq auto-mode-alist (cons 
                        '("\\.sched" . text-tab5) 
@@ -190,6 +195,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defconst allegro-c-style
   '("whitesmith"
+    (c-comment-only-line-offset 0 . 0)
     (c-offsets-alist . ((case-label . +)))) )
 
 (c-add-style "allegro-c-style" allegro-c-style)
