@@ -159,7 +159,9 @@ See require. Return non-nil if FEATURE is or was loaded."
       (server-start)))
 
 (if (want 'iswitchb)
-    (iswitchb-default-keybindings)
+    (progn
+      (iswitchb-default-keybindings)
+      (setq iswitchb-default-method 'samewindow)) ;always go to the same window
   (global-unset-key "\C-xb")
   (global-set-key "\C-xb" 's-switch-to-buffer))
 
@@ -648,6 +650,64 @@ If ARG is negative, delete that many comment characters instead."
   (if (and (> (count-windows) 1)
    (> (window-height (next-window (selected-window))) 4))
       (enlarge-window arg side)))
+
+;; stolen from iswitchb.el
+(defun iswitchb-make-buflist (&optional default)
+  "Set `iswitchb-buflist' to the current list of buffers.
+Currently visible buffers are put at the end of the list.
+The hook `iswitchb-make-buflist-hook' is run after the list has been 
+created to allow the user to further modify the order of the buffer names
+in this list.  If DEFAULT is non-nil, and corresponds to an existing buffer,
+it is put to the start of the list."
+  (setq iswitchb-buflist 
+        (let* ((iswitchb-current-buffers (list (buffer-name)))
+               (iswitchb-temp-buflist
+                (delq nil 
+                      (mapcar
+                       (lambda (x)
+                         (let ((b-name (buffer-name x)))
+                           (if (not 
+                                (or 
+                                 (iswitchb-ignore-buffername-p b-name)
+                                 (memq b-name iswitchb-current-buffers)))
+                               b-name)))
+                       (buffer-list)))))
+          (nconc iswitchb-temp-buflist iswitchb-current-buffers)
+          (run-hooks 'iswitchb-make-buflist-hook)
+          ;; Should this be after the hooks, or should the hooks be the
+          ;; final thing to be run?
+          (if default
+              (progn
+                (setq iswitchb-temp-buflist 
+                      (delete default iswitchb-temp-buflist))
+                (setq iswitchb-temp-buflist 
+                      (cons default iswitchb-temp-buflist))))
+          iswitchb-temp-buflist)))
+
+(defun iswitchb-complete ()
+  "Try and complete the current pattern amongst the buffer names."
+  (interactive)
+  (let (res)
+    (cond ((not  iswitchb-matches)
+           (iswitchb-completion-help))
+            
+;            ((= 1 (length iswitchb-matches))
+;                ;; only one choice, so select it.
+;                (exit-minibuffer))
+              
+          (t
+           ;; else there could be some completions
+           (setq res iswitchb-common-match-string)
+           (if (and (not (memq res '(t nil)))
+                    (not (equal res iswitchb-text)))
+               ;; found something to complete, so put it in the minibuffer.
+               (progn
+                 (setq iswitchb-rescan nil)
+                 (delete-region (point-min) (point))
+                 (insert  res))
+             ;; else nothing to complete
+             (iswitchb-completion-help)
+             )))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
