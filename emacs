@@ -375,6 +375,7 @@
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
 (global-set-key "\356" 'goto-line)	;M-n
 (global-set-key "\362" 'revert-buffer)	;M-r
+(global-set-key "\221" 'fill-region-as-paragraph) ;C-M-q
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
