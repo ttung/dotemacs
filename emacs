@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.24
-;; 2000 September 6
+;; version 6.25
+;; 2000 September 19
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -345,8 +345,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; show marked area
 (transient-mark-mode t)
 
-;; scroll step
+;; scroll
 (setq scroll-step 1)
+(setq scroll-conservatively 1)
 
 (setq next-line-add-newlines nil)
 (setq require-final-newline 'ask)
