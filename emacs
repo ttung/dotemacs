@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.14
-;; 2001 December 17
+;; version 8.15
+;; 2002 January 2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -114,7 +114,7 @@ See require. Return non-nil if FEATURE is or was loaded."
        (expand-file-name "~/emacs/elisp/psgml")
        load-path))
 
-(when (and (not (boundp 'fast-load)) (want 'psgml))
+(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.34) (locate-library "psgml"))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
   (setq sgml-catalog-files '("~/emacs/etc/sgml/CATALOG" "CATALOG"))
   (setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
@@ -128,21 +128,21 @@ See require. Return non-nil if FEATURE is or was loaded."
                          auto-mode-alist)))
 
 ;; set up the verilog system
-(when (and (not (boundp 'fast-load)) (want 'verilog-mode))
+(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.34) (locate-library "verilog-mode"))
   (autoload 'verilog-mode "verilog-mode" "Verilog mode" t)
   (setq auto-mode-alist (cons
                          '("\\.v\\'" . verilog-mode) auto-mode-alist))
   (add-hook 'verilog-mode-hook '(lambda () (font-lock-mode 1))))
 
 ;; set up the VHDL system
-(when (and (not (boundp 'fast-load)) (> emacs-version-num 20.03) (want 'vhdl-mode))
+(when (and (not (boundp 'fast-load)) (> emacs-version-num 20.03) (locate-library "vhdl-mode"))
   (autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
   (setq auto-mode-alist (append '(("\\.vhdl?$" . vhdl-mode)) auto-mode-alist)))
 
 ;; set up generic modes, html-ize, and pc-buffer switch
 (when (and (not (boundp 'fast-load)) (> emacs-version-num 19.28))
-  (want 'generic-mode)
-  (want 'generic-extras)
+;;  (want 'generic-mode)
+;;  (want 'generic-extras)
   (when window-system
     (want 'htmlize))
   (when (want 'pc-bufsw)
@@ -412,7 +412,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (when (and window-system (>= emacs-version-num 21))
   (blink-cursor-mode -1)
-  (tool-bar-mode -1)
+;;  (tool-bar-mode -1)
   (add-to-list 'default-frame-alist '(tool-bar-lines . 0)))
 
 
@@ -435,6 +435,18 @@ See require. Return non-nil if FEATURE is or was loaded."
   (set-face-foreground 'region "CYAN")
   (set-foreground-color "WHITE")
   (set-background-color "BLACK")
+  (set-face-background 'font-lock-comment-face "BLACK")
+  (set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
+  (set-face-background 'font-lock-function-name-face "BLACK")
+  (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
+  (set-face-background 'font-lock-keyword-face "BLACK")
+  (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
+  (set-face-background 'font-lock-string-face "BLACK")
+  (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
+  (set-face-background 'font-lock-type-face "BLACK")
+  (set-face-foreground 'font-lock-type-face "PALEGREEN")
+  (set-face-background 'font-lock-variable-name-face "BLACK")
+  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
   (when (> emacs-version-num 19.34)
     ;; (set-face-background 'bold "BLACK")
     ;; (set-face-foreground 'bold "WHITE")
@@ -454,18 +466,6 @@ See require. Return non-nil if FEATURE is or was loaded."
     (set-face-foreground 'show-paren-mismatch-face "WHITE")
     (set-face-background 'font-lock-builtin-face "BLACK")
     (set-face-foreground 'font-lock-builtin-face "VIOLET")
-    (set-face-background 'font-lock-comment-face "BLACK")
-    (set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
-    (set-face-background 'font-lock-function-name-face "BLACK")
-    (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
-    (set-face-background 'font-lock-keyword-face "BLACK")
-    (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
-    (set-face-background 'font-lock-string-face "BLACK")
-    (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
-    (set-face-background 'font-lock-type-face "BLACK")
-    (set-face-foreground 'font-lock-type-face "PALEGREEN")
-    (set-face-background 'font-lock-variable-name-face "BLACK")
-    (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
     (set-face-background 'font-lock-warning-face "BLACK")
     (set-face-foreground 'font-lock-warning-face "RED") )
   (if (< emacs-version-num 20.02)
