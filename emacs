@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.8
+;; version 6.9
 ;; 2000 June 30
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -560,6 +560,11 @@ If ARG is negative, delete that many comment characters instead."
           (delete-char 1 t)             ;null prefix
         (delete-char arg t)))))
 
+(defun previous-error (&optional arg)
+  "Similar to next-error, except it visits the previous compilation error."
+  (interactive "P")
+  (next-error (- arg)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
@@ -750,6 +755,7 @@ it is put to the start of the list."
 (global-set-key [f3] 'find-file)
 (global-set-key [f4] 'match-paren)
 (global-set-key [f5] 'insert-time)
+(global-set-key [f7] 'previous-error)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
 (global-set-key [f11] 'my-shrink-window)
