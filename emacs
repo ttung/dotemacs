@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.9
+;; version 8.10
 ;; 2001 November 13
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -226,6 +226,12 @@ See require. Return non-nil if FEATURE is or was loaded."
   (c-add-style "cisco-c-style" cisco-c-style)
   (font-lock-add-keywords
    'c-mode
+   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)))
+  (font-lock-add-keywords
+   'c++-mode
+   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)))
+  (font-lock-add-keywords
+   'c-mode
    '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
   (font-lock-add-keywords
    'c++-mode
@@ -340,11 +346,15 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; command-line shell - remove the ^M
-;; and set the default font to 
 (unless (eq system-type 'windows-nt)
   (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)
   (when (and (>= emacs-version-num 21) window-system)
-    (set-default-font "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
+    ;; set the default font
+    (if (string-match "cisco.com" system-name)
+        (add-to-list 'default-frame-alist 
+                     '(font . "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1"))
+        (add-to-list 'default-frame-alist 
+                     '(font . "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -372,14 +382,11 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq default-frame-alist
-      '((foreground-color  	.	"white")
-	(background-color  	.	"black")
-	(cursor-color      	.	"green")
-	(menu-bar-lines    	.	1)))
-
-(unless (eq system-type 'windows-nt)
-  (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
-
+      (append default-frame-alist
+              '((foreground-color  	.	"white")
+                (background-color  	.	"black")
+                (cursor-color      	.	"green"))))
+      
 (setq standard-indent 2)
 
 ;; set up matching parentheses
