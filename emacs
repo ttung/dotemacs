@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.0
-;; 2000 February 23
+;; version 5.1
+;; 2000 March 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -168,7 +168,8 @@
 (if (eq system-type 'windows-nt)
     (progn
       (setq w32-enable-italics t)	; This must be done before font settings!
-      (set-face-font 'italic "-*-Courier New-normal-i-*-*-11-*-*-*-c-*-iso8859-1")))
+      (set-face-font 'italic "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
+      (set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard")))
 
 ;; RCS for Win32
 (if (eq system-type 'windows-nt)
