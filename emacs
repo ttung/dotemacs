@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.6
-;; 2001 January 22
+;; version 7.7
+;; 2001 January 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -221,8 +221,8 @@ See require. Return non-nil if FEATURE is or was loaded."
  'c++-mode
  '(("\\<\\(TODO\\):" 1 font-lock-warning-face t)))
 
-
 (setq-default indent-tabs-mode nil)
+(setq-default tab-width 5)
 (setq compilation-scroll-output t)
 
 
