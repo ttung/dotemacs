@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.11
-;; 2001 February 10
+;; version 7.12
+;; 2001 February 12
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -167,7 +167,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defun my-text-mode-hook ()
   (auto-fill-mode)
-  (setq fill-column 74))
+  (setq fill-column 74)
+  (setq tab-width 5))
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
@@ -214,7 +215,6 @@ See require. Return non-nil if FEATURE is or was loaded."
  '(("\\<\\(TODO\\):" 1 font-lock-warning-face t)))
 
 (setq-default indent-tabs-mode nil)
-(setq-default tab-width 5)
 (setq compilation-scroll-output t)
 
 
