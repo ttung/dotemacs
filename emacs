@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.7
-;; 2001 January 23
+;; version 7.8
+;; 2001 February 7
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -69,14 +69,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (setq auto-mode-alist (cons 
                        '("\\.h\\'" . c++-mode) 
-                       auto-mode-alist))
-
-(setq auto-mode-alist (cons 
-                       '("\\.y\\'" . c++-mode) 
-                       auto-mode-alist))
-
-(setq auto-mode-alist (cons 
-                       '("\\.lex\\'" . c++-mode) 
                        auto-mode-alist))
 
 (setq completion-ignored-extensions
