@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.17
-;; 2002 March 15
+;; version 8.18
+;; 2002 April 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -906,16 +906,12 @@ it is put to the start of the list."
 (setq auto-save-default 1)
 (setq auto-save-interval 250)
 
-;; keybindings...
-(if (> emacs-version-num 21)
-    (normal-erase-is-backspace-mode)
-  (when (and (eq window-system nil)
-             (eq (string-match "cisco.com" system-name) nil))
-    (keyboard-translate ?\C-h ?\C-?)
-    (keyboard-translate ?\C-? ?\C-h)
-    (global-set-key [backspace] 'delete-backward-char)
-    (global-set-key [delete] 'delete-char)
-    (global-set-key [67108927] 'help)))
+(if (eq window-system nil)
+    (progn
+      (global-set-key [delete] 'my-delete)
+      (global-set-key [insertchar] 'overwrite-mode))
+  (if (> emacs-version-num 21)
+      (normal-erase-is-backspace-mode)))
 
 (global-set-key "\C-f" 'forward-word)
 (global-set-key "\C-b" 'backward-word)
