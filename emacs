@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.33 2003/09/02 20:16:02 tonytung Exp $
+;; $Id: emacs,v 8.34 2003/09/26 23:14:53 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -915,6 +915,30 @@ it is put to the start of the list."
                     (< last-access-lo last-modified-lo))))))
   (display-time-update))
 
+;; (defun mac-handle-scroll-bar-event (event)
+;;   "Handle scroll bar EVENT on Mac OS."
+;;   (interactive "e")
+;;   (let* ((position (event-start event))
+;;          (window (nth 0 position))
+;;          (bar-part (nth 4 position)))
+;;     (select-window window)
+;;     (cond
+;;      ((eq bar-part 'up)
+;;       (read-event)                      ; discard mouse-1
+;;       (scroll-down 1))
+;;      ((eq bar-part 'above-handle)
+;;       (read-event)
+;;       (scroll-down))
+;;      ((eq bar-part 'handle)
+;;       (read-event)
+;;       (scroll-bar-drag event))
+;;      ((eq bar-part 'below-handle)
+;;       (read-event)
+;;       (scroll-up))
+;;      ((eq bar-part 'down)
+;;       (read-event)
+;;       (scroll-up 1)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
@@ -933,6 +957,14 @@ it is put to the start of the list."
       (normal-erase-is-backspace-mode)))
 
 (define-key function-key-map [delete] [deletechar])
+(when (and (eq system-type 'darwin) (not window-system))
+  (define-key function-key-map "OP" [f1])
+  (define-key function-key-map "OQ" [f2])
+  (define-key function-key-map "OR" [f3])
+  (define-key function-key-map "OS" [f4])
+  (define-key function-key-map "[28~" [insert])
+  (define-key function-key-map "[1~" [home])
+  (define-key function-key-map "[4~" [end]))
 
 (global-set-key "\C-f" 'forward-word)
 (global-set-key "\C-b" 'backward-word)
