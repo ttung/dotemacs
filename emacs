@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.7
+;; version 6.8
 ;; 2000 June 30
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -157,6 +157,11 @@ See require. Return non-nil if FEATURE is or was loaded."
         (if (want 'gnuserv)
             (gnuserv-start))
       (server-start)))
+
+(if (want 'iswitchb)
+    (iswitchb-default-keybindings)
+  (global-unset-key "\C-xb")
+  (global-set-key "\C-xb" 's-switch-to-buffer))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -367,7 +372,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (if (> emacs-version-num 20.2)
         (progn
           (set-face-background 'font-lock-constant-face "BLACK")
-          (set-face-foreground 'font-lock-constant-face "CADETBLUE")))))
+          (set-face-foreground 'font-lock-constant-face "TAN")))))
 
 ;; set up the font menu
 (setq
@@ -666,7 +671,7 @@ If ARG is negative, delete that many comment characters instead."
 
 (global-unset-key "\362")               ;M-r
 (global-unset-key "\361")               ;M-q
-(global-unset-key "\C-xb")
+;; (global-unset-key "\C-xb")
 (global-unset-key "\C-x\C-b")
 (global-unset-key ";")
 (global-unset-key "\C-d")
@@ -697,7 +702,7 @@ If ARG is negative, delete that many comment characters instead."
 (global-set-key "\362" 'revert-buffer)  ;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
 (global-set-key "\361" 'my-reindent)    ;M-q
-(global-set-key "\C-xb" 's-switch-to-buffer)
+;; (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
 (global-set-key "\C-c\C-r" 'region-remove-comment)
