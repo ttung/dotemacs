@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.17
-;; 2000 July 31
+;; version 6.18
+;; 2000 August 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -493,23 +493,28 @@ See require. Return non-nil if FEATURE is or was loaded."
 	(forward-line 1))
       (move-marker TO nil))))
 
-(defun insert-time ()
-  "Insert the current time."
-  (interactive)
+(defun insert-time (&optional nodashes)
+  "Insert the current time.
+With a prefix argument, it does not insert the dashes below and above the time."
+  (interactive "P")
   (let ((time-string (format-time-string "%a %b %d %H:%M:%S %Z %Y")))
-    (insert "\n")
-    (insert 
-     (make-string 
-      (length time-string)
-      ?-))
-    (insert "\n")
+    (if (eq nodashes nil)
+        (progn 
+          (insert "\n")
+          (insert 
+           (make-string 
+            (length time-string)
+            ?-))
+          (insert "\n")))
     (insert time-string)
-    (insert "\n")
-    (insert 
-     (make-string 
-      (length time-string)
-      ?-))
-    (insert "\n\n")))
+    (if (eq nodashes nil)
+        (progn 
+          (insert "\n")
+          (insert 
+           (make-string 
+            (length time-string)
+            ?-))
+          (insert "\n\n")))))
 
 ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
