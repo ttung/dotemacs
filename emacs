@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 4.1
-;; 1999 November 25
+;; version 4.2
+;; 2000 February 16
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -290,7 +290,7 @@
     (set-face-foreground 'default "WHITE")
     (set-foreground-color "WHITE")
     (set-background-color "BLACK")
-    (set-cursor-color "RED")
+    (set-cursor-color "GREEN")
     (set-mouse-color "MAGENTA")
     (if (> emacs-version-num 19.34)
 	(progn
