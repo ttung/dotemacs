@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.1
-;; 2000 June 13
+;; version 6.2
+;; 2000 June 14
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -615,6 +615,16 @@ If ARG is negative, delete that many comment characters instead."
 (global-unset-key "\C-x\C-b")
 (global-unset-key ";")
 (global-unset-key "\C-d")
+
+(global-unset-key "\C-f")
+(global-unset-key "\C-b")
+(global-unset-key "\346")               ;M-f
+(global-unset-key "\342")               ;M-b
+
+(global-set-key "\C-f" 'forward-word)
+(global-set-key "\C-b" 'backward-word)
+(global-set-key "\346" 'forward-char)   ;M-f
+(global-set-key "\342" 'backward-char)  ;M-b
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
