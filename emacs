@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.5
-;; 2000 June 25
+;; version 6.6
+;; 2000 June 30
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -485,7 +485,7 @@ See require. Return non-nil if FEATURE is or was loaded."
       ?-))
     (insert "\n\n")))
 
-                                        ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
+;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
 (defun my-list-buffers ()
   "Display a list of names of existing buffers and sets the active
@@ -495,13 +495,16 @@ The list is displayed in a buffer named `*Buffer List*'.
 The M column contains a * for buffers that are modified.
 The R column contains a % for buffers that are read-only."
   (interactive)
-  (list-buffers)
-  (if (not (equal (buffer-name) "*Buffer List*"))
-      (progn 
-        (other-window 1)
-        (goto-char (point-min))))
-  (if (= (point) (point-min))
-      (next-line 2)))
+  (let ((num-win (count-windows)))
+    (list-buffers)
+    (if (not (equal (buffer-name) "*Buffer List*"))
+        (progn 
+          (other-window 1)
+          (goto-char (point-min))))
+    (if (= num-win 1)
+        (delete-other-windows))
+    (if (= (point) (point-min))
+        (next-line 2))))
 
 (defun my-comment ()
   "Indents a region if the mark is active.  Otherwise starts a comment."
