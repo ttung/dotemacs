@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.1 2003/12/08 23:05:37 tonytung Exp $
+;; $Id: emacs,v 9.2 2004/02/18 19:00:40 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -117,12 +117,10 @@ See require. Return non-nil if FEATURE is or was loaded."
                          '("\\.html" . html-mode) 
                          auto-mode-alist)))
 
-;; set up generic modes, html-ize, and pc-buffer switch
+;; set up html-ize
 (when (> emacs-version-num 19.28)
   (when window-system
-    (want 'htmlize))
-  (when (want 'pc-bufsw)
-    (pc-bufsw::bind-keys [C-tab] [C-S-tab])))
+    (want 'htmlize)))
 
 (when window-system
     (if (eq system-type 'windows-nt)
