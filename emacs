@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.8
-;; 2001 February 7
+;; version 7.9
+;; 2001 February 9
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -664,6 +664,7 @@ If ARG is negative, delete that many comment characters instead."
     (set (make-local-variable 'nice-buffer-file-name)
          (concat shortened-file-name buffer-num))))
 (add-hook 'find-file-hooks 'record-nice-file-name)
+(add-hook 'write-file-hooks 'record-nice-file-name)
 
 ;; Make the mode-line identify buffers using their `nice-buffer-file-name'
 ;; if such a variable exists, otherwise, the buffer's file name, if it
