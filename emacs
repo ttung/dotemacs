@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.35 2003/10/24 16:55:26 tonytung Exp $
+;; $Id: emacs,v 8.36 2003/11/06 00:47:21 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -957,15 +957,17 @@ it is put to the start of the list."
   (if (> emacs-version-num 21)
       (normal-erase-is-backspace-mode)))
 
-(define-key function-key-map [delete] [deletechar])
-(when (and (eq system-type 'darwin) (not window-system))
-  (define-key function-key-map "OP" [f1])
-  (define-key function-key-map "OQ" [f2])
-  (define-key function-key-map "OR" [f3])
-  (define-key function-key-map "OS" [f4])
-  (define-key function-key-map "[28~" [insert])
-  (define-key function-key-map "[1~" [home])
-  (define-key function-key-map "[4~" [end]))
+(defun keymap-setup ()
+  (define-key function-key-map [delete] [deletechar])
+  (when (and (eq system-type 'darwin) (not window-system))
+    (define-key function-key-map "OP" [f1])
+    (define-key function-key-map "OQ" [f2])
+    (define-key function-key-map "OR" [f3])
+    (define-key function-key-map "OS" [f4])
+    (define-key function-key-map "[28~" [insert])
+    (define-key function-key-map "[1~" [home])
+    (define-key function-key-map "[4~" [end])))
+(setq term-setup-hook 'keymap-setup)
 
 (global-set-key "\C-f" 'forward-word)
 (global-set-key "\C-b" 'backward-word)
