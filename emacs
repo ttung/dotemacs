@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.0 2003/11/13 23:52:55 tonytung Exp $
+;; $Id: emacs,v 9.1 2003/12/08 23:05:37 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -58,11 +58,10 @@ See require. Return non-nil if FEATURE is or was loaded."
         (cons 'if (cons cond (cons nil body))))))
 
 ;; set up the paths for custom files
-(when (eq system-type 'windows-nt)
-    (setq exec-path 
-          (cons 
-           (expand-file-name "~/emacs/bin") 
-           exec-path)))
+(setq exec-path 
+      (cons 
+       (expand-file-name "~/emacs/bin") 
+       exec-path))
 (setq load-path 
       (cons 
        (expand-file-name "~/emacs/elisp") 
@@ -120,8 +119,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up generic modes, html-ize, and pc-buffer switch
 (when (> emacs-version-num 19.28)
-;;   (want 'generic-mode)
-;;   (want 'generic-extras)
   (when window-system
     (want 'htmlize))
   (when (want 'pc-bufsw)
@@ -139,19 +136,36 @@ See require. Return non-nil if FEATURE is or was loaded."
     (setq iswitchb-default-method 'samewindow) ;always go to the same window
     (setq iswitchb-case t)))
 
-;;; setup Cscope key binding
-;;;
-(defun cscope-bind-keys-cmode ()
-  "Bind keys in C mode"
-  (local-set-key "\C-ca" 'cscope-find-all)
-  (local-set-key "\C-cc" 'cscope-find-c-symbol)
-  (local-set-key "\C-cd" 'cscope-find-global-definition)
-  (local-set-key "\C-c^" 'cscope-find-functions-calling)
-  (local-set-key "\C-cv" 'cscope-find-functions-called)
-  (local-set-key "\C-cg" 'cscope-find-grep-pattern)
-  (local-set-key "\C-cf" 'cscope-find-file)
-  (local-set-key "\C-c#" 'cscope-find-file-including)
-  (local-set-key "\C-ct" 'cscope-find-text-string))
+(defun my-xcscope-setup ()
+  (unless (boundp 'my-xcscope-setup-done)
+    (setq cscope-database-regexps
+          '(
+            ( "^/vob/ios/"
+              ( t ("-dq") ) )))
+    (setq cscope-edit-single-match nil)
+    (setq cscope-auto-open-buffer nil)
+    (my-xcscope-bind-keys cscope:map)
+    (defvar my-xcscope-setup-done 't "t if my-xcscope-setup has already been executed")))
+  
+(defun my-xcscope-bind-keys (map)
+  (unless (boundp 'my-xcscope-bind-keys-done)
+    (define-key map "\C-cs" 'cscope-find-this-symbol)
+    (define-key map "\C-cd" 'cscope-find-global-definition)
+    (define-key map "\C-cg" 'cscope-find-global-definition)
+    (define-key map "\C-cG" 'cscope-find-global-definition-no-prompting)
+    (define-key map "\C-cc" 'cscope-find-functions-calling-this-function)
+    (define-key map "\C-cC" 'cscope-find-called-functions)
+    (define-key map "\C-ct" 'cscope-find-this-text-string)
+    (define-key map "\C-ce" 'cscope-find-egrep-pattern)
+    (define-key map "\C-cf" 'cscope-find-this-file)
+    (define-key map "\C-ci" 'cscope-find-files-including-file)
+    (defvar my-xcscope-bind-keys-done 't "t if my-xcscope-bind-setup has already been executed")))
+
+(when (and (getenv "CLEARCASE_ROOT") (want 'xcscope))
+  (defvar xcscope-loaded 't "t if xcscope is loaded")
+  (my-xcscope-setup)
+  (my-xcscope-bind-keys global-map))
+  
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -224,8 +238,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-c>" 'search-for-matching-endif)
   (local-set-key "\C-c<" 'search-for-matching-ifdef)
   (when (not (fboundp 'my-c-mode-common-hook-done))
-    (when (want 'cscope)
-      (defvar cscope-loaded 't "t if cscope is loaded"))
+    (when (want 'xcscope)
+      (defvar xcscope-loaded 't "t if xcscope is loaded"))
     (c-add-style "cisco-c-style" cisco-c-style)
     (c-add-style "my-java-style" my-java-style)
     (c-add-style "my-c-style" my-c-style)
@@ -244,8 +258,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   (if (string-match "cisco\\.com" system-name)
       (c-set-style "cisco-c-style")
     (c-set-style "my-c-style"))
-  (when (and (boundp 'cscope-loaded) cscope-loaded)
-    (cscope-bind-keys-cmode)))
+  (when (and (boundp 'xcscope-loaded) xcscope-loaded)
+    (my-xcscope-setup)))
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
 (defun my-asm-mode-hook ()
@@ -444,16 +458,17 @@ See require. Return non-nil if FEATURE is or was loaded."
         (try-set-face-foreground 'font-lock-reference-face "CADETBLUE")
       (try-set-face-foreground 'font-lock-constant-face "CADETBLUE"))
 
-    (try-set-face-background 'font-lock-comment-face "unspecified-bg")
-    (try-set-face-background 'font-lock-function-name-face "unspecified-bg")
-    (try-set-face-background 'font-lock-keyword-face "unspecified-bg")
-    (try-set-face-background 'font-lock-string-face "unspecified-bg")
-    (try-set-face-background 'font-lock-type-face "unspecified-bg")
-    (try-set-face-background 'font-lock-variable-name-face "unspecified-bg")
-    (if (< emacs-version-num 20.02)
-        (try-set-face-background 'font-lock-reference-face "unspecified-bg")
-      (try-set-face-background 'font-lock-constant-face "unspecified-bg"))
-  
+    (unless window-system
+      (try-set-face-background 'font-lock-comment-face "unspecified-bg")
+      (try-set-face-background 'font-lock-function-name-face "unspecified-bg")
+      (try-set-face-background 'font-lock-keyword-face "unspecified-bg")
+      (try-set-face-background 'font-lock-string-face "unspecified-bg")
+      (try-set-face-background 'font-lock-type-face "unspecified-bg")
+      (try-set-face-background 'font-lock-variable-name-face "unspecified-bg")
+      (if (< emacs-version-num 20.02)
+          (try-set-face-background 'font-lock-reference-face "unspecified-bg")
+        (try-set-face-background 'font-lock-constant-face "unspecified-bg")))
+      
     (if window-system
         (progn
           (try-set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
