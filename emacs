@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.18
+;; version 7.19
 ;; 2001 May 24
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,7 +63,8 @@ See require. Return non-nil if FEATURE is or was loaded."
                        '("\\.emt\\'" . text-mode) 
                        auto-mode-alist))
 
-(if (eq (string-match "crhc.uiuc.edu" system-name) nil)
+(if (and (eq (string-match "crhc.uiuc.edu" system-name) nil)
+         (eq (string-match "allegrosys.com" system-name) nil))
     (progn 
       (setq auto-mode-alist (cons 
                              '("\\.c\\'" . c++-mode) 
