@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.9
-;; 2000 June 30
+;; version 6.10
+;; 2000 July 3
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -358,7 +358,7 @@ See require. Return non-nil if FEATURE is or was loaded."
           (set-face-background 'font-lock-builtin-face "BLACK")
           (set-face-foreground 'font-lock-builtin-face "VIOLET")
           (set-face-background 'font-lock-comment-face "BLACK")
-          (set-face-foreground 'font-lock-comment-face "TURQUOISE3")
+          (set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
           (set-face-background 'font-lock-function-name-face "BLACK")
           (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
           (set-face-background 'font-lock-keyword-face "BLACK")
