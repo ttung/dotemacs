@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.26
-;; 2000 October 26
+;; version 6.27
+;; 2000 November 11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -222,6 +222,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 
 (setq-default indent-tabs-mode nil)
+(setq compilation-scroll-output t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
