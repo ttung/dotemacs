@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.36 2003/11/06 00:47:21 tonytung Exp $
+;; $Id: emacs,v 8.37 2003/11/10 21:02:40 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -129,13 +129,25 @@ See require. Return non-nil if FEATURE is or was loaded."
             (gnuserv-start))
       (server-start)))
 
-(if (want 'iswitchb)
-    (progn
-      (iswitchb-default-keybindings)
-      (setq iswitchb-default-method 'samewindow) ;always go to the same window
-      (setq iswitchb-case t))
-  (global-unset-key "\C-xb")
-  (global-set-key "\C-xb" 's-switch-to-buffer))
+(when (want 'iswitchb)
+  (progn
+    (iswitchb-default-keybindings)
+    (setq iswitchb-default-method 'samewindow) ;always go to the same window
+    (setq iswitchb-case t)))
+
+;;; setup Cscope key binding
+;;;
+(defun cscope-bind-keys-cmode ()
+  "Bind keys in C mode"
+  (local-set-key "\C-ca" 'cscope-find-all)
+  (local-set-key "\C-cc" 'cscope-find-c-symbol)
+  (local-set-key "\C-cd" 'cscope-find-global-definition)
+  (local-set-key "\C-c^" 'cscope-find-functions-calling)
+  (local-set-key "\C-cv" 'cscope-find-functions-called)
+  (local-set-key "\C-cg" 'cscope-find-grep-pattern)
+  (local-set-key "\C-cf" 'cscope-find-file)
+  (local-set-key "\C-c#" 'cscope-find-file-including)
+  (local-set-key "\C-ct" 'cscope-find-text-string))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -149,13 +161,15 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode)
   (setq fill-column 74)
   (setq indent-tabs-mode 't))
-
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 (defun my-sgml-mode-hook ()
   (auto-fill-mode))
-
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
+
+(setq compile-command "make ")
+(when (string-match "cisco.com" system-name)
+  (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
 
 ;;
 ;; cisco cc-mode settings 
@@ -203,7 +217,11 @@ See require. Return non-nil if FEATURE is or was loaded."
   (abbrev-mode -1)
   (local-set-key "\C-c\C-w" 'c-wrap-conditional)
   (local-set-key "\C-d" 'my-delete)
+  (local-set-key "\C-c>" 'search-for-matching-endif)
+  (local-set-key "\C-c<" 'search-for-matching-ifdef)
   (when (not (fboundp 'my-c-mode-common-hook-done))
+    (when (want 'cscope)
+      (defvar cscope-loaded 't "t if cscope is loaded"))
     (c-add-style "cisco-c-style" cisco-c-style)
     (c-add-style "my-java-style" my-java-style)
     (c-add-style "my-c-style" my-c-style)
@@ -221,7 +239,9 @@ See require. Return non-nil if FEATURE is or was loaded."
       "Indicates that my-c-mode-common-hook has been called"))
   (if (string-match "cisco.com" system-name)
       (c-set-style "cisco-c-style")
-    (c-set-style "my-c-style")))
+    (c-set-style "my-c-style"))
+  (when (and (boundp 'cscope-loaded) cscope-loaded)
+    (cscope-bind-keys-cmode)))
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
 (defun my-asm-mode-hook ()
@@ -236,6 +256,13 @@ See require. Return non-nil if FEATURE is or was loaded."
      '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
        ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
+    (defun my-tcl-comment ()
+      "Comments a region if the mark is active.  Otherwise starts a comment."
+        (interactive)
+        (if mark-active
+            (comment-region (point) (mark) nil)
+          (tcl-indent-for-comment))) 
+    (local-set-key ";" 'my-tcl-comment)
     (defvar my-tcl-mode-common-hook-done t
       "Indicates that my-tcl-mode-common-hook has been called")))
 (add-hook 'tcl-mode-hook 'my-tcl-mode-hook)
@@ -278,69 +305,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (setq vc-follow-symlinks t)
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Win32 utils
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(when (eq system-type 'windows-nt)
-  ;; ispell
-  ;;
-  (autoload 'ispell-word "ispell4" 
-    "Check spelling of word at or before point" t)
-  (autoload 'ispell-complete-word "ispell4" 
-    "Complete word at or before point" t)
-  (autoload 'ispell-region "ispell4" 
-    "Check spelling of every word in the region" t)
-  (autoload 'ispell-buffer "ispell4" 
-    "Check spelling of every word in the buffer" t)
-  (setq ispell-command (expand-file-name "~/emacs/ispell/ispell.exe")
-        ispell-look-dictionary (expand-file-name "~/emacs/ispell/ispell.words")
-        ispell-look-command (expand-file-name "~/emacs/ispell/look.exe")
-        ispell-command-options (list "-d" (expand-file-name "~/emacs/ispell/ispell.dict"))
-        )
-
-  ;; RCS for Win32
-  (defadvice vc-do-command (before patch-vc-do-command-for-nt activate)
-  "Patch vc-do-command to work under NT, so ediff-revision can work."
-    ;; First, let's check for the case we want to patch:
-    (if (and (string= (ad-get-arg 2) "/bin/sh")
-             (string= (ad-get-arg 5) "-c")
-             (string-match (concat "^if \\[ x\"\\$1\" = x \\]; then shift; fi;[ \t]+"
-                                   "umask [0-9]+; exec >\"\$1\" || exit;[ \t]+shift; "
-                                   "umask 0; exec co \"\\$@\"") (ad-get-arg 6))
-             (string= (ad-get-arg 7) ""))
-        (progn (ad-set-arg 2 "cmd") ;; Invoke "cmd" instead of "/bin/sh"
-               (ad-set-arg 5 "/c") ;; Convert "-c" to "/c"
-               (ad-set-arg 6 nil) ;; Zap the /bin/sh script
-               (ad-set-arg 7 "co") ;; Invoke the "co" command
-               (ad-set-arg 8 (concat ">" (ad-get-arg 8))) ;; Redirect to outfile
-               ))
-    ;; next, let's check for the CVS case
-    (if (and (string= (ad-get-arg 2) "/bin/sh")
-             (string= (ad-get-arg 5) "-c")
-             (string-match "^exec" (ad-get-arg 6))
-             (string= (ad-get-arg 7) ""))
-        (progn (ad-set-arg 2 "cmd") ;; Invoke "cmd" instead of "/bin/sh"
-               (ad-set-arg 5 "/c") ;; Convert "-c" to "/c"
-               (ad-set-arg 6 nil) ;; Zap the /bin/sh script
-               (ad-set-arg 7 "cvs update") ;; Invoke the "cvs" command
-               (ad-set-arg 8 (concat ">" (ad-get-arg 8))) ;; Redirect to outfile
-               )))
-
-  ;; set up the ange-ftp ftp program
-  (setq ange-ftp-ftp-program-name "~/emacs/bin/ftp.exe")
-
-  ;; set up the ange-ftp temporary directory
-  (setq ange-ftp-tmp-name-template 
-        (concat 
-         (expand-file-name (getenv "TEMP")) 
-         "/ange-ftp"))
-  (setq ange-ftp-gateway-tmp-name-template 
-        (concat 
-         (expand-file-name (getenv "TEMP")) 
-         "/ange-ftp")))
-  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UNIX tweaks
@@ -406,20 +370,16 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (when (and window-system (>= emacs-version-num 21))
   (blink-cursor-mode -1)
-;;  (tool-bar-mode -1)
   (add-to-list 'default-frame-alist '(tool-bar-lines . 0)))
 
-(when (eq system-type 'darwin)
-  (set-default-font "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman"))
+;; kill the menu bar when there's no window system
+(unless window-system
+  (menu-bar-mode 0))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Fonts & Colors)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; kill the menu bar when there's no window system
-(when (eq window-system nil)
-  (menu-bar-mode 0))
 
 ;; set up some colors for basic stuff
 (set-cursor-color "GREEN")
@@ -503,33 +463,8 @@ See require. Return non-nil if FEATURE is or was loaded."
       "Indicates that my-font-lock-mode-hook has been called")))
 (add-hook 'font-lock-mode-hook 'my-font-lock-mode-hook)
 
-;; set up the font menu
-(setq
- x-fixed-font-alist
- '("Font Menu"
-   ("Misc"
-    ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1")
-    ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1")
-    ("lucida 13"
-     "-b&h-lucidatypewriter-medium-r-normal-sans-0-0-0-0-m-0-*-1")
-    ("7x13" "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-1")
-    ("7x14" "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")
-    ("9x15" "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")
-    ("")
-    ("clean 8x8" "-schumacher-clean-medium-r-normal--*-80-*-*-c-*-*-1")
-    ("clean 8x14" "-schumacher-clean-medium-r-normal--*-140-*-*-c-*-*-1")
-    ("clean 8x10" "-schumacher-clean-medium-r-normal--*-100-*-*-c-*-*-1")
-    ("clean 8x16" "-schumacher-clean-medium-r-normal--*-160-*-*-c-*-*-1")
-    ("")
-    ("sony 8x16" "-sony-fixed-medium-r-normal--16-120-100-100-c-80-*-1")
-    ("")
-    ("-- Courier --")
-    ("Courier 10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-*-1")
-    ("Courier 12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-*-1")
-    ("Courier 14" "-adobe-courier-medium-r-normal--*-140-*-*-m-*-*-1")
-    ("Courier 18" "-adobe-courier-medium-r-normal--*-180-*-*-m-*-*-1")
-    ("Courier 18-b" "-adobe-courier-bold-r-normal--*-180-*-*-m-*-*-1")
-    )))
+(when (eq system-type 'darwin)
+  (set-default-font "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -546,7 +481,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; date related stuff
 (when window-system
   (setq display-time-day-and-date t)
-;;(setq display-time-mail-file t)
   (setq display-time-interval 30)
   (display-time))
 
@@ -556,10 +490,19 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (when (> emacs-version-num 19.28)
+  (let ((view (getenv "CLEARCASE_ROOT"))
+        (start 0))
+    (cond (view
+           (setq start (string-match "-.*$" view))
+           (setq tag (concat invocation-name "@" (substring view (+ 1 start)))))
+          ('t
+           (setq start (string-match "\\." system-name))
+           (setq tag (concat invocation-name "@" (substring system-name 0 start))))))
+          
   (setq frame-title-format
-        (concat invocation-name "@" system-name " - %f"))
+        (concat tag " - %f"))
   (setq icon-title-format
-        (concat invocation-name "@" system-name " - %b")))
+        (concat tag " - %b")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -569,30 +512,13 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;Scroll buffer without moving point 
 (defun scroll-down-line () 
   "Scroll one line down." 
-  (interactive) 
-  (scroll-down 1)) 
+  (interactive)
+  (scroll-down 1))
 
 (defun scroll-up-line () 
   "Scroll one line up." 
-  (interactive) 
-  (scroll-up 1)) 
-
-;; (defun my-reindent (FROM TO)
-;;   "Refill the region as a paragraph and reindent."
-;;   (interactive "r")
-;;   (fill-region-as-paragraph FROM TO)
-;;   (if indent-region-function
-;;       (funcall indent-region-function FROM TO)
-;;     (save-excursion
-;;       (goto-char TO)
-;;       (setq TO (point-marker))
-;;       (goto-char FROM)
-;;       (or (bolp) (forward-line 1))
-;;       (while (< (point) TO)
-;; 	(or (and (bolp) (eolp))
-;;             (funcall indent-line-function))
-;; 	(forward-line 1))
-;;       (move-marker TO nil))))
+  (interactive)
+  (scroll-up 1))
 
 (defun insert-time (&optional nodashes)
   "Insert the current time.
@@ -636,13 +562,13 @@ The R column contains a % for buffers that are read-only."
         (next-line 2))))
 
 (defun my-comment ()
-  "Indents a region if the mark is active.  Otherwise starts a comment."
+  "Comments a region if the mark is active.  Otherwise starts a comment."
   (interactive)
   (if mark-active
       (comment-region (point) (mark) nil)
     (indent-for-comment)))
 
-(defun region-remove-comment(from to)
+(defun region-remove-comment (from to)
   "Removes comments from the beginning of lines within a region."
   (interactive "r")
   (comment-region from to -1))
@@ -756,70 +682,6 @@ If ARG is negative, delete that many comment characters instead."
 ;; "Borrowed" functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; BUFFER SWITCHING FIX
-;;
-;; This changes the behaviour of the switch-to-buffer completion functions so
-;; that the current buffer is NOT in the completion list.
-;;
-;; i.e. say you're working in "temp.c", and you want to visit "temp.h"; so you
-;; type "C-xb", then "t<TAB>" which then presents you with a completion list of
-;; temp.c and temp.h, so you then must type "h<RET>".  This is annoying since 
-;; why would you want to switch back to the buffer you're in?!?
-;; Using this fix would remove "temp.c" from the completion lits so that when 
-;; you had typed "t<TAB>" the name would be completed as "temp.h" as desired.
-;;
-;; Steve Dodd 
-;; March 1998
-
-(defun s-minibuffer-complete ()
-  "A shell around minibuffer-complete which removes the name of the current buffer from the buffer completion list.  The default behaviour doesn't make sense since there is no reason to ask to switch to the buffer you are already in!"
-  (interactive)
-  (if s-remove-first-completion
-      (progn (setq s-remove-first-completion nil)
-             (if (consp minibuffer-completion-table)
-                 (setq  minibuffer-completion-table 
-                        (cdr minibuffer-completion-table)) ()))
-    ())
-  (minibuffer-complete))
-
-(defun s-minibuffer-complete-word ()
-  "A shell around minibuffer-complete-word which removes the name of the current buffer from the buffer completion list.  The default behaviour doesn't make sense since there is no reason to ask to switch to the buffer you are already in!"
-  (interactive)
-  (if s-remove-first-completion
-      (progn (setq s-remove-first-completion nil)
-             (if (consp minibuffer-completion-table)
-                 (setq  minibuffer-completion-table 
-                        (cdr minibuffer-completion-table)) ()))
-    ())
-  (minibuffer-complete-word)
-  )
-
-(defun s-minibuffer-complete-and-exit ()
-  "A shell around minibuffer-complete-and-exit which removes the name of the current buffer from the buffer completion list.  The default behaviour doesn't make sense since there is no reason to ask to switch to the buffer you are already in!"
-  (interactive)
-  (if s-remove-first-completion
-      (progn (setq s-remove-first-completion nil)
-             (if (consp minibuffer-completion-table)
-                 (setq  minibuffer-completion-table 
-                        (cdr minibuffer-completion-table)) ()))
-    ())
-  (minibuffer-complete-and-exit))
-
-
-(defun s-switch-to-buffer ()
-  "A shell around switch-to-buffer which removes the name of the current buffer from the buffer completion list.  The default behaviour doesn't make sense since there is no reason to ask to switch to the buffer you are already in!"
-  (interactive)
-  (setq s-remove-first-completion 't)
-  (switch-to-buffer (read-buffer "Switch to buffer: " (other-buffer))))
-
-(setq s-remove-first-completion 'nil)
-
-(define-key minibuffer-local-completion-map "\040" 's-minibuffer-complete-word)
-(define-key minibuffer-local-completion-map "\t" 's-minibuffer-complete)
-(define-key minibuffer-local-must-match-map [return] 's-minibuffer-complete-and-exit)
-
-;; END OF BUFFER SWITCHING FIX
-
 ;; Go to matching parentheses
 (defun match-paren (arg)
   "Go to the matching parenthesis if on parenthesis otherwise insert %."
@@ -829,6 +691,71 @@ If ARG is negative, delete that many comment characters instead."
         ((looking-at "\\s\{") (forward-list 1) (backward-char 1))
         ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
         (t (self-insert-command (or arg 1)))))
+
+;;; move cursor to the matching `#ifdef' or `#if'
+;;;
+(defun search-for-matching-ifdef ()
+  "Move cursor to the matching `#if' or `#endif'"
+  (interactive)
+  (let ((m (point-marker))              ; marker for the original position
+        (m2)                            ; marker for loop
+        (depth 0))                      ; depth of #ifdef/#endif nesting
+    (forward-line)
+    (beginning-of-line)
+    (if (not (re-search-backward "^#\\s-*endif" nil t))
+        (progn
+          (goto-char (marker-position m))
+          (error "%s" "no #endif")))
+    (setq m (point-marker))
+    (forward-line)
+    (beginning-of-line)
+    (if (catch 'loop
+          (while (> (point) (point-min))
+            (if (not (re-search-backward "^#\\s-*" nil t))
+                (throw 'loop nil))
+            (backward-char 1)
+            (setq m2 (point-marker))
+            (cond ((search-forward "endif" (+ (point) 7) t)
+                     (setq depth (1+ depth)))
+                  ((search-forward "if" (+ (point) 4) t)
+                   (progn
+                     (setq depth (1- depth))
+                     (if (= depth 0)
+                         (throw 'loop t)))))
+            (goto-char (marker-position m2))))
+        (push-mark (marker-position m)) ; t
+        (progn                          ; nil
+          (goto-char (marker-position m))
+          (error "no matching #ifdef, #if")))))
+
+
+;;; move cursor to the matching `#endif'
+;;;
+(defun search-for-matching-endif ()
+  "Move cursor to the matching `#endif'"
+  (interactive)
+  (let ((m)                             ;marker
+        (depth 0))                      ;depth of #ifdef/#endif nesting
+    (beginning-of-line)
+    (if (not (re-search-forward "^#\\s-*if" nil t))
+        (error "%s" "no #ifdef, #if"))
+    (beginning-of-line)
+    (setq m (point-marker))
+    (if (catch 'loop
+          (while (< (point) (point-max))
+            (if (not (re-search-forward "^#\\s-*" nil t))
+                (throw 'loop nil))
+            (cond ((search-forward "if" (+ (point) 2) t)
+                   (setq depth (1+ depth)))
+                  ((search-forward "endif" (+ (point) 5) t)
+                   (progn
+                     (setq depth (1- depth))
+                     (if (= depth 0)
+                         (throw 'loop t)))))))
+        (push-mark (marker-position m)) ; t
+        (progn                          ; nil
+          (goto-char (marker-position m))
+          (error "no matching #endif")))))
 
 (defun my-shrink-window (arg &optional side)
   (interactive "p")
@@ -899,46 +826,6 @@ it is put to the start of the list."
 	     ;; else nothing to complete
 	     (iswitchb-completion-help)
 	     )))))
-
-;; hack so that the "Mail" in the modeline shows only when the file was modified more recently than it was accessed
-(when window-system
-  (defun display-time-file-nonempty-p (file)
-    (and (file-exists-p file)
-         (let* ((fa (file-attributes (file-chase-links file)))
-                (last-access (nth 4 fa))
-                (last-modified (nth 5 fa))
-                (last-access-hi (nth 0 last-access))
-                (last-access-lo (nth 1 last-access))
-                (last-modified-hi (nth 0 last-modified))
-                (last-modified-lo (nth 1 last-modified)))
-           (or (< last-access-hi last-modified-hi)
-               (and (= last-access-hi last-modified-hi)
-                    (< last-access-lo last-modified-lo))))))
-  (display-time-update))
-
-;; (defun mac-handle-scroll-bar-event (event)
-;;   "Handle scroll bar EVENT on Mac OS."
-;;   (interactive "e")
-;;   (let* ((position (event-start event))
-;;          (window (nth 0 position))
-;;          (bar-part (nth 4 position)))
-;;     (select-window window)
-;;     (cond
-;;      ((eq bar-part 'up)
-;;       (read-event)                      ; discard mouse-1
-;;       (scroll-down 1))
-;;      ((eq bar-part 'above-handle)
-;;       (read-event)
-;;       (scroll-down))
-;;      ((eq bar-part 'handle)
-;;       (read-event)
-;;       (scroll-bar-drag event))
-;;      ((eq bar-part 'below-handle)
-;;       (read-event)
-;;       (scroll-up))
-;;      ((eq bar-part 'down)
-;;       (read-event)
-;;       (scroll-up 1)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1033,10 +920,6 @@ it is put to the start of the list."
 
 ;; To get binding command, do this: First bind the key interactively, 
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
-
-(setq compile-command "make ")
-(when (string-match "cisco.com" system-name)
-  (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
