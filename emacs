@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.8
-;; 2001 November 8
+;; version 8.9
+;; 2001 November 13
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -114,7 +114,7 @@ See require. Return non-nil if FEATURE is or was loaded."
        (expand-file-name "~/emacs/elisp/psgml")
        load-path))
 
-(when (want 'psgml)
+(when (and (not (boundp 'fast-load)) (want 'psgml))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
   (setq sgml-catalog-files '("~/emacs/etc/sgml/CATALOG" "CATALOG"))
   (setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
@@ -129,38 +129,38 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 
 ;; set up the java system
-(when (want 'andersl-java-font-lock)
+(when (and (not (boundp 'fast-load)) (want 'andersl-java-font-lock))
   (setq auto-mode-alist (cons 
                          '("\\.java" . java-mode) 
                          auto-mode-alist))
 
   (add-hook 'java-mode-hook 'my-java-mode-hook)
   (defun my-java-mode-hook ()
-    (cond (window-system
-           (want 'andersl-java-font-lock)
-           (turn-on-font-lock)))))
+;;           (want 'andersl-java-font-lock)
+           (turn-on-font-lock)))
 
 ;; set up the verilog system
-(when (want 'verilog-mode)
+(when (and (not (boundp 'fast-load)) (want 'verilog-mode))
   (autoload 'verilog-mode "verilog-mode" "Verilog mode" t)
   (setq auto-mode-alist (cons
                          '("\\.v\\'" . verilog-mode) auto-mode-alist))
   (add-hook 'verilog-mode-hook '(lambda () (font-lock-mode 1))))
 
 ;; set up the VHDL system
-(when (and (> emacs-version-num 20.03) (want 'vhdl-mode))
+(when (and (not (boundp 'fast-load)) (> emacs-version-num 20.03) (want 'vhdl-mode))
   (autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
   (setq auto-mode-alist (append '(("\\.vhdl?$" . vhdl-mode)) auto-mode-alist)))
 
 ;; set up generic modes, html-ize, and pc-buffer switch
-(when (> emacs-version-num 19.28)
+(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.28))
   (want 'generic-mode)
   (want 'generic-extras)
-  (want 'htmlize)
+  (when window-system
+    (want 'htmlize))
   (when (want 'pc-bufsw)
     (pc-bufsw::bind-keys [C-tab] [C-S-tab])))
 
-(when window-system 
+(when (and (not (boundp 'fast-load)) window-system)
     (if (eq system-type 'windows-nt)
         (when (want 'gnuserv)
             (gnuserv-start))
@@ -221,47 +221,49 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-cleanup-list                 . (scope-operator brace-else-brace)))
   "cisco c-style for cc-mode")
 
-(c-add-style "cisco-c-style" cisco-c-style)
+(defun add-my-c-customizations ()
+  (defvar my-c-customizations-done t "Flag to indicate that my C styles have been added")
+  (c-add-style "cisco-c-style" cisco-c-style)
+  (font-lock-add-keywords
+   'c-mode
+   '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (font-lock-add-keywords
+   'c++-mode
+   '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (font-lock-add-keywords
+   'c-mode
+   '(("\\<\\(TODO\\):" 1 font-lock-warning-face t)))
+  (font-lock-add-keywords
+   'c++-mode
+   '(("\\<\\(TODO\\):" 1 font-lock-warning-face t))))
 
 ;; set the indent correctly
 (defun my-c-mode-common-hook ()
-  (progn
-    (setq c-basic-offset 2)
-    (setq comment-column 60)
-    (auto-fill-mode)
-    (setq fill-column 100)
-    (local-unset-key "\C-c\C-t")
-    (local-set-key "\C-c\C-w" 'c-wrap-conditional)
-    (local-set-key "\C-c\C-h" 'c-toggle-auto-hungry-state)
-    (local-set-key "\C-c\C-t" 'c-insert-todo)
-    (local-set-key "\C-c\C-f" 'c-insert-fixme)
-    (local-set-key "\C-c\C-m" 'man)
-    (local-set-key "\C-d" 'my-delete)
-    (when (string-match "cisco.com" system-name)
-        (c-set-style "cisco-c-style"))))
+  (setq c-basic-offset 2)
+  (setq comment-column 60)
+  (auto-fill-mode)
+  (setq fill-column 100)
+  (local-unset-key "\C-c\C-t")
+  (local-set-key "\C-c\C-w" 'c-wrap-conditional)
+  (local-set-key "\C-c\C-h" 'c-toggle-auto-hungry-state)
+  (local-set-key "\C-c\C-t" 'c-insert-todo)
+  (local-set-key "\C-c\C-f" 'c-insert-fixme)
+  (local-set-key "\C-c\C-m" 'man)
+  (local-set-key "\C-d" 'my-delete)
+  (unless (boundp 'my-c-customizations-done)
+    (add-my-c-customizations))
+  (when (string-match "cisco.com" system-name)
+    (c-set-style "cisco-c-style")))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
 ;; set up the font-lock system
 
-(cond ((fboundp 'global-font-lock-mode)
-       (global-font-lock-mode t)))
-(setq font-lock-maximum-decoration t)
-(setq font-lock-maximum-size nil)
-
-(font-lock-add-keywords
- 'c-mode
- '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
-(font-lock-add-keywords
- 'c++-mode
- '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
-(font-lock-add-keywords
- 'c-mode
- '(("\\<\\(TODO\\):" 1 font-lock-warning-face t)))
-(font-lock-add-keywords
- 'c++-mode
- '(("\\<\\(TODO\\):" 1 font-lock-warning-face t)))
+(cond ((and (not (boundp 'fast-load)) (fboundp 'global-font-lock-mode))
+       (global-font-lock-mode t)
+       (setq font-lock-maximum-decoration t)
+       (setq font-lock-maximum-size nil)))
 
 (setq-default indent-tabs-mode nil)
 (setq compilation-scroll-output t)
@@ -381,7 +383,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq standard-indent 2)
 
 ;; set up matching parentheses
-(when (> emacs-version-num 19.30)
+(when (and (not (boundp 'fast-load)) (> emacs-version-num 19.30))
     (show-paren-mode 1))
 
 ;; set the scroll bar to the right side
@@ -400,10 +402,10 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq next-line-add-newlines nil)
 (setq require-final-newline 'ask)
 
-(when (>= emacs-version-num 21)
+(when (and window-system (>= emacs-version-num 21))
   (blink-cursor-mode -1)
   (tool-bar-mode -1)
-    (add-to-list 'default-frame-alist '(tool-bar-lines . 0)))
+  (add-to-list 'default-frame-alist '(tool-bar-lines . 0)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -512,7 +514,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq display-time-day-and-date t))
 ;;(setq display-time-mail-file t)
 (setq display-time-interval 30)
-(display-time)
+(and (not (boundp 'fast-load)) (display-time))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -886,7 +888,7 @@ it is put to the start of the list."
          (or (< last-access-hi last-modified-hi)
              (and (= last-access-hi last-modified-hi)
                   (< last-access-lo last-modified-lo))))))
-(display-time-update)
+(and (not (boundp 'fast-load)) (display-time-update))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
