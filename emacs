@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.23
-;; 2000 August 8
+;; version 6.24
+;; 2000 September 6
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -537,6 +537,11 @@ With a prefix argument, it does not insert the dashes below and above the time."
 
 ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
+(defun insert-tab ()
+  "Insert a tab"
+  (interactive "")
+  (insert "\t"))
+
 (defun my-list-buffers ()
   "Display a list of names of existing buffers and sets the active
 buffer to the list.
@@ -797,6 +802,7 @@ it is put to the start of the list."
 (global-unset-key "\C-x\C-b")
 (global-unset-key ";")
 (global-unset-key "\C-d")
+(global-unset-key "\C-t")
 
 (global-unset-key "\C-f")
 (global-unset-key "\C-b")
@@ -831,6 +837,7 @@ it is put to the start of the list."
 (global-set-key "\C-c\C-r" 'region-remove-comment)
 (global-set-key "\C-c\C-l" 'comment-line)
 (global-set-key "\C-d" 'my-delete)
+(global-set-key "\C-t" 'insert-tab)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
