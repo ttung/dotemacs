@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.2 2004/02/18 19:00:40 tonytung Exp $
+;; $Id: emacs,v 9.3 2004/02/18 19:18:13 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -58,35 +58,23 @@ See require. Return non-nil if FEATURE is or was loaded."
         (cons 'if (cons cond (cons nil body))))))
 
 ;; set up the paths for custom files
-(setq exec-path 
-      (cons 
-       (expand-file-name "~/emacs/bin") 
-       exec-path))
-(setq load-path 
-      (cons 
-       (expand-file-name "~/emacs/elisp") 
-       load-path))
+(add-to-list 'exec-path (expand-file-name "~/emacs/bin") t)
+(add-to-list 'load-path (expand-file-name "~/emacs/elisp") t)
 
-(setq auto-mode-alist 
-      (append '(("\\.c\\'" . c++-mode)
-                ("\\.h\\'" . c++-mode))
-              auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
+(add-to-list 'auto-mode-alist '("\\.h\\'"		. c++-mode))
 (when (string-match "cisco\\.com" system-name)
-      (setq auto-mode-alist 
-            (append '(("\\.regc\\'" . c++-mode)
-                      ("\\.regh\\'" . c++-mode))
-                    auto-mode-alist)))
+  (add-to-list 'auto-mode-alist '("\\.regc\\'"		. c++-mode))
+  (add-to-list 'auto-mode-alist '("\\.regh\\'"		. c++-mode)))
+(add-to-list 'auto-mode-alist '("\\.emt\\'"		. text-mode))
+(add-to-list 'auto-mode-alist '("\\.sched"		. text-tab5))
+(add-to-list 'auto-mode-alist '("\\.crontab\\'"		. text-tab5))
+(add-to-list 'auto-mode-alist '("\\.procmailrc\\'"	. text-tab5))
+(add-to-list 'auto-mode-alist '("cshrc"			. shell-script-mode))
 
-(setq auto-mode-alist 
-      (append '(("\\.emt\\'" . text-mode)
-                ("\\.sched" . text-tab5)
-                ("\\.crontab" . text-tab5)
-                ("\\.procmailrc" . text-tab5)
-                ("cshrc" . shell-script-mode))
-              auto-mode-alist))
-
-(setq completion-ignored-extensions
-      (append completion-ignored-extensions '(".ps" ".pdf" ".gz")))
+(add-to-list 'completion-ignored-extensions ".ps")
+(add-to-list 'completion-ignored-extensions ".pdf")
+(add-to-list 'completion-ignored-extensions ".gz")
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'upcase-region 'disabled nil)
@@ -99,10 +87,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; set up the paths for psgml
-(setq load-path
-      (cons 
-       (expand-file-name "~/emacs/elisp/psgml")
-       load-path))
+(add-to-list 'load-path (expand-file-name "~/emacs/elisp/psgml") t)
 
 (when (and (> emacs-version-num 19.34) (locate-library "psgml"))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
@@ -113,14 +98,11 @@ See require. Return non-nil if FEATURE is or was loaded."
   ;; initialize psgml
   (autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
   (autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
-  (setq auto-mode-alist (cons 
-                         '("\\.html" . html-mode) 
-                         auto-mode-alist)))
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . html-mode)))
 
 ;; set up html-ize
-(when (> emacs-version-num 19.28)
-  (when window-system
-    (want 'htmlize)))
+(when (and (> emacs-version-num 19.28) window-system)
+  (want 'htmlize))
 
 (when window-system
     (if (eq system-type 'windows-nt)
@@ -129,16 +111,17 @@ See require. Return non-nil if FEATURE is or was loaded."
       (server-start)))
 
 (when (want 'iswitchb)
-  (progn
-    (iswitchb-default-keybindings)
-    (setq iswitchb-default-method 'samewindow) ;always go to the same window
-    (setq iswitchb-case t)))
+  (iswitchb-default-keybindings)
+  (setq iswitchb-default-method 'samewindow) ;always go to the same window
+  (setq iswitchb-case t))
 
 (defun my-xcscope-setup ()
   (unless (boundp 'my-xcscope-setup-done)
     (setq cscope-database-regexps
           '(
             ( "^/vob/ios/"
+              ( t ("-dq") ) )
+            ( "."
               ( t ("-dq") ) )))
     (setq cscope-edit-single-match nil)
     (setq cscope-auto-open-buffer nil)
@@ -160,7 +143,8 @@ See require. Return non-nil if FEATURE is or was loaded."
     (defvar my-xcscope-bind-keys-done 't "t if my-xcscope-bind-setup has already been executed")))
 
 (when (and (getenv "CLEARCASE_ROOT") (want 'xcscope))
-  (defvar xcscope-loaded 't "t if xcscope is loaded")
+  (defvar xcscope-loaded 't 
+    "t if xcscope is loaded")
   (my-xcscope-setup)
   (my-xcscope-bind-keys global-map))
   
@@ -216,7 +200,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (defvar my-c-style
   '("bsd"
     (c-basic-offset			. 2)
-    (c-offsets-alist			. ((case-label   . +))))
+    (c-offsets-alist			. ((case-label   	. +))))
   "my c style")
 
 (defvar my-java-style
@@ -231,26 +215,26 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode)
   (setq fill-column 100)
   (abbrev-mode -1)
-  (local-set-key "\C-c\C-w" 'c-wrap-conditional)
-  (local-set-key "\C-d" 'my-delete)
-  (local-set-key "\C-c>" 'search-for-matching-endif)
-  (local-set-key "\C-c<" 'search-for-matching-ifdef)
+  (local-set-key "\C-c\C-w"		'c-wrap-conditional)
+  (local-set-key "\C-d"			'my-delete)
+  (local-set-key "\C-c>" 		'search-for-matching-endif)
+  (local-set-key "\C-c<" 		'search-for-matching-ifdef)
   (when (not (fboundp 'my-c-mode-common-hook-done))
     (when (want 'xcscope)
       (defvar xcscope-loaded 't "t if xcscope is loaded"))
-    (c-add-style "cisco-c-style" cisco-c-style)
-    (c-add-style "my-java-style" my-java-style)
-    (c-add-style "my-c-style" my-c-style)
+    (c-add-style "cisco-c-style" 	cisco-c-style)
+    (c-add-style "my-java-style" 	my-java-style)
+    (c-add-style "my-c-style" 		my-c-style)
     (font-lock-add-keywords
      'c-mode
-     '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
-       ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
-       ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
+     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (font-lock-add-keywords
      'c++-mode
-     '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
-       ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
-       ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
+     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
   (if (string-match "cisco\\.com" system-name)
@@ -269,9 +253,9 @@ See require. Return non-nil if FEATURE is or was loaded."
   (when (not (fboundp 'my-tcl-mode-common-hook-done))
     (font-lock-add-keywords
      'tcl-mode
-     '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
-       ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
-       ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
+     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defun my-tcl-comment ()
       "Comments a region if the mark is active.  Otherwise starts a comment."
         (interactive)
@@ -284,17 +268,15 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-hook 'tcl-mode-hook 'my-tcl-mode-hook)
 
 ;; set up the java system
-(setq auto-mode-alist (cons 
-                       '("\\.java" . java-mode) 
-                       auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
 
 (defun my-java-mode-hook ()
   (when (not (fboundp 'my-java-mode-hook-done))
     (font-lock-add-keywords
      'java-mode
-     '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
-       ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
-       ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+     '(("\\<\\(NOTE\\):"	1 font-lock-warning-face t)
+       ("\\<\\(TODO\\):"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME\\):"	1 font-lock-warning-face t)))
     (defvar my-java-mode-hook-done t 
       "Indicates that my-java-mode-hook has been called"))
   (c-set-style "my-java-style"))
@@ -347,19 +329,17 @@ See require. Return non-nil if FEATURE is or was loaded."
   ;; italic fonts
   (setq w32-enable-italics t) ; This must be done before font settings!
   ;; use interactive set-face-font followed by describe-face to determine this
-  (set-face-font 'italic "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
-  (set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard"))
+  (set-face-font 'italic	"-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
+  (set-face-font 'bold-italic	"-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Basic stuff)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq default-frame-alist
-      (append default-frame-alist
-              '((foreground-color  	.	"white")
-                (background-color  	.	"black")
-                (cursor-color      	.	"green"))))
+(add-to-list 'default-frame-alist '(foreground-color  	.	"white"))
+(add-to-list 'default-frame-alist '(background-color  	.	"black"))
+(add-to-list 'default-frame-alist '(cursor-color  	.	"green"))
       
 (setq standard-indent 2)
 
@@ -398,8 +378,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; set up some colors for basic stuff
-(set-cursor-color "GREEN")
-(set-mouse-color "MAGENTA")
+(set-cursor-color						"GREEN")
+(set-mouse-color						"MAGENTA")
 
 ;; to know what face is at cursor, use one of these:
 ;;   M-x describe-text-at RET
@@ -417,71 +397,84 @@ See require. Return non-nil if FEATURE is or was loaded."
     (error nil)))
 
 ;; set up colors not dependent on window system
-(try-set-face-background 'highlight "DARKSEAGREEN2")
-(try-set-face-background 'modeline "MIDNIGHTBLUE")
-(try-set-face-background 'region "NAVY")
-(try-set-face-background 'show-paren-match-face "NAVY")
-(try-set-face-background 'show-paren-mismatch-face "PURPLE")
-(try-set-face-background 'fringe "grey30")
+(try-set-face-background 'highlight				"DARKSEAGREEN2")
+(try-set-face-background 'modeline				"MIDNIGHTBLUE")
+(try-set-face-background 'region				"NAVY")
+(try-set-face-background 'show-paren-match-face			"NAVY")
+(try-set-face-background 'show-paren-mismatch-face		"PURPLE")
+(try-set-face-background 'fringe				"grey30")
 
-(set-foreground-color "WHITE")
-(try-set-face-foreground 'default "WHITE")
-(try-set-face-foreground 'highlight "WHITE")
-(try-set-face-foreground 'modeline "CYAN")
-(try-set-face-foreground 'show-paren-match-face "CYAN")
-(try-set-face-foreground 'show-paren-mismatch-face "WHITE")
+(set-foreground-color 						"WHITE")
+(try-set-face-foreground 'default				"WHITE")
+(try-set-face-foreground 'highlight				"WHITE")
+(try-set-face-foreground 'modeline				"CYAN")
+(try-set-face-foreground 'show-paren-match-face			"CYAN")
+(try-set-face-foreground 'show-paren-mismatch-face		"WHITE")
 
 ;; set up colors dependent on window-system
 (if window-system
     (progn                              ; with a window system
-      (try-set-face-foreground 'region "CYAN")
-      (set-background-color "BLACK")
-      (try-set-face-background 'default "BLACK"))
+      (try-set-face-foreground 'region				"CYAN")
+      (set-background-color					"BLACK")
+      (try-set-face-background 'default				"BLACK"))
 
   (progn                                ; naked terminal
-    (try-set-face-foreground 'region "WHITE")
-    (set-background-color "unspecified-bg")
-    (try-set-face-background 'default "unspecified-bg")))
+    (try-set-face-foreground 'region				"WHITE")
+    (set-background-color					"unspecified-bg")
+    (try-set-face-background 'default				"unspecified-bg")))
 
-(defun my-font-lock-mode-hook ()
-  (when (not (fboundp 'my-font-lock-mode-hook-done))
+(defun my-window-system-font-lock-mode-hook ()
+  (when (not (fboundp 'my-window-system-font-lock-mode-hook-done))
+        
+    (try-set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE")
+    (try-set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE")
+    (try-set-face-foreground 'font-lock-string-face		"LIGHTSALMON")
+    (try-set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD")
+    (try-set-face-foreground 'font-lock-builtin-face		"VIOLET")
+    (try-set-face-foreground 'font-lock-warning-face		"RED")
+    (try-set-face-foreground 'font-lock-comment-face		"ROSYBROWN2")
+    (try-set-face-foreground 'font-lock-type-face		"PALEGREEN")
+  (if (< emacs-version-num 20.02)
+      (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
+    (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
 
-    (try-set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
-    (try-set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
-    (try-set-face-foreground 'font-lock-string-face "LIGHTSALMON")
-    (try-set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
-    (try-set-face-foreground 'font-lock-builtin-face "VIOLET")
-    (try-set-face-foreground 'font-lock-warning-face "RED")
+  (defvar my-window-system-font-lock-mode-hook-done t 
+    "Indicates that my-window-system-font-lock-mode-hook has been called")))
+
+(defun my-console-font-lock-mode-hook ()
+  (when (not (fboundp 'my-console-font-lock-mode-hook-done))
+
+    (try-set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE")
+    (try-set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE")
+    (try-set-face-foreground 'font-lock-string-face		"LIGHTSALMON")
+    (try-set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD")
+    (try-set-face-foreground 'font-lock-builtin-face		"VIOLET")
+    (try-set-face-foreground 'font-lock-warning-face		"RED")
     (if (< emacs-version-num 20.02)
-        (try-set-face-foreground 'font-lock-reference-face "CADETBLUE")
-      (try-set-face-foreground 'font-lock-constant-face "CADETBLUE"))
+        (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
+      (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
 
-    (unless window-system
-      (try-set-face-background 'font-lock-comment-face "unspecified-bg")
-      (try-set-face-background 'font-lock-function-name-face "unspecified-bg")
-      (try-set-face-background 'font-lock-keyword-face "unspecified-bg")
-      (try-set-face-background 'font-lock-string-face "unspecified-bg")
-      (try-set-face-background 'font-lock-type-face "unspecified-bg")
-      (try-set-face-background 'font-lock-variable-name-face "unspecified-bg")
-      (if (< emacs-version-num 20.02)
-          (try-set-face-background 'font-lock-reference-face "unspecified-bg")
-        (try-set-face-background 'font-lock-constant-face "unspecified-bg")))
-      
-    (if window-system
-        (progn
-          (try-set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
-          (try-set-face-foreground 'font-lock-type-face "PALEGREEN"))
+    (try-set-face-background 'font-lock-comment-face		"unspecified-bg")
+    (try-set-face-background 'font-lock-function-name-face	"unspecified-bg")
+    (try-set-face-background 'font-lock-keyword-face		"unspecified-bg")
+    (try-set-face-background 'font-lock-string-face		"unspecified-bg")
+    (try-set-face-background 'font-lock-type-face		"unspecified-bg")
+    (try-set-face-background 'font-lock-variable-name-face	"unspecified-bg")
+    (try-set-face-foreground 'font-lock-comment-face		"RED")
+    (try-set-face-foreground 'font-lock-type-face		"GREEN")
+    (if (< emacs-version-num 20.02)
+        (try-set-face-background 'font-lock-reference-face	"unspecified-bg")
+      (try-set-face-background 'font-lock-constant-face		"unspecified-bg"))
 
-      (progn
-        (try-set-face-foreground 'font-lock-comment-face "RED")
-        (try-set-face-foreground 'font-lock-type-face "GREEN")))
-
-    (defvar my-font-lock-mode-hook-done t 
-      "Indicates that my-font-lock-mode-hook has been called")))
-(add-hook 'font-lock-mode-hook 'my-font-lock-mode-hook)
+    (defvar my-console-font-lock-mode-hook-done t 
+      "Indicates that my-console-font-lock-mode-hook has been called")))
+  
+(if window-system
+    (add-hook 'font-lock-mode-hook 'my-window-system-font-lock-mode-hook)
+  (add-hook 'font-lock-mode-hook 'my-console-font-lock-mode-hook))
 
 (when (eq system-type 'darwin)
-  (set-default-font "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman"))
+  (add-to-list 'default-frame-alist '(font . "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -864,69 +857,67 @@ it is put to the start of the list."
 (defun keymap-setup ()
   (define-key function-key-map [delete] [deletechar])
   (when (and (eq system-type 'darwin) (not window-system))
-    (define-key function-key-map "OP" [f1])
-    (define-key function-key-map "OQ" [f2])
-    (define-key function-key-map "OR" [f3])
-    (define-key function-key-map "OS" [f4])
-    (define-key function-key-map "[28~" [insert])
-    (define-key function-key-map "[1~" [home])
-    (define-key function-key-map "[4~" [end])))
+    (define-key function-key-map "OP"		[f1])
+    (define-key function-key-map "OQ"		[f2])
+    (define-key function-key-map "OR"		[f3])
+    (define-key function-key-map "OS"		[f4])
+    (define-key function-key-map "[28~"	[insert])
+    (define-key function-key-map "[1~"	[home])
+    (define-key function-key-map "[4~"	[end])))
 (setq term-setup-hook 'keymap-setup)
 
-(global-set-key "\C-f" 'forward-word)
-(global-set-key "\C-b" 'backward-word)
-(global-set-key "\346" 'forward-char)   ;M-f
-(global-set-key "\342" 'backward-char)  ;M-b
+(global-set-key "\C-f"		'forward-word)
+(global-set-key "\C-b"		'backward-word)
+(global-set-key "\346"		'forward-char)   ;M-f
+(global-set-key "\342"		'backward-char)  ;M-b
 
-(global-set-key [f2] 'save-buffer)
-(global-set-key [f3] 'find-file)
-(global-set-key [f4] 'match-paren)
-(global-set-key [f5] 'insert-time)
-(global-set-key [f7] 'grep)
-(global-set-key [f8] 'compile)
-(global-set-key [f9] 'next-error)
-(global-set-key [S-f9] 'previous-error)
-(global-set-key [f11] 'my-shrink-window)
-(global-set-key [f12] 'my-enlarge-window)
-(global-set-key [M-f4] 'save-buffers-kill-emacs)
-(global-set-key [C-f4] 'kill-current-buffer)
-(global-set-key [M-f5] 'delete-frame)
-(global-set-key [C-f5] 'make-frame-command)
-(global-set-key "l" 'goto-line)       ;M-l
-(global-set-key "\362" 'revert-buffer)  ;M-r
-;;(global-set-key "\361" 'my-reindent)    ;M-q
-;;(global-set-key "\C-xb" 's-switch-to-buffer)
-(global-set-key "\C-x\C-b" 'my-list-buffers)
-(global-set-key ";" 'my-comment)
+(global-set-key [f2]		'save-buffer)
+(global-set-key [f3]		'find-file)
+(global-set-key [f4]		'match-paren)
+(global-set-key [f5]		'insert-time)
+(global-set-key [f7]		'grep)
+(global-set-key [f8]		'compile)
+(global-set-key [f9]		'next-error)
+(global-set-key [S-f9]		'previous-error)
+(global-set-key [f11]		'my-shrink-window)
+(global-set-key [f12]		'my-enlarge-window)
+(global-set-key [M-f4]		'save-buffers-kill-emacs)
+(global-set-key [C-f4]		'kill-current-buffer)
+(global-set-key [M-f5]		'delete-frame)
+(global-set-key [C-f5]		'make-frame-command)
+(global-set-key "l"		'goto-line)       ;M-l
+(global-set-key "\362"		'revert-buffer)  ;M-r
+(global-set-key "\C-x\C-b"	'my-list-buffers)
+(global-set-key ";"		'my-comment)
 (if (>= emacs-version-num 21)
-    (global-set-key "\C-c\C-r" 'uncomment-region)
-  (global-set-key "\C-c\C-r" 'region-remove-comment))
-(global-set-key "\C-c\C-l" 'comment-line)
-(global-set-key "\C-d" 'my-delete)
+    (global-set-key "\C-c\C-r"	'uncomment-region)
+  (global-set-key "\C-c\C-r"	'region-remove-comment))
+(global-set-key "\C-c\C-l"	'comment-line)
+(global-set-key "\C-d"		'my-delete)
 
-(global-set-key [M-down] 'scroll-up-line) 
-(global-set-key [M-up] 'scroll-down-line)
+(global-set-key [M-down]	'scroll-up-line) 
+(global-set-key [M-up]		'scroll-down-line)
 
-(global-set-key [home] 'beginning-of-buffer)
-(global-set-key [end] 'end-of-buffer)
+(global-set-key [home]		'beginning-of-buffer)
+(global-set-key [end]		'end-of-buffer)
 
-(global-set-key (quote [27 deletechar]) 'kill-word)
+(global-set-key [27 deletechar]	'kill-word)
 
-(defun up-slightly () (interactive) (scroll-up 5))
+(defun up-slightly   () (interactive) (scroll-up 5))
 (defun down-slightly () (interactive) (scroll-down 5))
-(global-set-key [mouse-4] 'down-slightly)
-(global-set-key [mouse-5] 'up-slightly)
+(global-set-key [mouse-4]	'down-slightly)
+(global-set-key [mouse-5]	'up-slightly)
       
-(defun up-one () (interactive) (scroll-up 1))
+(defun up-one   () (interactive) (scroll-up 1))
 (defun down-one () (interactive) (scroll-down 1))
-(global-set-key [S-mouse-4] 'down-one)
-(global-set-key [S-mouse-5] 'up-one)
+(global-set-key [S-mouse-4]	'down-one)
+(global-set-key [S-mouse-5]	'up-one)
       
       
-(defun up-a-lot () (interactive) (scroll-up))
+(defun up-a-lot   () (interactive) (scroll-up))
 (defun down-a-lot () (interactive) (scroll-down))
-(global-set-key [C-mouse-4] 'down-a-lot)
-(global-set-key [C-mouse-5] 'up-a-lot)
+(global-set-key [C-mouse-4]	'down-a-lot)
+(global-set-key [C-mouse-5]	'up-a-lot)
 
 (when (locate-library "eshell")
   (global-set-key "!" 'eshell-command)
