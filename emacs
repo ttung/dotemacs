@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.22
+;; version 6.23
 ;; 2000 August 8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -161,7 +161,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 (if (want 'iswitchb)
     (progn
       (iswitchb-default-keybindings)
-      (setq iswitchb-default-method 'samewindow)) ;always go to the same window
+      (setq iswitchb-default-method 'samewindow) ;always go to the same window
+      (setq iswitchb-case t))
   (global-unset-key "\C-xb")
   (global-set-key "\C-xb" 's-switch-to-buffer))
 
