@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.6
-;; 2001 October 24
+;; version 8.7
+;; 2001 November 7
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -48,6 +48,16 @@ See require. Return non-nil if FEATURE is or was loaded."
         (my-load filename))
     t))
 
+(if (<= emacs-version-num 20)
+    (progn
+      (defmacro when (cond &rest body)
+        "If COND yields non-nil, do BODY, else return nil."
+        (list 'if cond (cons 'progn body)))
+
+      (defmacro unless (cond &rest body)
+        "If COND yields nil, do BODY, else return nil."
+        (cons 'if (cons cond (cons nil body))))))
+
 ;; set up the paths for custom files
 (when (eq system-type 'windows-nt)
     (setq exec-path 
@@ -73,7 +83,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                              '("\\.h\\'" . c++-mode) 
                              auto-mode-alist)))
 
-(when (not (eq (string-match "cisco.com" system-name) nil))
+(when (string-match "cisco.com" system-name)
   (setq auto-mode-alist (cons 
 			 '("\\.sx\\'" . asm-mode) 
 			 auto-mode-alist)))
@@ -227,7 +237,8 @@ See require. Return non-nil if FEATURE is or was loaded."
     (local-set-key "\C-c\C-t" 'c-insert-todo)
     (local-set-key "\C-c\C-f" 'c-insert-fixme)
     (local-set-key "\C-c\C-m" 'man)
-    (when (not (eq (string-match "cisco.com" system-name) nil))
+    (local-set-key "\C-d" 'my-delete)
+    (when (string-match "cisco.com" system-name)
         (c-set-style "cisco-c-style"))))
 
 ;; set hooks
@@ -329,7 +340,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; command-line shell - remove the ^M
 ;; and set the default font to 
-(when (not (eq system-type 'windows-nt))
+(unless (eq system-type 'windows-nt)
   (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)
   (when (and (>= emacs-version-num 21) window-system)
     (set-default-font "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
@@ -365,7 +376,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 	(cursor-color      	.	"green")
 	(menu-bar-lines    	.	1)))
 
-(when (not (eq system-type 'windows-nt))
+(unless (eq system-type 'windows-nt)
   (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
 
 (setq standard-indent 2)
@@ -498,7 +509,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq line-number-display-limit 8388608)
 
 ;; date related stuff
-(when (not (eq window-system nil))
+(when window-system
   (setq display-time-day-and-date t))
 ;;(setq display-time-mail-file t)
 (setq display-time-interval 30)
@@ -553,7 +564,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 With a prefix argument, it does not insert the dashes below and above the time."
   (interactive "P")
   (let ((time-string (format-time-string "%a %b %d %H:%M:%S %Z %Y")))
-    (when (eq nodashes nil)
+    (unless nodashes
       (insert "\n")
       (insert 
        (make-string 
@@ -561,7 +572,7 @@ With a prefix argument, it does not insert the dashes below and above the time."
         ?-))
       (insert "\n"))
     (insert time-string)
-    (when (eq nodashes nil)
+    (unless nodashes
       (insert "\n")
       (insert 
        (make-string 
@@ -586,7 +597,7 @@ The R column contains a % for buffers that are read-only."
   (interactive)
   (let ((num-win (count-windows)))
     (list-buffers)
-    (when (not (equal (buffer-name) "*Buffer List*"))
+    (unless (equal (buffer-name) "*Buffer List*")
       (other-window 1)
       (goto-char (point-min)))
     (when (= num-win 1)
@@ -597,7 +608,7 @@ The R column contains a % for buffers that are read-only."
 (defun my-comment ()
   "Indents a region if the mark is active.  Otherwise starts a comment."
   (interactive)
-  (when mark-active
+  (if mark-active
       (comment-region (point) (mark) nil)
     (indent-for-comment)))
 
@@ -707,7 +718,7 @@ If ARG is negative, delete that many comment characters instead."
               '(nice-buffer-file-name nice-buffer-file-name
                                       (buffer-file-name "%f" "%b")))
 
-(when (not window-system)
+(unless window-system
   (setq mode-line-frame-identification '("  ")))
 
 (defun text-tab5 ()
@@ -921,7 +932,9 @@ it is put to the start of the list."
 ;; (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
-(global-set-key "\C-c\C-r" 'region-remove-comment)
+(if (>= emacs-version-num 21)
+    (global-set-key "\C-c\C-r" 'uncomment-region)
+  (global-set-key "\C-c\C-r" 'region-remove-comment))
 (global-set-key "\C-c\C-l" 'comment-line)
 (global-set-key "\C-d" 'my-delete)
 (global-set-key "\C-t" 'insert-tab-char)
