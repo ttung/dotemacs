@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.37 2003/11/10 21:02:40 tonytung Exp $
+;; $Id: emacs,v 9.0 2003/11/13 23:52:55 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -68,10 +68,14 @@ See require. Return non-nil if FEATURE is or was loaded."
        (expand-file-name "~/emacs/elisp") 
        load-path))
 
-(when (eq (string-match "crhc.uiuc.edu" system-name) nil)
+(setq auto-mode-alist 
+      (append '(("\\.c\\'" . c++-mode)
+                ("\\.h\\'" . c++-mode))
+              auto-mode-alist))
+(when (string-match "cisco\\.com" system-name)
       (setq auto-mode-alist 
-            (append '(("\\.c\\'" . c++-mode)
-                      ("\\.h\\'" . c++-mode))
+            (append '(("\\.regc\\'" . c++-mode)
+                      ("\\.regh\\'" . c++-mode))
                     auto-mode-alist)))
 
 (setq auto-mode-alist 
@@ -168,7 +172,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
 (setq compile-command "make ")
-(when (string-match "cisco.com" system-name)
+(when (string-match "cisco\\.com" system-name)
   (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
 
 ;;
@@ -237,7 +241,7 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
-  (if (string-match "cisco.com" system-name)
+  (if (string-match "cisco\\.com" system-name)
       (c-set-style "cisco-c-style")
     (c-set-style "my-c-style"))
   (when (and (boundp 'cscope-loaded) cscope-loaded)
