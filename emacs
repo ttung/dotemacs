@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.4 2004/06/15 07:08:50 tonytung Exp $
+;; $Id: emacs,v 9.5 2004/06/15 07:15:42 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -226,22 +226,20 @@ See require. Return non-nil if FEATURE is or was loaded."
     (let ((vobroot (substring buffer-file-name 
                               (match-beginning 1) (match-end 1))))
       (make-local-variable 'compile-command)
-      (make-local-variable 'compile-history)
       (set 'compile-command (concat "make -C " vobroot " plat-zamboni"))
       (add-to-list 'compile-history 
                    (concat "make -C " vobroot " plat-macedon"))
       (set 'gud-gdb-command-name 
            (concat "/auto/macedon_tools/sde4/bin/sde-gdb " vobroot)))
     (c-set-style "ace-c-style"))
-  (when (string-match "^\\(\\(/vob/\\|/view/.*vob/\\|.*copyo/.*/\\)ios/\\)" buffer-file-name)
+  (when (string-match "^\\(\\(/vob/\\|/view/.*vob/\\|.*copyo/.*/\\)ios[^/]*/\\)" buffer-file-name)
     ;; save the relevant matching parts
     (let ((vobroot (substring buffer-file-name 
                               (match-beginning 1) (match-end 1))))
       (make-local-variable 'compile-command)
-      (make-local-variable 'compile-history)
-      (set 'compile-command (concat "make -C " vobroot "/sys/obj-4k-draco2-mp/ sub_macedon.o"))
+      (set 'compile-command (concat "make -C " vobroot "sys/obj-4k-draco2-mp/ sub_macedon.o"))
       (add-to-list 'compile-history 
-                   (concat "make -C " vobroot "/sys/obj-4k-apollo_plus/ sub_macedon_sp.o")))
+                   (concat "make -C " vobroot "sys/obj-4k-apollo_plus/ sub_macedon_sp.o")))
     (c-set-style "cisco-c-style")
     (add-to-list 'c-font-lock-extra-types "boolean")
     (add-to-list 'c++-font-lock-extra-types "boolean")))
@@ -494,6 +492,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (if (< emacs-version-num 20.02)
         (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
       (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
+    (try-set-face-foreground 'diff-context-face                 "WHITE")
 
     (try-set-face-background 'font-lock-comment-face		"unspecified-bg")
     (try-set-face-background 'font-lock-function-name-face	"unspecified-bg")
@@ -897,7 +896,7 @@ it is put to the start of the list."
 
 (defun keymap-setup ()
   (define-key function-key-map [delete] [deletechar])
-  (when (and (eq system-type 'darwin) (not window-system))
+  (when (and (string-match "\\(darwin\\|usg-unix-v\\)" (symbol-name system-type)) (not window-system))
     (define-key function-key-map "OP"		[f1])
     (define-key function-key-map "OQ"		[f2])
     (define-key function-key-map "OR"		[f3])
