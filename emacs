@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.11
+;; version 6.12
 ;; 2000 July 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -374,7 +374,10 @@ See require. Return non-nil if FEATURE is or was loaded."
     (if (> emacs-version-num 20.02)
         (progn
           (set-face-background 'font-lock-constant-face "BLACK")
-          (set-face-foreground 'font-lock-constant-face "TAN")))))
+          (set-face-foreground 'font-lock-constant-face "CADETBLUE"))
+      (progn
+        (set-face-background 'font-lock-reference-face "BLACK")
+        (set-face-foreground 'font-lock-reference-face "CADETBLUE")))))
 
 ;; set up the font menu
 (setq
