@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.25
-;; 2001 July 31
+;; version 7.26
+;; 2001 October 2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -64,7 +64,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                        auto-mode-alist))
 
 (if (and (eq (string-match "crhc.uiuc.edu" system-name) nil)
-         (eq (string-match "allegrosys.com" system-name) nil))
+         (eq (string-match "cisco.com" system-name) nil))
     (progn 
       (setq auto-mode-alist (cons 
                              '("\\.c\\'" . c++-mode) 
@@ -74,7 +74,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                              '("\\.h\\'" . c++-mode) 
                              auto-mode-alist))))
 
-(if (not (eq (string-match "allegrosys.com" system-name) nil))
+(if (not (eq (string-match "cisco.com" system-name) nil))
     (setq auto-mode-alist (cons 
                            '("\\.sx\\'" . asm-mode) 
                            auto-mode-alist)))
@@ -193,12 +193,37 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
-(defconst allegro-c-style
-  '("whitesmith"
-    (c-comment-only-line-offset 0 . 0)
-    (c-offsets-alist . ((case-label . +)))) )
+;;
+;; cisco cc-mode settings 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar cisco-c-style
+  '((c-auto-newline                 . t)
+    (tab-width                      . 4)
+    (c-basic-offset                 . 4) 
+    (c-block-comments-indent-p      . t)
+    (c-comment-only-line-offset     . 0)
+    (c-echo-syntactic-information-p . nil)
+    (c-hanging-comment-starter-p    . nil)
+    (c-comment-continuation-stars   . "* ")
+    (c-hanging-comment-ender-p      . nil)
+    (c-recognize-knr-p              . t) ; use nil if only have ANSI prototyp
+    (c-tab-always-indent            . t)
+    (comment-column                 . 36)
+    (comment-end                    . " */")
+    (comment-multi-line             . t)
+    (c-block-comments-indent-p      . nil)
+    (comment-start                  . "/* ")
+    (c-offsets-alist                . ((knr-argdecl-intro   . +)
+                                       (case-label          . 0)
+                                       (knr-argdecl         . 0)
+                                       (label               . 0)
+                                       (statement-case-open . +)
+                                       (statement-cont      . +)
+                                       (substatement-open   . 0)))
+    (c-cleanup-list                 . (scope-operator brace-else-brace)))
+  "cisco c-style for cc-mode")
 
-(c-add-style "allegro-c-style" allegro-c-style)
+(c-add-style "cisco-c-style" cisco-c-style)
 
 ;; set the indent correctly
 (defun my-c-mode-common-hook ()
@@ -213,8 +238,8 @@ See require. Return non-nil if FEATURE is or was loaded."
     (local-set-key "\C-c\C-t" 'c-insert-todo)
     (local-set-key "\C-c\C-f" 'c-insert-fixme)
     (local-set-key "\C-c\C-m" 'man)
-    (if (not (eq (string-match "allegrosys.com" system-name) nil))
-        (c-set-style "allegro-c-style"))))
+    (if (not (eq (string-match "cisco.com" system-name) nil))
+        (c-set-style "cisco-c-style"))))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -876,7 +901,7 @@ it is put to the start of the list."
 
 ;; keybindings...
 (if (and (eq window-system nil)
-         (eq (string-match "allegrosys.com" system-name) nil))
+         (eq (string-match "cisco.com" system-name) nil))
     (progn
       (keyboard-translate ?\C-h ?\C-?)
       (keyboard-translate ?\C-? ?\C-h)
