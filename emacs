@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.14
-;; 2000 June 5
+;; version 5.15
+;; 2000 June 6
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -456,10 +456,13 @@ The list is displayed in a buffer named `*Buffer List*'.
 The M column contains a * for buffers that are modified.
 The R column contains a % for buffers that are read-only."
   (interactive)
-  (list-buffers)
-  (other-window 1)
-  (goto-char (point-min))
-  (next-line 2))
+  (if (not (equal (buffer-name (car (buffer-list))) "*Buffer List*"))
+      (progn
+	(list-buffers)
+	(message (buffer-name (car (buffer-list))))
+	(other-window 1)
+	(goto-char (point-min))
+	(next-line 2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
