@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.25
-;; 2000 September 19
+;; version 6.26
+;; 2000 October 26
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -628,6 +628,11 @@ If ARG is negative, delete that many comment characters instead."
       (next-error -1)
     (next-error (- arg))))
 
+(defun kill-current-buffer ()
+  "Kills the current buffer."
+  (interactive)
+  (kill-buffer (buffer-name)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
@@ -825,7 +830,7 @@ it is put to the start of the list."
 (global-set-key [f11] 'my-shrink-window)
 (global-set-key [f12] 'my-enlarge-window)
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
-(global-set-key [C-f4] 'kill-buffer)
+(global-set-key [C-f4] 'kill-current-buffer)
 (global-set-key [M-f5] 'delete-frame)
 (global-set-key [C-f5] 'make-frame-command)
 (global-set-key "\356" 'goto-line)      ;M-n
