@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.10
-;; 2000 May 30
+;; version 5.11
+;; 2000 June 2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -517,6 +517,19 @@
         ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
         (t (self-insert-command (or arg 1)))))
 
+(defun my-list-buffers ()
+  "Display a list of names of existing buffers and sets the active
+buffer to the list.
+The list is displayed in a buffer named `*Buffer List*'.
+
+The M column contains a * for buffers that are modified.
+The R column contains a % for buffers that are read-only."
+  (interactive)
+  (list-buffers)
+  (other-window 1)
+  (goto-char (point-min))
+  (next-line 2))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -538,6 +551,7 @@
 
 (global-unset-key "\362")		;M-r
 (global-unset-key "\361")		;M-q
+(global-unset-key "\C-x \C-b")
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
@@ -551,6 +565,7 @@
 (global-set-key "\362" 'revert-buffer)	;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
 (global-set-key "\361" 'my-reindent)	;M-q
+(global-set-key "\C-x \C-b" 'my-list-buffers)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
