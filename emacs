@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.5
-;; 2000 March 24
+;; version 5.6
+;; 2000 March 28
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -120,9 +120,12 @@
 ;;       (require 'hilit19)
 ;;       ))
 
-(require 'htmlize)
-(require 'pc-bufsw)
-(pc-bufsw::bind-keys [C-tab] [C-S-tab])
+(if (> emacs-version-num 19.28)
+    (require 'htmlize))
+(if (> emacs-version-num 19.28)
+    (progn
+      (require 'pc-bufsw)
+      (pc-bufsw::bind-keys [C-tab] [C-S-tab])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
@@ -383,10 +386,12 @@
 ;; Appearance (Titlebar)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq frame-title-format
-      (concat invocation-name "@" system-name " - %f"))
-(setq icon-title-format
-      (concat invocation-name "@" system-name " - %b"))
+(if (> emacs-version-num 19.28)
+    (progn
+      (setq frame-title-format
+	    (concat invocation-name "@" system-name " - %f"))
+      (setq icon-title-format
+	    (concat invocation-name "@" system-name " - %b"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; My own functions
