@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.11
+;; version 5.12
 ;; 2000 June 2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -295,16 +295,18 @@
 (if (eq window-system nil)
     (menu-bar-mode 0)
   (progn
+    (set-cursor-color "GREEN")
+    (set-mouse-color "MAGENTA")
+    (set-face-background 'default "BLACK")
+    (set-face-foreground 'default "WHITE")
+    (set-face-background 'highlight "DARKSEAGREEN2")
+    (set-face-foreground 'highlight "WHITE")
     (set-face-background 'modeline "MIDNIGHTBLUE")
     (set-face-foreground 'modeline "CYAN")
     (set-face-background 'region "NAVY")
     (set-face-foreground 'region "CYAN")
-    (set-face-background 'default "BLACK")
-    (set-face-foreground 'default "WHITE")
     (set-foreground-color "WHITE")
     (set-background-color "BLACK")
-    (set-cursor-color "GREEN")
-    (set-mouse-color "MAGENTA")
     (if (> emacs-version-num 19.34)
 	(progn
 	  ;; (set-face-background 'bold "BLACK")
@@ -321,8 +323,14 @@
 	  ;; (set-face-foreground 'underline "WHITE") 
 	  (set-face-background 'show-paren-match-face "NAVY")
 	  (set-face-foreground 'show-paren-match-face "CYAN")
-	  (set-face-background 'font-lock-comment-face "BLACK")
-	  (set-face-foreground 'font-lock-comment-face "RED2")
+	  (set-face-background 'show-paren-mismatch-face "PURPLE")
+	  (set-face-foreground 'show-paren-mismatch-face "WHITE")
+	  (set-face-background 'font-lock-builtin-face "BLACK")
+	  (set-face-foreground 'font-lock-builtin-face "VIOLET")
+          (set-face-background 'font-lock-comment-face "BLACK")
+          (set-face-foreground 'font-lock-comment-face "RED2")
+	  (set-face-background 'font-lock-constant-face "BLACK")
+	  (set-face-foreground 'font-lock-constant-face "CADETBLUE")
 	  (set-face-background 'font-lock-function-name-face "BLACK")
 	  (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
 	  (set-face-background 'font-lock-keyword-face "BLACK")
@@ -332,7 +340,9 @@
 	  (set-face-background 'font-lock-type-face "BLACK")
 	  (set-face-foreground 'font-lock-type-face "PALEGREEN")
 	  (set-face-background 'font-lock-variable-name-face "BLACK")
-	  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")))))
+	  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
+	  (set-face-background 'font-lock-warning-face "BLACK")
+	  (set-face-foreground 'font-lock-warning-face "RED") ))))
 
 ;; set up the font menu
 (setq
