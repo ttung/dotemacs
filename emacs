@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.7 2004/06/21 18:49:38 tonytung Exp $
+;; $Id: emacs,v 9.8 2004/09/17 16:49:45 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -58,14 +58,11 @@ See require. Return non-nil if FEATURE is or was loaded."
         (cons 'if (cons cond (cons nil body))))))
 
 ;; set up the paths for custom files
-(add-to-list 'exec-path (expand-file-name "~/emacs/bin") t)
-(add-to-list 'load-path (expand-file-name "~/emacs/elisp") t)
+(add-to-list 'exec-path (expand-file-name "~/emacs/bin"))
+(add-to-list 'load-path (expand-file-name "~/emacs/elisp"))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
 (add-to-list 'auto-mode-alist '("\\.h\\'"		. c++-mode))
-(when (string-match "cisco\\.com" system-name)
-  (add-to-list 'auto-mode-alist '("\\.regc\\'"		. c++-mode))
-  (add-to-list 'auto-mode-alist '("\\.regh\\'"		. c++-mode)))
 (add-to-list 'auto-mode-alist '("\\.emt\\'"		. text-mode))
 (add-to-list 'auto-mode-alist '("\\.sched"		. text-tab5))
 (add-to-list 'auto-mode-alist '("\\.crontab\\'"		. text-tab5))
@@ -105,12 +102,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set up html-ize
 (when (and (> emacs-version-num 19.28) window-system)
   (want 'htmlize))
-
-(when window-system
-    (if (eq system-type 'windows-nt)
-        (when (want 'gnuserv)
-            (gnuserv-start))
-      (server-start)))
 
 (when (want 'iswitchb)
   (iswitchb-default-keybindings)
@@ -166,41 +157,18 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode))
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
-(defvar ace-c-style
-  '("bsd"
-    (c-basic-offset                     . 4)
-    (c-comment-only-line-offset		0 . 0)
-    (c-offsets-alist                    . ((case-label          . 0)))
-    (fill-column                        . 74)))
-
-;;
-;; cisco cc-mode settings 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar cisco-c-style
-  '((tab-width				. 8)
-    (c-basic-offset			. 4)
-    (c-comment-only-line-offset		. 0)
-    (c-echo-syntactic-information-p	. nil)
-    (c-block-comment-prefix		. "* ")
-    (c-recognize-knr-p			. t) ; use nil if only have ANSI prototyp
-    (c-tab-always-indent		. t)
-    (comment-column			. 36)
+(defvar pasemi-c-style
+  '("linux"
+    (c-basic-offset                     . 2)
+    (c-offsets-alist			. ((case-label   	. +)))
+    (comment-column                     . 40)
     (comment-end			. " */")
     (comment-multi-line			. t)
     (comment-start			. "/* ")
-    (c-offsets-alist			. ((knr-argdecl-intro   . +)
-                                           (case-label          . 0)
-                                           (knr-argdecl         . 0)
-                                           (label               . 0)
-                                           (statement-case-open . +)
-                                           (statement-cont      . +)
-                                           (substatement-open   . 0)))
-    (c-cleanup-list			. (scope-operator brace-else-brace))
-    (fill-column                        . 70))
-  "cisco c-style for cc-mode")
+    (fill-column                        . 80)))
 
 (defvar my-c-style
-  '("bsd"
+  '("linux"
     (c-basic-offset			. 2)
     (c-offsets-alist			. ((case-label   	. +))))
   "my c style")
@@ -210,37 +178,6 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-basic-offset			. 2)
     (c-offsets-alist			. ((substatement-open	.	0))))
   "my java style")
-
-;; cisco c-mode customizations
-(defun my-cisco-customizations ()
-  ;; pre-declare some things we might set
-  (unless (fboundp 'compile-history)
-    (defvar compile-history nil))
-  (unless (fboundp 'gud-gdb-command-name)
-    (defvar gud-gdb-command-name nil))
-
-  (when (string-match "^\\(\\(/vob/\\|/view/.*vob/\\|.*copyo/.*/\\)ace/\\)" buffer-file-name)
-    ;; save the relevant matching parts
-    (let ((vobroot (substring buffer-file-name 
-                              (match-beginning 1) (match-end 1))))
-      (make-local-variable 'compile-command)
-      (set 'compile-command (concat "make -C " vobroot " plat-zamboni"))
-      (add-to-list 'compile-history 
-                   (concat "make -C " vobroot " plat-macedon"))
-      (set 'gud-gdb-command-name 
-           (concat "/auto/macedon_tools/sde4/bin/sde-gdb " vobroot)))
-    (c-set-style "ace-c-style"))
-  (when (string-match "^\\(\\(/vob/\\|/view/.*vob/\\|.*copyo/.*/\\)ios[^/]*/\\)" buffer-file-name)
-    ;; save the relevant matching parts
-    (let ((vobroot (substring buffer-file-name 
-                              (match-beginning 1) (match-end 1))))
-      (make-local-variable 'compile-command)
-      (set 'compile-command (concat "make -C " vobroot "sys/obj-4k-draco2-mp/ sub_macedon.o"))
-      (add-to-list 'compile-history 
-                   (concat "make -C " vobroot "sys/obj-4k-apollo_plus/ sub_macedon_sp.o")))
-    (c-set-style "cisco-c-style")
-    (add-to-list 'c-font-lock-extra-types "boolean")
-    (add-to-list 'c++-font-lock-extra-types "boolean")))
 
 
 ;; c-mode customizations that don't load c-mode nor font-lock mode
@@ -255,11 +192,13 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-c<" 		'search-for-matching-ifdef)
   (when (not (fboundp 'my-c-mode-common-hook-done))
     (when (and (> emacs-version-num 20.0) (want 'xcscope))
-      (defvar xcscope-loaded 't "t if xcscope is loaded"))
-    (c-add-style "cisco-c-style"	cisco-c-style)
-    (c-add-style "ace-c-style"		ace-c-style)
+      (defvar xcscope-loaded 't "t if xcscope is loaded")
+      (when (string-match "pasemi\\.com" system-name)
+        (load "xcscope")
+        (define-key cscope-list-entry-keymap (kbd "RET") 'cscope-select-entry-other-window)))
     (c-add-style "my-java-style"	my-java-style)
     (c-add-style "my-c-style"		my-c-style)
+    (c-add-style "pasemi-c-style"	pasemi-c-style)
     (font-lock-add-keywords
      'c-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -272,11 +211,11 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
-  (cond ((string-match "cisco\\.com" system-name)
-         (my-cisco-customizations))
-        ((string-match "/elinks/src" buffer-file-name)
+  (cond ((string-match "/elinks/src" buffer-file-name)
          (setq tab-width 2)
          (c-set-style "my-c-style"))
+        ((string-match "pasemi\\.com" system-name)
+         (c-set-style "pasemi-c-style"))
         ('t
          (c-set-style "my-c-style")))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
@@ -287,24 +226,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq comment-start "# ")
   (setq asm-comment-char 35))
 (add-hook 'asm-mode-hook 'my-asm-mode-hook)
-
-(defun my-tcl-mode-hook ()
-  (when (not (fboundp 'my-tcl-mode-common-hook-done))
-    (font-lock-add-keywords
-     'tcl-mode
-     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
-       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
-       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
-    (defun my-tcl-comment ()
-      "Comments a region if the mark is active.  Otherwise starts a comment."
-        (interactive)
-        (if mark-active
-            (comment-region (point) (mark) nil)
-          (tcl-indent-for-comment))) 
-    (local-set-key ";" 'my-tcl-comment)
-    (defvar my-tcl-mode-common-hook-done t
-      "Indicates that my-tcl-mode-common-hook has been called")))
-(add-hook 'tcl-mode-hook 'my-tcl-mode-hook)
 
 ;; set up the java system
 (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
@@ -343,7 +264,13 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq vc-follow-symlinks t)
 (setq ange-ftp-ftp-program-name "sftp")
 
+;; python mode stuff
 (when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
+  (defun my-python-mode-hook ()
+    (auto-fill-mode 't))
+
+  (add-hook 'python-mode-hook 'my-python-mode-hook)
+
   (autoload 'python-mode "python-mode" "Major mode to edit Python files." t)
   (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
   (add-to-list 'interpreter-mode-alist '("python" . python-mode)))
@@ -965,12 +892,13 @@ it is put to the start of the list."
 (global-set-key [C-mouse-4]	'down-a-lot)
 (global-set-key [C-mouse-5]	'up-a-lot)
 
+(setq mouse-yank-at-point 't)
+(when (eq system-type 'darwin)
+  (setq mac-wheel-button-is-mouse-2 't))
+
 (when (locate-library "eshell")
   (global-set-key "!" 'eshell-command)
   (setq eshell-prefer-to-shell t))
-
-(when (eq system-type 'darwin)
-  (setq mac-wheel-button-is-mouse-2 't))
 
 ;; To get binding command, do this: First bind the key interactively, 
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
