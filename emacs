@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 4.3
-;; 2000 February 21
+;; version 5.0
+;; 2000 February 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -119,6 +119,8 @@
 ;;       ))
 
 (require 'htmlize)
+(require 'pc-bufsw)
+(pc-bufsw::bind-keys [C-tab] [C-S-tab])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
