@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.8
-;; 2000 April 14
+;; version 5.9
+;; 2000 May 24
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -58,6 +58,9 @@
 (setq auto-mode-alist (cons 
 		       '("\\.lex\\'" . c++-mode) 
 		       auto-mode-alist))
+
+(setq completion-ignored-extensions
+      (append completion-ignored-extensions '(".ps" ".pdf")))
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -503,6 +506,16 @@
 
 ;; END OF BUFFER SWITCHING FIX
 
+;; Go to matching parentheses
+(defun match-paren (arg)
+  "Go to the matching parenthesis if on parenthesis otherwise insert %."
+  (interactive "p")
+  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+        ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+        ((looking-at "\\s\{") (forward-list 1) (backward-char 1))
+        ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
+        (t (self-insert-command (or arg 1)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -529,6 +542,7 @@
 (global-set-key [f3] 'find-file)
 (global-set-key [f4] 'find-file-binary)
 (global-set-key [f5] 'insert-time)
+(global-set-key [f6] 'match-paren)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
