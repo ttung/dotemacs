@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.1
-;; 2000 December 4
+;; version 7.2
+;; 2001 January 7
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -463,12 +463,11 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq line-number-display-limit 8388608)
 
 ;; date related stuff
-(setq display-time-24hr-format t)
+(setq display-time-mail-file t)
 (if (eq window-system nil)
     ()
-  (progn
-    (setq display-time-day-and-date t)
-    (display-time)))
+  (setq display-time-day-and-date t))
+(display-time)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
