@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 4.0
+;; version 4.1
 ;; 1999 November 25
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -485,7 +485,7 @@
 
 (setq s-remove-first-completion 'nil)
 
-(define-key minibuffer-local-completion-map "\040" 's-minibuffer-word)
+(define-key minibuffer-local-completion-map "\040" 's-minibuffer-complete-word)
 (define-key minibuffer-local-completion-map "\t" 's-minibuffer-complete)
 (define-key minibuffer-local-must-match-map [return] 's-minibuffer-complete-and-exit)
 (global-set-key "\C-xb" 's-switch-to-buffer)
