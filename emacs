@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.5 2004/06/15 07:15:42 tonytung Exp $
+;; $Id: emacs,v 9.6 2004/06/21 18:32:31 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -70,8 +70,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'auto-mode-alist '("\\.sched"		. text-tab5))
 (add-to-list 'auto-mode-alist '("\\.crontab\\'"		. text-tab5))
 (add-to-list 'auto-mode-alist '("\\.procmailrc\\'"	. text-tab5))
-(add-to-list 'auto-mode-alist '("cshrc"			. shell-script-mode))
+(add-to-list 'auto-mode-alist '("\\..*cshrc"		. shell-script-mode))
 (add-to-list 'auto-mode-alist '("\\.t?csh\\'"		. shell-script-mode))
+(add-to-list 'auto-mode-alist '("emacs/emacs"		. emacs-lisp-mode))
 
 (add-to-list 'completion-ignored-extensions ".ps")
 (add-to-list 'completion-ignored-extensions ".pdf")
