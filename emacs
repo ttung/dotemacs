@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.15
-;; 2000 July 5
+;; version 6.16
+;; 2000 July 11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -177,6 +177,11 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq fill-column 78))
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
+
+(defun my-sgml-mode-hook ()
+  (auto-fill-mode))
+
+(add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
 ;; set the indent correctly
 (defun my-c-mode-common-hook ()
