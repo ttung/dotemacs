@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.14
-;; 2001 February 25
+;; version 7.15
+;; 2001 March 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -537,7 +537,7 @@ With a prefix argument, it does not insert the dashes below and above the time."
 
 ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
-(defun insert-tab ()
+(defun insert-tab-char ()
   "Insert a tab"
   (interactive "")
   (insert "\t"))
@@ -901,7 +901,7 @@ it is put to the start of the list."
 (global-set-key "\C-c\C-r" 'region-remove-comment)
 (global-set-key "\C-c\C-l" 'comment-line)
 (global-set-key "\C-d" 'my-delete)
-(global-set-key "\C-t" 'insert-tab)
+(global-set-key "\C-t" 'insert-tab-char)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
