@@ -3,6 +3,7 @@ LISP_FILES = andersl-java-font-lock.el \
 		htmlize.el \
 		ispell4.el \
 		pc-bufsw.el \
+		python-mode.el \
 		xcscope.el \
 
 ELC_FILES = ${LISP_FILES:.el=.elc}
