@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.19
-;; 2000 August 3
+;; version 6.20
+;; 2000 August 6
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -201,6 +201,14 @@ See require. Return non-nil if FEATURE is or was loaded."
        (global-font-lock-mode t)))
 (setq font-lock-maximum-decoration t)
 (setq font-lock-maximum-size nil)
+
+(font-lock-add-keywords
+ 'c-mode
+ '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+(font-lock-add-keywords
+ 'c++-mode
+ '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+
 
 (setq-default indent-tabs-mode nil)
 
