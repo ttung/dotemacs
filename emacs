@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 2.3
-;; 1999 November 8
+;; version 3.0
+;; 1999 November 21
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -275,7 +275,7 @@
 (setq scroll-step 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Appearance (Fonts)
+;; Appearance (Fonts & Colors)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; set up some colors
@@ -348,6 +348,12 @@
     ("Courier 18" "-adobe-courier-medium-r-normal--*-180-*-*-m-*-*-1")
     ("Courier 18-b" "-adobe-courier-bold-r-normal--*-180-*-*-m-*-*-1")
     )))
+
+(setq default-frame-alist
+      '((foreground-color  . "white")
+	(background-color  . "black")
+	(cursor-color      . "red")
+	(menu-bar-lines    . 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Modeline)
