@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.34 2003/09/26 23:14:53 tonytung Exp $
+;; $Id: emacs,v 8.35 2003/10/24 16:55:26 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -388,10 +388,11 @@ See require. Return non-nil if FEATURE is or was loaded."
     (show-paren-mode 1))
 
 ;; set the scroll bar to the right side
-(when (= emacs-version-num 20.02)
+(when window-system
+  (when (= emacs-version-num 20.02)
     (set-scroll-bar-mode 'right 'right))
-(when (> emacs-version-num 20.02)
-    (set-scroll-bar-mode 'right))
+  (when (> emacs-version-num 20.02)
+    (set-scroll-bar-mode 'right)))
 
 ;; show marked area
 (transient-mark-mode t)
