@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.6 2004/06/21 18:32:31 tonytung Exp $
+;; $Id: emacs,v 9.7 2004/06/21 18:49:38 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -166,9 +166,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode))
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
-;;(when (string-match "cisco\\.com" system-name)
-;;  (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
-
 (defvar ace-c-style
   '("bsd"
     (c-basic-offset                     . 4)
@@ -277,6 +274,9 @@ See require. Return non-nil if FEATURE is or was loaded."
       "Indicates that my-c-mode-common-hook has been called"))
   (cond ((string-match "cisco\\.com" system-name)
          (my-cisco-customizations))
+        ((string-match "/elinks/src" buffer-file-name)
+         (setq tab-width 2)
+         (c-set-style "my-c-style"))
         ('t
          (c-set-style "my-c-style")))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
@@ -342,6 +342,11 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (setq vc-follow-symlinks t)
 (setq ange-ftp-ftp-program-name "sftp")
+
+(when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
+  (autoload 'python-mode "python-mode" "Major mode to edit Python files." t)
+  (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+  (add-to-list 'interpreter-mode-alist '("python" . python-mode)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
