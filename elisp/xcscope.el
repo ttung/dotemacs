@@ -739,6 +739,12 @@ for this to work."
   :group 'cscope)
 
 
+(defcustom cscope-auto-open-buffer t
+  "*If non-nil, automatically open the buffer when moving to a new result."
+  :type 'boolean
+  :group 'cscope)
+
+
 (defcustom cscope-display-cscope-buffer t
   "*If non-nil automatically display the *cscope* buffer after each search."
   :type 'boolean
@@ -923,7 +929,7 @@ Must end with a newline.")
   (define-key cscope-list-entry-keymap "?" 'cscope-help)
   ;; The following line corresponds to be beginning of the "Cscope" menu.
   (define-key cscope-list-entry-keymap "s" 'cscope-find-this-symbol)
-  (define-key cscope-list-entry-keymap "d" 'cscope-find-this-symbol)
+  (define-key cscope-list-entry-keymap "d" 'cscope-find-global-definition)
   (define-key cscope-list-entry-keymap "g" 'cscope-find-global-definition)
   (define-key cscope-list-entry-keymap "G"
     'cscope-find-global-definition-no-prompting)
@@ -1195,6 +1201,10 @@ directory should begin.")
 			(setq cscope-edit-single-match
 			      (not cscope-edit-single-match))
 			:style toggle :selected cscope-edit-single-match ]
+		      [ "Auto open buffer"
+			(setq cscope-auto-open-buffer
+			      (not cscope-auto-open-buffer))
+			:style toggle :selected cscope-auto-open-buffer ]
 		      [ "Auto display *cscope* buffer"
 			(setq cscope-display-cscope-buffer
 			      (not cscope-display-cscope-buffer))
@@ -1473,12 +1483,14 @@ Point is not saved on mark ring."
 	    (error "The %s of the *cscope* buffer has been reached"
 		   (if do-next "end" "beginning"))))
       (setq line-number (get-text-property point 'cscope-line-number)))
-    (if (eq old-buffer buffer) ;; In the *cscope* buffer.
-	(cscope-show-entry-other-window)
-      (cscope-select-entry-specified-window old-buffer-window) ;; else
-      (if (windowp buffer-window)
-	  (set-window-point buffer-window point)))
-    (set-buffer old-buffer)
+    (if cscope-auto-open-buffer
+        (progn
+          (if (eq old-buffer buffer) ;; In the *cscope* buffer.
+              (cscope-show-entry-other-window)
+            (cscope-select-entry-specified-window old-buffer-window) ;; else
+            (if (windowp buffer-window)
+                (set-window-point buffer-window point)))
+          (set-buffer old-buffer)))
     ))
 
 
@@ -1750,7 +1762,7 @@ using the mouse."
 
 		;; This should always match.
 		(if (string-match
-		     "^\\([^ \t]+\\)[ \t]+\\([^ \t]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\(.*\\)\n"
+		     "^\\([^ \t]+\\)[ \t]\\([^ \t]*\\)[ \t]\\([0-9]+\\)[ \t]\\(.*\\)\n"
 		     line)
 		    (progn
 		      (let (str)
