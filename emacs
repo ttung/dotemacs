@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 2.1
+;; version 2.2
 ;; 1999 October 31
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -384,7 +384,22 @@
 (defun insert-time ()
   "Insert the current time."
   (interactive)
-  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
+  (let ((time-string (format-time-string "%a %b %d %H:%M:%S %Z %Y")))
+      (insert "\n")
+      (insert 
+       (make-string 
+	(length time-string)
+	?-))
+      (insert "\n")
+      (insert time-string)
+      (insert "\n")
+      (insert 
+       (make-string 
+	(length time-string)
+	?-))
+      (insert "\n\n")))
+	
+;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
