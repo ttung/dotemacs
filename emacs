@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.18
+;; version 5.19
 ;; 2000 June 12
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -141,7 +141,8 @@
     (setq c-basic-offset 2)
     (setq comment-column 60)
     (auto-fill-mode)
-    (setq fill-column 100)))
+    (setq fill-column 100)
+    (local-set-key "\C-c\C-r" 'region-remove-comment)))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -473,6 +474,11 @@ The R column contains a % for buffers that are read-only."
   (if mark-active
       (comment-region (point) (mark) nil)
     (indent-for-comment)))
+
+(defun region-remove-comment(from to)
+  "Removes comments from the beginning of lines within a region."
+  (interactive "r")
+  (comment-region from to -1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
