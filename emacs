@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.10
-;; 2001 February 9
+;; version 7.11
+;; 2001 February 10
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -649,13 +649,9 @@ If ARG is negative, delete that many comment characters instead."
       retval))
     
   (defun get-unique-tag (bfn bn)
-    (let ((splitted (split-string bfn "/"))
-          (lp 0))
-      (setq lp (car (last splitted)))
-      (let ((remainder (split-string bn lp)))
-        (if (null remainder)
-            ""
-          (car (last remainder))))))
+    (if (or (string-match "<[0-9]+>\\'" bn)
+            (not (string= bn (file-name-nondirectory bfn))))
+        (substring bn (match-beginning 0))))
 
   (let ((shortened-file-name 
          (limit-tree (abbreviate-file-name buffer-file-name) 1))
