@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.25 2002/08/20 18:05:44 tonytung Exp $
+;; $Id: emacs,v 8.26 2002/09/02 07:47:39 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -412,8 +412,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 (set-face-background 'highlight "DARKSEAGREEN2")
 (set-face-background 'modeline "MIDNIGHTBLUE")
 (set-face-background 'region "NAVY")
-(set-face-background 'show-paren-match-face "NAVY")
-(set-face-background 'show-paren-mismatch-face "PURPLE")
+(when (> emacs-version-num 19.34)
+  (set-face-background 'show-paren-match-face "NAVY")
+  (set-face-background 'show-paren-mismatch-face "PURPLE"))
 (when (>= emacs-version-num 21)
   (set-face-background 'fringe "grey30"))
 
