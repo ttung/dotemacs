@@ -2,7 +2,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; File:         xcscope.el
-; RCS:          $RCSfile: xcscope.el,v $ $Revision: 1.2 $ $Date: 2004/02/17 22:01:50 $ $Author: tonytung $
+; RCS:          $RCSfile: xcscope.el,v $ $Revision: 1.3 $ $Date: 2004/06/21 18:51:38 $ $Author: tonytung $
 ; Description:  cscope interface for (X)Emacs
 ; Author:       Darryl Okahata
 ; Created:      Wed Apr 19 17:03:38 2000
@@ -920,7 +920,7 @@ Must end with a newline.")
   (if cscope-running-in-xemacs
       (define-key cscope-list-entry-keymap [button2] 'cscope-mouse-select-entry-other-window)
     (define-key cscope-list-entry-keymap [mouse-2] 'cscope-mouse-select-entry-other-window))
-  (define-key cscope-list-entry-keymap [return] 'cscope-select-entry-other-window)
+  (define-key cscope-list-entry-keymap (kbd "RET") 'cscope-select-entry-other-window)
   (define-key cscope-list-entry-keymap " " 'cscope-show-entry-other-window)
   (define-key cscope-list-entry-keymap "o" 'cscope-select-entry-one-window)
   (define-key cscope-list-entry-keymap "q" 'cscope-bury-buffer)
