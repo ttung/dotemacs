@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.26
-;; 2001 October 2
+;; version 7.28
+;; 2001 October 18
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -84,7 +84,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                        auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-                       '("\\.cshrc" . shell-script-mode) 
+                       '("cshrc" . shell-script-mode) 
                        auto-mode-alist))
 
 (setq completion-ignored-extensions
