@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.26 2002/09/02 07:47:39 tonytung Exp $
+;; $Id: emacs,v 8.27 2002/09/13 00:50:59 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -951,6 +951,8 @@ it is put to the start of the list."
 
 (global-set-key [home] 'beginning-of-buffer)
 (global-set-key [end] 'end-of-buffer)
+
+(global-set-key (quote [27 deletechar]) 'kill-word)
 
 (when (locate-library "eshell")
   (global-set-key "!" 'eshell-command)
