@@ -8,6 +8,7 @@ LISP_FILES = andersl-java-font-lock.el \
 		pc-bufsw.el \
 		verilog-mode.el \
 		vhdl-mode.el \
+
 ELC_FILES = ${LISP_FILES:.el=.elc}
 
 all	:	${ELC_FILES} compile-psgml
