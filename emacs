@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.0
-;; 2000 November 13
+;; version 7.1
+;; 2000 December 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -175,7 +175,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defun my-text-mode-hook ()
   (auto-fill-mode)
-  (setq fill-column 78))
+  (setq fill-column 74))
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
