@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.4
+;; version 8.5
 ;; 2001 October 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -332,7 +332,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (when (not (eq system-type 'windows-nt))
   (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)
   (when (and (>= emacs-version-num 21) window-system)
-    (set-face-font 'default "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
+    (set-default-font "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -350,7 +350,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (when (eq system-type 'windows-nt)
   ;; italic fonts
   (setq w32-enable-italics t) ; This must be done before font settings!
-  ;; use interactive set-font-face followed by describe-face to determine this
+  ;; use interactive set-face-font followed by describe-face to determine this
   (set-face-font 'italic "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
   (set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard"))
 
@@ -364,6 +364,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 	(background-color  	.	"black")
 	(cursor-color      	.	"green")
 	(menu-bar-lines    	.	1)))
+
+(when (not (eq system-type 'windows-nt))
+  (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")))
 
 (setq standard-indent 2)
 
