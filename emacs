@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.3
+;; version 8.4
 ;; 2001 October 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -838,25 +838,25 @@ it is put to the start of the list."
   (interactive)
   (let (res)
     (cond ((not  iswitchb-matches)
-           (iswitchb-completion-help))
-            
-;            ((= 1 (length iswitchb-matches))
-;                ;; only one choice, so select it.
-;                (exit-minibuffer))
-              
-          (t
-           ;; else there could be some completions
-           (setq res iswitchb-common-match-string)
-           (if (and (not (memq res '(t nil)))
-                    (not (equal res iswitchb-text)))
-               ;; found something to complete, so put it in the minibuffer.
-               (progn
-                 (setq iswitchb-rescan nil)
-                 (delete-region (point-min) (point))
-                 (insert  res))
-             ;; else nothing to complete
-             (iswitchb-completion-help)
-             )))))
+	   (iswitchb-completion-help))
+	  
+;; 	  ((= 1 (length iswitchb-matches))
+;; 	   ;; only one choice, so select it.
+;; 	   (exit-minibuffer))
+	                                ;
+	  (t
+	   ;; else there could be some completions
+	   (setq res iswitchb-common-match-string)
+	   (if (and (not (memq res '(t nil)))
+		    (not (equal res iswitchb-text)))
+	       ;; found something to complete, so put it in the minibuffer.
+	       (progn
+		 (setq iswitchb-rescan nil)
+		 (delete-region (minibuffer-prompt-end) (point))
+		 (insert  res))
+	     ;; else nothing to complete
+	     (iswitchb-completion-help)
+	     )))))
 
 ;; hack so that the "Mail" in the modeline shows only when the file was modified more recently than it was accessed
 (defun display-time-file-nonempty-p (file)
