@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.13
-;; 2001 February 23
+;; version 7.14
+;; 2001 February 25
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -71,10 +71,15 @@ See require. Return non-nil if FEATURE is or was loaded."
                        '("\\.h\\'" . c++-mode) 
                        auto-mode-alist))
 
+(setq auto-mode-alist (cons 
+                       '("\\.sched" . text-tab5) 
+                       auto-mode-alist))
+
 (setq completion-ignored-extensions
       (append completion-ignored-extensions '(".ps" ".pdf")))
 
 (fset 'yes-or-no-p 'y-or-n-p)
+(put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (setq inhibit-startup-message t)
 
@@ -167,8 +172,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defun my-text-mode-hook ()
   (auto-fill-mode)
-  (setq fill-column 74)
-  (setq tab-width 5))
+  (setq fill-column 74))
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
@@ -669,6 +673,9 @@ If ARG is negative, delete that many comment characters instead."
 (setq-default mode-line-buffer-identification
               '(nice-buffer-file-name nice-buffer-file-name
                                       (buffer-file-name "%f" "%b")))
+
+(defun text-tab5 ()
+  (setq tab-width 5))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
