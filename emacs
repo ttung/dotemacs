@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.31 2003/08/17 10:29:34 tonytung Exp $
+;; $Id: emacs,v 8.32 2003/08/17 10:42:16 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -963,6 +963,9 @@ it is put to the start of the list."
 (when (locate-library "eshell")
   (global-set-key "!" 'eshell-command)
   (setq eshell-prefer-to-shell t))
+
+(when (eq system-type 'darwin)
+  (setq mac-wheel-button-is-mouse-2 't))
 
 ;; To get binding command, do this: First bind the key interactively, 
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
