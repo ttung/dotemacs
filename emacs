@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.13
+;; version 5.14
 ;; 2000 June 5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -448,6 +448,19 @@
 	
 ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
+(defun my-list-buffers ()
+  "Display a list of names of existing buffers and sets the active
+buffer to the list.
+The list is displayed in a buffer named `*Buffer List*'.
+
+The M column contains a * for buffers that are modified.
+The R column contains a % for buffers that are read-only."
+  (interactive)
+  (list-buffers)
+  (other-window 1)
+  (goto-char (point-min))
+  (next-line 2))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -513,7 +526,6 @@
 (define-key minibuffer-local-completion-map "\040" 's-minibuffer-complete-word)
 (define-key minibuffer-local-completion-map "\t" 's-minibuffer-complete)
 (define-key minibuffer-local-must-match-map [return] 's-minibuffer-complete-and-exit)
-(global-set-key "\C-xb" 's-switch-to-buffer)
 
 ;; END OF BUFFER SWITCHING FIX
 
@@ -526,19 +538,6 @@
         ((looking-at "\\s\{") (forward-list 1) (backward-char 1))
         ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
         (t (self-insert-command (or arg 1)))))
-
-(defun my-list-buffers ()
-  "Display a list of names of existing buffers and sets the active
-buffer to the list.
-The list is displayed in a buffer named `*Buffer List*'.
-
-The M column contains a * for buffers that are modified.
-The R column contains a % for buffers that are read-only."
-  (interactive)
-  (list-buffers)
-  (other-window 1)
-  (goto-char (point-min))
-  (next-line 2))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
@@ -561,6 +560,7 @@ The R column contains a % for buffers that are read-only."
 
 (global-unset-key "\362")		;M-r
 (global-unset-key "\361")		;M-q
+(global-unset-key "\C-xb")
 (global-unset-key "\C-x\C-b")
 
 (global-set-key [f2] 'save-buffer)
@@ -575,6 +575,7 @@ The R column contains a % for buffers that are read-only."
 (global-set-key "\362" 'revert-buffer)	;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
 (global-set-key "\361" 'my-reindent)	;M-q
+(global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 
 (global-set-key [M-down] 'scroll-up-line) 
