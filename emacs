@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 0.2
-;; 1999 October 13
+;; version 1.0
+;; 1999 October 17
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -357,6 +357,27 @@
       (concat invocation-name "@" system-name " - %b"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; My own functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun my-reindent (FROM TO)
+  "Refill the region as a paragraph and reindent."
+  (interactive "r")
+  (fill-region-as-paragraph FROM TO)
+  (if indent-region-function
+      (funcall indent-region-function FROM TO)
+    (save-excursion
+      (goto-char TO)
+      (setq TO (point-marker))
+      (goto-char FROM)
+      (or (bolp) (forward-line 1))
+      (while (< (point) TO)
+	(or (and (bolp) (eolp))
+	    (funcall indent-line-function))
+	(forward-line 1))
+      (move-marker TO nil))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -366,6 +387,7 @@
 
 ;; keybindings...
 (global-unset-key "\362")		;M-r
+(global-unset-key "\361")
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
@@ -375,7 +397,8 @@
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
 (global-set-key "\356" 'goto-line)	;M-n
 (global-set-key "\362" 'revert-buffer)	;M-r
-(global-set-key "\221" 'fill-region-as-paragraph) ;C-M-q
+(global-set-key "\221" 'fill-paragraph) ;C-M-q
+(global-set-key "\361" 'my-reindent)
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
