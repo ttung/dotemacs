@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.30 2003/01/28 20:54:31 tonytung Exp $
+;; $Id: emacs,v 8.31 2003/08/17 10:29:34 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -188,7 +188,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defvar my-c-style
   '("bsd"
-    (c-basic-offset			. 2))
+    (c-basic-offset			. 2)
+    (c-offsets-alist			. ((case-label   . +))))
   "my c style")
 
 (defvar my-java-style
@@ -415,91 +416,72 @@ See require. Return non-nil if FEATURE is or was loaded."
 (set-cursor-color "GREEN")
 (set-mouse-color "MAGENTA")
 
+;; define some safe try-catch blocks to set faces
+(defun try-set-face-foreground (face color)
+  (condition-case nil
+      (set-face-foreground face color)
+    (error nil)))
+(defun try-set-face-background (face color)
+  (condition-case nil
+      (set-face-background face color)
+    (error nil)))
+
 ;; set up colors not dependent on window system
-(set-face-background 'highlight "DARKSEAGREEN2")
-(set-face-background 'modeline "MIDNIGHTBLUE")
-(set-face-background 'region "NAVY")
-(when (> emacs-version-num 19.34)
-  (set-face-background 'show-paren-match-face "NAVY")
-  (set-face-background 'show-paren-mismatch-face "PURPLE"))
-(when (>= emacs-version-num 21)
-  (set-face-background 'fringe "grey30"))
+(try-set-face-background 'highlight "DARKSEAGREEN2")
+(try-set-face-background 'modeline "MIDNIGHTBLUE")
+(try-set-face-background 'region "NAVY")
+(try-set-face-background 'show-paren-match-face "NAVY")
+(try-set-face-background 'show-paren-mismatch-face "PURPLE")
+(try-set-face-background 'fringe "grey30")
 
 (set-foreground-color "WHITE")
-(set-face-foreground 'default "WHITE")
-(set-face-foreground 'highlight "WHITE")
-(set-face-foreground 'modeline "CYAN")
-(when (> emacs-version-num 19.34)
-  (set-face-foreground 'show-paren-match-face "CYAN")
-  (set-face-foreground 'show-paren-mismatch-face "WHITE"))
+(try-set-face-foreground 'default "WHITE")
+(try-set-face-foreground 'highlight "WHITE")
+(try-set-face-foreground 'modeline "CYAN")
+(try-set-face-foreground 'show-paren-match-face "CYAN")
+(try-set-face-foreground 'show-paren-mismatch-face "WHITE")
 
 ;; set up colors dependent on window-system
 (if window-system
     (progn                              ; with a window system
-      (set-face-foreground 'region "CYAN")
+      (try-set-face-foreground 'region "CYAN")
       (set-background-color "BLACK")
-      (set-face-background 'default "BLACK"))
+      (try-set-face-background 'default "BLACK"))
 
   (progn                                ; naked terminal
-    (set-face-foreground 'region "WHITE")
+    (try-set-face-foreground 'region "WHITE")
     (set-background-color "unspecified-bg")
-    (set-face-background 'default "unspecified-bg")))
+    (try-set-face-background 'default "unspecified-bg")))
 
 (defun my-font-lock-mode-hook ()
   (when (not (fboundp 'my-font-lock-mode-hook-done))
 
-    (defun try-set-face-foreground (face color)
-      (condition-case nil
-           (set-face-foreground face color)
-         (error nil)))
-    (defun try-set-face-background (face color)
-      (condition-case nil
-           (set-face-background face color)
-         (error nil)))
-  
     (try-set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
     (try-set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
     (try-set-face-foreground 'font-lock-string-face "LIGHTSALMON")
     (try-set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
-    (when (> emacs-version-num 19.34)
-      (try-set-face-foreground 'font-lock-builtin-face "VIOLET")
-      (try-set-face-foreground 'font-lock-warning-face "RED"))
+    (try-set-face-foreground 'font-lock-builtin-face "VIOLET")
+    (try-set-face-foreground 'font-lock-warning-face "RED")
     (if (< emacs-version-num 20.02)
         (try-set-face-foreground 'font-lock-reference-face "CADETBLUE")
       (try-set-face-foreground 'font-lock-constant-face "CADETBLUE"))
 
+    (try-set-face-background 'font-lock-comment-face "unspecified-bg")
+    (try-set-face-background 'font-lock-function-name-face "unspecified-bg")
+    (try-set-face-background 'font-lock-keyword-face "unspecified-bg")
+    (try-set-face-background 'font-lock-string-face "unspecified-bg")
+    (try-set-face-background 'font-lock-type-face "unspecified-bg")
+    (try-set-face-background 'font-lock-variable-name-face "unspecified-bg")
+    (if (< emacs-version-num 20.02)
+        (try-set-face-background 'font-lock-reference-face "unspecified-bg")
+      (try-set-face-background 'font-lock-constant-face "unspecified-bg"))
+  
     (if window-system
         (progn
-          (try-set-face-background 'font-lock-comment-face "BLACK")
-          (try-set-face-background 'font-lock-function-name-face "BLACK")
-          (try-set-face-background 'font-lock-keyword-face "BLACK")
-          (try-set-face-background 'font-lock-string-face "BLACK")
-          (try-set-face-background 'font-lock-type-face "BLACK")
-          (try-set-face-background 'font-lock-variable-name-face "BLACK")
-          (when (> emacs-version-num 19.34)
-            (try-set-face-background 'font-lock-builtin-face "BLACK")
-            (try-set-face-background 'font-lock-warning-face "BLACK"))
-          (if (< emacs-version-num 20.02)
-              (try-set-face-background 'font-lock-reference-face "BLACK")
-            (try-set-face-background 'font-lock-constant-face "BLACK"))
-          
           (try-set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
           (try-set-face-foreground 'font-lock-type-face "PALEGREEN"))
 
       (progn
-          (try-set-face-background 'font-lock-comment-face "unspecified-bg")
-          (try-set-face-background 'font-lock-function-name-face "unspecified-bg")
-          (try-set-face-background 'font-lock-keyword-face "unspecified-bg")
-          (try-set-face-background 'font-lock-string-face "unspecified-bg")
-          (try-set-face-background 'font-lock-type-face "unspecified-bg")
-          (try-set-face-background 'font-lock-variable-name-face "unspecified-bg")
-        (when (> emacs-version-num 19.34)
-          (try-set-face-background 'font-lock-builtin-face "unspecified-bg")
-          (try-set-face-background 'font-lock-warning-face "unspecified-bg"))
-        (if (< emacs-version-num 20.02)
-            (try-set-face-background 'font-lock-reference-face "unspecified-bg")
-          (try-set-face-background 'font-lock-constant-face "unspecified-bg"))
-
         (try-set-face-foreground 'font-lock-comment-face "RED")
         (try-set-face-foreground 'font-lock-type-face "GREEN")))
 
