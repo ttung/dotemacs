@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.10
-;; 2001 November 13
+;; version 8.11
+;; 2001 November 20
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -256,6 +256,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-c\C-f" 'c-insert-fixme)
   (local-set-key "\C-c\C-m" 'man)
   (local-set-key "\C-d" 'my-delete)
+  (local-set-key "\361" 'indent-region)
   (unless (boundp 'my-c-customizations-done)
     (add-my-c-customizations))
   (when (string-match "cisco.com" system-name)
@@ -550,22 +551,22 @@ See require. Return non-nil if FEATURE is or was loaded."
   (interactive) 
   (scroll-up 1)) 
 
-(defun my-reindent (FROM TO)
-  "Refill the region as a paragraph and reindent."
-  (interactive "r")
-  (fill-region-as-paragraph FROM TO)
-  (if indent-region-function
-      (funcall indent-region-function FROM TO)
-    (save-excursion
-      (goto-char TO)
-      (setq TO (point-marker))
-      (goto-char FROM)
-      (or (bolp) (forward-line 1))
-      (while (< (point) TO)
-	(or (and (bolp) (eolp))
-            (funcall indent-line-function))
-	(forward-line 1))
-      (move-marker TO nil))))
+;; (defun my-reindent (FROM TO)
+;;   "Refill the region as a paragraph and reindent."
+;;   (interactive "r")
+;;   (fill-region-as-paragraph FROM TO)
+;;   (if indent-region-function
+;;       (funcall indent-region-function FROM TO)
+;;     (save-excursion
+;;       (goto-char TO)
+;;       (setq TO (point-marker))
+;;       (goto-char FROM)
+;;       (or (bolp) (forward-line 1))
+;;       (while (< (point) TO)
+;; 	(or (and (bolp) (eolp))
+;;             (funcall indent-line-function))
+;; 	(forward-line 1))
+;;       (move-marker TO nil))))
 
 (defun insert-time (&optional nodashes)
   "Insert the current time.
@@ -935,8 +936,8 @@ it is put to the start of the list."
 (global-set-key [C-f5] 'make-frame-command)
 (global-set-key "\356" 'goto-line)      ;M-n
 (global-set-key "\362" 'revert-buffer)  ;M-r
-(global-set-key "\221" 'fill-paragraph) ;C-M-q
-(global-set-key "\361" 'my-reindent)    ;M-q
+(global-set-key "\221" 'indent-region) ;C-M-q
+;;(global-set-key "\361" 'my-reindent)    ;M-q
 ;; (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
