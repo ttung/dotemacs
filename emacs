@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.14
+;; version 6.15
 ;; 2000 July 5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -169,6 +169,14 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq default-major-mode 'text-mode)
+
+(defun my-text-mode-hook ()
+  (auto-fill-mode)
+  (setq fill-column 78))
+
+(add-hook 'text-mode-hook 'my-text-mode-hook)
 
 ;; set the indent correctly
 (defun my-c-mode-common-hook ()
