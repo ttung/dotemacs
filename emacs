@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.4
-;; 2001 January 8
+;; version 7.5
+;; 2001 January 18
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -332,6 +332,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; Appearance (Basic stuff)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(setq default-frame-alist
+      '((foreground-color  	.	"white")
+	(background-color  	.	"black")
+	(cursor-color      	.	"green")
+	(menu-bar-lines    	.	1)))
+
 (setq standard-indent 2)
 
 ;; set up matching parentheses
@@ -444,12 +450,6 @@ See require. Return non-nil if FEATURE is or was loaded."
     ("Courier 18" "-adobe-courier-medium-r-normal--*-180-*-*-m-*-*-1")
     ("Courier 18-b" "-adobe-courier-bold-r-normal--*-180-*-*-m-*-*-1")
     )))
-
-(setq default-frame-alist
-      '((foreground-color  . "white")
-	(background-color  . "black")
-	(cursor-color      . "green")
-	(menu-bar-lines    . 1)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -837,10 +837,10 @@ it is put to the start of the list."
          (last-access-lo (nth 1 last-access))
          (last-modified-hi (nth 0 last-modified))
          (last-modified-lo (nth 1 last-modified)))
-  (and (file-exists-p file)
-       (or (< last-access-hi last-modified-hi)
-           (and (= last-access-hi last-modified-hi)
-                (< last-access-lo last-modified-lo))))))
+    (and (file-exists-p file)
+         (or (< last-access-hi last-modified-hi)
+             (and (= last-access-hi last-modified-hi)
+                  (< last-access-lo last-modified-lo))))))
 (display-time-update)
 
 
