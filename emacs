@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 1.0
-;; 1999 October 17
+;; version 2.0
+;; 1999 October 31
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -38,6 +38,10 @@
       (cons 
        (expand-file-name "~/emacs/elisp") 
        load-path))
+
+(setq auto-mode-alist (cons 
+		       '("\\.emt" . text-mode) 
+		       auto-mode-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Extra modes
@@ -377,6 +381,11 @@
 	(forward-line 1))
       (move-marker TO nil))))
 
+(defun insert-time ()
+  "Insert the current time."
+  (interactive)
+  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -387,18 +396,19 @@
 
 ;; keybindings...
 (global-unset-key "\362")		;M-r
-(global-unset-key "\361")
+(global-unset-key "\361")		;M-q
 
 (global-set-key [f2] 'save-buffer)
 (global-set-key [f3] 'find-file)
 (global-set-key [f4] 'find-file-binary)
+(global-set-key [f5] 'insert-time)
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
 (global-set-key "\356" 'goto-line)	;M-n
 (global-set-key "\362" 'revert-buffer)	;M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
-(global-set-key "\361" 'my-reindent)
+(global-set-key "\361" 'my-reindent)	;M-q
 
 (global-set-key [M-down] 'scroll-up-line) 
 (global-set-key [M-up] 'scroll-down-line)
@@ -412,3 +422,4 @@
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(setq debug-on-error nil)
+
