@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.2
-;; 2001 January 7
+;; version 7.3
+;; 2001 January 8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -195,7 +195,8 @@ See require. Return non-nil if FEATURE is or was loaded."
     (local-set-key "\C-c\C-w" 'c-wrap-conditional)
     (local-set-key "\C-c\C-h" 'c-toggle-auto-hungry-state)
     (local-set-key "\C-c\C-t" 'c-insert-todo)
-    (local-set-key "\C-c\C-f" 'c-insert-fixme)))
+    (local-set-key "\C-c\C-f" 'c-insert-fixme)
+    (local-set-key "\C-c\C-m" 'man)))
 
 ;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -463,7 +464,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq line-number-display-limit 8388608)
 
 ;; date related stuff
-(setq display-time-mail-file t)
+;;(setq display-time-mail-file t)
 (if (eq window-system nil)
     ()
   (setq display-time-day-and-date t))
@@ -826,6 +827,20 @@ it is put to the start of the list."
              ;; else nothing to complete
              (iswitchb-completion-help)
              )))))
+
+(defun display-time-file-nonempty-p (file)
+  (let* ((fa (file-attributes (file-chase-links file)))
+         (last-access (nth 4 fa))
+         (last-modified (nth 5 fa))
+         (last-access-hi (nth 0 last-access))
+         (last-access-lo (nth 1 last-access))
+         (last-modified-hi (nth 0 last-modified))
+         (last-modified-lo (nth 1 last-modified)))
+  (and (file-exists-p file)
+       (or (< last-access-hi last-modified-hi)
+           (and (= last-access-hi last-modified-hi)
+                (< last-access-lo last-modified-lo))))))
+(display-time-update)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
