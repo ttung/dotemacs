@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.4
-;; 2000 June 23
+;; version 6.5
+;; 2000 June 25
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -352,8 +352,6 @@ See require. Return non-nil if FEATURE is or was loaded."
           (set-face-foreground 'font-lock-builtin-face "VIOLET")
           (set-face-background 'font-lock-comment-face "BLACK")
           (set-face-foreground 'font-lock-comment-face "RED2")
-          (set-face-background 'font-lock-constant-face "BLACK")
-          (set-face-foreground 'font-lock-constant-face "CADETBLUE")
           (set-face-background 'font-lock-function-name-face "BLACK")
           (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
           (set-face-background 'font-lock-keyword-face "BLACK")
@@ -365,7 +363,11 @@ See require. Return non-nil if FEATURE is or was loaded."
           (set-face-background 'font-lock-variable-name-face "BLACK")
           (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
           (set-face-background 'font-lock-warning-face "BLACK")
-          (set-face-foreground 'font-lock-warning-face "RED") ))))
+          (set-face-foreground 'font-lock-warning-face "RED") ))
+    (if (> emacs-version-num 20.2)
+        (progn
+          (set-face-background 'font-lock-constant-face "BLACK")
+          (set-face-foreground 'font-lock-constant-face "CADETBLUE")))))
 
 ;; set up the font menu
 (setq
