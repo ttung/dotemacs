@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.5
-;; 2001 January 18
+;; version 7.6
+;; 2001 January 22
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -830,14 +830,14 @@ it is put to the start of the list."
              )))))
 
 (defun display-time-file-nonempty-p (file)
-  (let* ((fa (file-attributes (file-chase-links file)))
-         (last-access (nth 4 fa))
-         (last-modified (nth 5 fa))
-         (last-access-hi (nth 0 last-access))
-         (last-access-lo (nth 1 last-access))
-         (last-modified-hi (nth 0 last-modified))
-         (last-modified-lo (nth 1 last-modified)))
-    (and (file-exists-p file)
+  (and (file-exists-p file)
+       (let* ((fa (file-attributes (file-chase-links file)))
+              (last-access (nth 4 fa))
+              (last-modified (nth 5 fa))
+              (last-access-hi (nth 0 last-access))
+              (last-access-lo (nth 1 last-access))
+              (last-modified-hi (nth 0 last-modified))
+              (last-modified-lo (nth 1 last-modified)))
          (or (< last-access-hi last-modified-hi)
              (and (= last-access-hi last-modified-hi)
                   (< last-access-lo last-modified-lo))))))
