@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.18
-;; 2002 April 4
+;; version 8.19
+;; 2002 April 19
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -145,8 +145,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up generic modes, html-ize, and pc-buffer switch
 (when (and (not (boundp 'fast-load)) (> emacs-version-num 19.28))
-;;  (want 'generic-mode)
-;;  (want 'generic-extras)
+;;   (want 'generic-mode)
+;;   (want 'generic-extras)
   (when window-system
     (want 'htmlize))
   (when (want 'pc-bufsw)
@@ -236,19 +236,22 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-c\C-f" 'c-insert-fixme)
   (local-set-key "\C-c\C-m" 'man)
   (local-set-key "\C-d" 'my-delete)
-  (c-add-style "cisco-c-style" cisco-c-style)
-  (c-add-style "my-java-style" my-java-style)
-  (c-add-style "my-c-style" my-c-style)
-  (font-lock-add-keywords
-   'c-mode
-   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
-     ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
-     ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
-  (font-lock-add-keywords
-   'c++-mode
-   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
-     ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
-     ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (when (not (fboundp 'my-c-mode-common-hook-done))
+    (c-add-style "cisco-c-style" cisco-c-style)
+    (c-add-style "my-java-style" my-java-style)
+    (c-add-style "my-c-style" my-c-style)
+    (font-lock-add-keywords
+     'c-mode
+     '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
+       ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
+       ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+    (font-lock-add-keywords
+     'c++-mode
+     '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
+       ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
+       ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+    (defvar my-c-mode-common-hook-done t 
+      "Indicates that my-c-mode-common-hook has been called"))
   (if (string-match "cisco.com" system-name)
       (c-set-style "cisco-c-style")
     (c-set-style "my-c-style")))
@@ -262,11 +265,14 @@ See require. Return non-nil if FEATURE is or was loaded."
                        auto-mode-alist))
 
 (defun my-java-mode-hook ()
-  (font-lock-add-keywords
-   'java-mode
-   '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
-     ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
-     ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+  (when (not (fboundp 'my-java-mode-hook-done))
+    (font-lock-add-keywords
+     'java-mode
+     '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
+       ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
+       ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+    (defvar my-java-mode-hook-done t 
+      "Indicates that my-java-mode-hook has been called"))
   (c-set-style "my-java-style"))
 (add-hook 'java-mode-hook 'my-java-mode-hook)
 
@@ -285,9 +291,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-hook 'shell-mode-hook 'my-shell-mode-hook)
 
 (add-hook 'comint-output-filter-functions
-          'comint-watch-for-password-prompt)
+         'comint-watch-for-password-prompt)
 (add-hook 'comint-output-filter-functions
-          'comint-postoutput-scroll-to-bottom)
+         'comint-postoutput-scroll-to-bottom)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -424,62 +430,77 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; Appearance (Fonts & Colors)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; kill the menu bar when there's no window system
+(when (eq window-system nil)
+  (menu-bar-mode 0))
+
 ;; set up some colors
-(if (eq window-system nil)
-    (menu-bar-mode 0)
-  (set-cursor-color "GREEN")
-  (set-mouse-color "MAGENTA")
-  (set-face-background 'default "BLACK")
-  (set-face-foreground 'default "WHITE")
-  (set-face-background 'highlight "DARKSEAGREEN2")
-  (set-face-foreground 'highlight "WHITE")
-  (set-face-background 'modeline "MIDNIGHTBLUE")
-  (set-face-foreground 'modeline "CYAN")
-  (set-face-background 'region "NAVY")
-  (set-face-foreground 'region "CYAN")
-  (set-foreground-color "WHITE")
-  (set-background-color "BLACK")
-  (set-face-background 'font-lock-comment-face "BLACK")
-  (set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
-  (set-face-background 'font-lock-function-name-face "BLACK")
-  (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
-  (set-face-background 'font-lock-keyword-face "BLACK")
-  (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
-  (set-face-background 'font-lock-string-face "BLACK")
-  (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
-  (set-face-background 'font-lock-type-face "BLACK")
-  (set-face-foreground 'font-lock-type-face "PALEGREEN")
-  (set-face-background 'font-lock-variable-name-face "BLACK")
-  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
-  (when (> emacs-version-num 19.34)
-    ;; (set-face-background 'bold "BLACK")
-    ;; (set-face-foreground 'bold "WHITE")
-    ;; (set-face-background 'bold-italic "BLACK")
-    ;; (set-face-foreground 'bold-italic "WHITE")
-    ;; (set-face-background 'highlight "DARKSEAGREEN2")
-    ;; (set-face-foreground 'highlight "WHITE")
-    ;; (set-face-background 'italic "BLACK")
-    ;; (set-face-foreground 'italic "WHITE")
-    ;; (set-face-background 'secondary-selection "PALETURQUOISE")
-    ;; (set-face-foreground 'secondary-selection "WHITE")
-    ;; (set-face-background 'underline "BLACK")
-    ;; (set-face-foreground 'underline "WHITE") 
-    (set-face-background 'show-paren-match-face "NAVY")
-    (set-face-foreground 'show-paren-match-face "CYAN")
-    (set-face-background 'show-paren-mismatch-face "PURPLE")
-    (set-face-foreground 'show-paren-mismatch-face "WHITE")
-    (set-face-background 'font-lock-builtin-face "BLACK")
-    (set-face-foreground 'font-lock-builtin-face "VIOLET")
-    (set-face-background 'font-lock-warning-face "BLACK")
-    (set-face-foreground 'font-lock-warning-face "RED") )
-  (if (< emacs-version-num 20.02)
-      (progn
-      (set-face-background 'font-lock-reference-face "BLACK")
-      (set-face-foreground 'font-lock-reference-face "CADETBLUE"))
-    (set-face-background 'font-lock-constant-face "BLACK")
-    (set-face-foreground 'font-lock-constant-face "CADETBLUE"))
-  (when (>= emacs-version-num 21)
-    (set-face-background 'fringe "grey30")))
+(set-cursor-color "GREEN")
+(set-mouse-color "MAGENTA")
+(set-face-background 'default "BLACK")
+(set-face-foreground 'default "WHITE")
+(set-face-background 'highlight "DARKSEAGREEN2")
+(set-face-foreground 'highlight "WHITE")
+(set-face-background 'modeline "MIDNIGHTBLUE")
+(set-face-foreground 'modeline "CYAN")
+(set-face-background 'region "NAVY")
+(if window-system
+    (set-face-foreground 'region "CYAN")
+  (set-face-foreground 'region "WHITE"))
+(set-foreground-color "WHITE")
+(set-background-color "BLACK")
+(when (> emacs-version-num 19.34)
+  ;; (set-face-background 'bold "BLACK")
+  ;; (set-face-foreground 'bold "WHITE")
+  ;; (set-face-background 'bold-italic "BLACK")
+  ;; (set-face-foreground 'bold-italic "WHITE")
+  ;; (set-face-background 'highlight "DARKSEAGREEN2")
+  ;; (set-face-foreground 'highlight "WHITE")
+  ;; (set-face-background 'italic "BLACK")
+  ;; (set-face-foreground 'italic "WHITE")
+  ;; (set-face-background 'secondary-selection "PALETURQUOISE")
+  ;; (set-face-foreground 'secondary-selection "WHITE")
+  ;; (set-face-background 'underline "BLACK")
+  ;; (set-face-foreground 'underline "WHITE") 
+  (set-face-background 'show-paren-match-face "NAVY")
+  (set-face-foreground 'show-paren-match-face "CYAN")
+  (set-face-background 'show-paren-mismatch-face "PURPLE")
+  (set-face-foreground 'show-paren-mismatch-face "WHITE"))
+(when (>= emacs-version-num 21)
+  (set-face-background 'fringe "grey30"))
+
+(defun my-font-lock-mode-hook ()
+  (when (not (fboundp 'my-font-lock-mode-hook-done))
+    (set-face-background 'font-lock-comment-face "BLACK")
+    (if window-system
+        (set-face-foreground 'font-lock-comment-face "ROSYBROWN2")
+        (set-face-foreground 'font-lock-comment-face "RED"))
+    (set-face-background 'font-lock-function-name-face "BLACK")
+    (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
+    (set-face-background 'font-lock-keyword-face "BLACK")
+    (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
+    (set-face-background 'font-lock-string-face "BLACK")
+    (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
+    (set-face-background 'font-lock-type-face "BLACK")
+    (if window-system
+        (set-face-foreground 'font-lock-type-face "PALEGREEN")
+        (set-face-foreground 'font-lock-type-face "GREEN"))
+    (set-face-background 'font-lock-variable-name-face "BLACK")
+    (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
+    (when (> emacs-version-num 19.34)
+      (set-face-background 'font-lock-builtin-face "BLACK")
+      (set-face-foreground 'font-lock-builtin-face "VIOLET")
+      (set-face-background 'font-lock-warning-face "BLACK")
+      (set-face-foreground 'font-lock-warning-face "RED"))
+    (if (< emacs-version-num 20.02)
+        (progn
+          (set-face-background 'font-lock-reference-face "BLACK")
+          (set-face-foreground 'font-lock-reference-face "CADETBLUE"))
+      (set-face-background 'font-lock-constant-face "BLACK")
+      (set-face-foreground 'font-lock-constant-face "CADETBLUE"))
+    (defvar my-font-lock-mode-hook-done t 
+      "Indicates that my-font-lock-mode-hook has been called")))
+(add-hook 'font-lock-mode-hook 'my-font-lock-mode-hook)
 
 ;; set up the font menu
 (setq
@@ -644,7 +665,7 @@ The R column contains a % for buffers that are read-only."
       (setq string "#if "))
   (when (> (mark) (point))
       (exchange-point-and-mark))
-  (insert "#endif" " // " string "\n")
+  (insert "#endif" " /* " string " */\n")
   (backward-char 7)
   (exchange-point-and-mark)
   (insert string "\n")
@@ -716,16 +737,17 @@ If ARG is negative, delete that many comment characters instead."
     (set (make-local-variable 'nice-buffer-file-name)
          (concat shortened-file-name buffer-num)))
   nil)
-(add-hook 'find-file-hooks 'record-nice-file-name)
-(add-hook 'write-file-hooks 'record-nice-file-name)
 
 ;; Make the mode-line identify buffers using their `nice-buffer-file-name'
 ;; if such a variable exists, otherwise, the buffer's file name, if it
 ;; has one, otherwise the buffer name.
-(setq-default mode-line-buffer-identification
-              '(nice-buffer-file-name nice-buffer-file-name
-                                      (buffer-file-name "%f" "%b")))
-
+(when (>= emacs-version-num 20)
+  (add-hook 'find-file-hooks 'record-nice-file-name)
+  (add-hook 'write-file-hooks 'record-nice-file-name)
+  (setq-default mode-line-buffer-identification
+                '(nice-buffer-file-name nice-buffer-file-name
+                                        (buffer-file-name "%f" "%b"))))
+  
 (unless window-system
   (setq mode-line-frame-identification '("  ")))
 
@@ -906,6 +928,7 @@ it is put to the start of the list."
 (setq auto-save-default 1)
 (setq auto-save-interval 250)
 
+;; keybindings...
 (if (eq window-system nil)
     (progn
       (global-set-key [delete] 'my-delete)
