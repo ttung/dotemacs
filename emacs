@@ -1,18 +1,21 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.2
-;; 2000 June 14
+;; version 6.3
+;; 2000 June 20
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;(setq debug-on-error t)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq make-backup-files nil)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Version stuff
@@ -24,40 +27,57 @@
    (/ emacs-minor-version 100.0))
   "The major and minor version number converted into a floating-point value.")
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global extras
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun my-load (file)
+  "Calls load with FILE as an argument.  Inhibits any fatal messages but quietly indicates failure and sets my-load-errors if errors occur."
+  (let ((resp (load file t)))
+    (if (eq resp nil)
+        (message "Unable to load %s" file))
+    resp))
+
+(defun want (feature &optional filename)
+  "Attempt to load FEATURE if available, but don't complain if it isn't.
+See require. Return non-nil if FEATURE is or was loaded."
+  (if (not (featurep feature))
+      (if (not filename)
+          (my-load (symbol-name feature))
+        (my-load filename))
+    t))
+
 ;; set up the paths for custom files
 (if (eq system-type 'windows-nt)
     (setq exec-path 
-	  (cons 
-	   (expand-file-name "~/emacs/bin") 
-	   exec-path)))
+	    (cons 
+	        (expand-file-name "~/emacs/bin") 
+		   exec-path)))
 (setq load-path 
       (cons 
        (expand-file-name "~/emacs/elisp") 
        load-path))
 
 (setq auto-mode-alist (cons 
-		       '("\\.emt\\'" . text-mode) 
-		       auto-mode-alist))
+		              '("\\.emt\\'" . text-mode) 
+			             auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		       '("\\.c\\'" . c++-mode) 
-		       auto-mode-alist))
+		              '("\\.c\\'" . c++-mode) 
+			             auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		       '("\\.h\\'" . c++-mode) 
-		       auto-mode-alist))
+		              '("\\.h\\'" . c++-mode) 
+			             auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		       '("\\.y\\'" . c++-mode) 
-		       auto-mode-alist))
+		              '("\\.y\\'" . c++-mode) 
+			             auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-		       '("\\.lex\\'" . c++-mode) 
-		       auto-mode-alist))
+		              '("\\.lex\\'" . c++-mode) 
+			             auto-mode-alist))
 
 (setq completion-ignored-extensions
       (append completion-ignored-extensions '(".ps" ".pdf")))
@@ -65,6 +85,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'downcase-region 'disabled nil)
 (setq inhibit-startup-message t)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Extra modes
@@ -76,61 +97,67 @@
        (expand-file-name "~/emacs/elisp/psgml") 
        load-path))
 
-(defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
-(setq sgml-catalog-files '("~/emacs/etc/sgml/CATALOG" "CATALOG"))
-(setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
-;;(defvar sgml-trace-entity-lookup t)
+(if (want 'psgml)
+    (progn
+      (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
+      (setq sgml-catalog-files '("~/emacs/etc/sgml/CATALOG" "CATALOG"))
+      (setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
+      ;;(defvar sgml-trace-entity-lookup t)
 
-;; initialize psgml
-(autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
-(autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
-(setq auto-mode-alist (cons 
-		       '("\\.html" . html-mode) 
-		       auto-mode-alist))
+      ;; initialize psgml
+      (autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
+      (autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
+      (setq auto-mode-alist (cons 
+                             '("\\.html" . html-mode) 
+                             auto-mode-alist))))
+
 
 ;; set up the java system
-(setq auto-mode-alist (cons 
-		       '("\\.java" . java-mode) 
-		       auto-mode-alist))
+(if (want 'andersl-java-font-lock)
+    (progn
+      (setq auto-mode-alist (cons 
+                             '("\\.java" . java-mode) 
+                             auto-mode-alist))
 
-(add-hook 'java-mode-hook 'my-java-mode-hook)
-(defun my-java-mode-hook ()
-  (cond (window-system
-	 (require 'andersl-java-font-lock)
-	 (turn-on-font-lock))))
+      (add-hook 'java-mode-hook 'my-java-mode-hook)
+      (defun my-java-mode-hook ()
+        (cond (window-system
+               (want 'andersl-java-font-lock)
+               (turn-on-font-lock))))))
 
 ;; set up the verilog system
-(autoload 'verilog-mode "verilog-mode" "Verilog mode" t)
-(setq auto-mode-alist (cons
-		       '("\\.v\\'" . verilog-mode) auto-mode-alist))
-(add-hook 'verilog-mode-hook '(lambda () (font-lock-mode 1)))
+(if (want 'verilog-mode)
+    (progn
+      (autoload 'verilog-mode "verilog-mode" "Verilog mode" t)
+      (setq auto-mode-alist (cons
+                             '("\\.v\\'" . verilog-mode) auto-mode-alist))
+      (add-hook 'verilog-mode-hook '(lambda () (font-lock-mode 1)))))
 
 ;; set up the VHDL system
-(autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
-(setq auto-mode-alist (append '(("\\.vhdl?$" . vhdl-mode)) auto-mode-alist))
+(if (> emacs-version-num 20.3)
+    (if (want 'vhdl-mode)
+        (progn 
+          (autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
+          (setq auto-mode-alist (append '(("\\.vhdl?$" . vhdl-mode)) auto-mode-alist)))))
 
 ;; set up generic modes
 (if (> emacs-version-num 19.28)
     (progn
-      (require 'generic-mode)
-      (require 'generic-extras)))
-
-;; set up the hilit19 system
-;;(cond (window-system
-;;       (setq hilit-mode-enable-list  '(not text-mode)
-;;           hilit-background-mode   'light
-;;           hilit-inhibit-hooks     nil
-;;           hilit-inhibit-rebinding nil)
-;;       
-;;       (require 'hilit19)
-;;       ))
+      (want 'generic-mode)
+      (want 'generic-extras)))
 
 (if (> emacs-version-num 19.28)
-    (require 'htmlize))
+    (want 'htmlize))
 (if (> emacs-version-num 19.28)
-    (progn
-      (require 'pc-bufsw)
-      (pc-bufsw::bind-keys [C-tab] [C-S-tab])))
+    (if (want 'pc-bufsw)
+        (pc-bufsw::bind-keys [C-tab] [C-S-tab])))
+
+(if window-system 
+    (if (eq system-type 'windows-nt)
+        (if (want 'gnuserv)
+            (gnuserv-start))
+      (server-start)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
@@ -149,12 +176,14 @@
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
 ;; set up the font-lock system
-(if (fboundp 'global-font-lock-mode)
-    (global-font-lock-mode t))
+
+(cond ((fboundp 'global-font-lock-mode)
+       (global-font-lock-mode t)))
 (setq font-lock-maximum-decoration t)
 (setq font-lock-maximum-size nil)
 
 (setq-default indent-tabs-mode nil)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Win32 utils
@@ -173,15 +202,15 @@
       (autoload 'ispell-buffer "ispell4" 
 	"Check spelling of every word in the buffer" t)
       (setq ispell-command (expand-file-name "~/emacs/ispell/ispell.exe")
-	    ispell-look-dictionary (expand-file-name "~/emacs/ispell/ispell.words")
-	    ispell-look-command (expand-file-name "~/emacs/ispell/look.exe")
-	    ispell-command-options (list "-d" (expand-file-name "~/emacs/ispell/ispell.dict"))
-	    )))
+	        ispell-look-dictionary (expand-file-name "~/emacs/ispell/ispell.words")
+		    ispell-look-command (expand-file-name "~/emacs/ispell/look.exe")
+		        ispell-command-options (list "-d" (expand-file-name "~/emacs/ispell/ispell.dict"))
+			    )))
 
 ;; italic fonts
 (if (eq system-type 'windows-nt)
     (progn
-      (setq w32-enable-italics t)	; This must be done before font settings!
+      (setq w32-enable-italics t); This must be done before font settings!
       ; use interactive set-font-face followed by describe-face to determine this
       (set-face-font 'italic "-*-Courier New-normal-i-*-*-13-*-*-*-c-*-fontset-standard")
       (set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-13-*-*-*-c-*-fontset-standard")))
@@ -193,28 +222,28 @@
 	"Patch vc-do-command to work under NT, so ediff-revision can work."
 	;; First, let's check for the case we want to patch:
 	(if (and (string= (ad-get-arg 2) "/bin/sh")
-		 (string= (ad-get-arg 5) "-c")
-		 (string-match (concat "^if \\[ x\"\\$1\" = x \\]; then shift; fi;[ \t]+"
-				       "umask [0-9]+; exec >\"\$1\" || exit;[ \t]+shift; "
-				       "umask 0; exec co \"\\$@\"") (ad-get-arg 6))
-		 (string= (ad-get-arg 7) ""))
-	    (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
-		   (ad-set-arg 5 "/c");; Convert "-c" to "/c"
-		   (ad-set-arg 6 nil);; Zap the /bin/sh script
-		   (ad-set-arg 7 "co");; Invoke the "co" command
-		   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
-		   ))
+		  (string= (ad-get-arg 5) "-c")
+		   (string-match (concat "^if \\[ x\"\\$1\" = x \\]; then shift; fi;[ \t]+"
+					        "umask [0-9]+; exec >\"\$1\" || exit;[ \t]+shift; "
+						       "umask 0; exec co \"\\$@\"") (ad-get-arg 6))
+		    (string= (ad-get-arg 7) ""))
+	        (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
+		          (ad-set-arg 5 "/c");; Convert "-c" to "/c"
+			     (ad-set-arg 6 nil);; Zap the /bin/sh script
+			        (ad-set-arg 7 "co");; Invoke the "co" command
+				   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
+				      ))
 	;; next, let's check for the CVS case
 	(if (and (string= (ad-get-arg 2) "/bin/sh")
-		 (string= (ad-get-arg 5) "-c")
-		 (string-match "^exec" (ad-get-arg 6))
-		 (string= (ad-get-arg 7) ""))
-	    (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
-		   (ad-set-arg 5 "/c");; Convert "-c" to "/c"
-		   (ad-set-arg 6 nil);; Zap the /bin/sh script
-		   (ad-set-arg 7 "cvs update");; Invoke the "cvs" command
-		   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
-		   )))))
+		  (string= (ad-get-arg 5) "-c")
+		   (string-match "^exec" (ad-get-arg 6))
+		    (string= (ad-get-arg 7) ""))
+	        (progn (ad-set-arg 2 "cmd");; Invoke "cmd" instead of "/bin/sh"
+		          (ad-set-arg 5 "/c");; Convert "-c" to "/c"
+			     (ad-set-arg 6 nil);; Zap the /bin/sh script
+			        (ad-set-arg 7 "cvs update");; Invoke the "cvs" command
+				   (ad-set-arg 8 (concat ">" (ad-get-arg 8)));; Redirect to outfile
+				      )))))
 
 ;; set up the ange-ftp ftp program
 (if (eq system-type 'windows-nt)
@@ -225,14 +254,15 @@
 (if (eq system-type 'windows-nt)
     (progn
       (setq ange-ftp-tmp-name-template 
-	    (concat 
-	     (expand-file-name (getenv "TEMP")) 
-	     "/ange-ftp"))
+	        (concat 
+		      (expand-file-name (getenv "TEMP")) 
+		           "/ange-ftp"))
       (setq ange-ftp-gateway-tmp-name-template 
-	    (concat 
-	     (expand-file-name (getenv "TEMP")) 
-	     "/ange-ftp"))))
+	        (concat 
+		      (expand-file-name (getenv "TEMP")) 
+		           "/ange-ftp"))))
   
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UNIX tweaks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -241,6 +271,7 @@
 (if (eq system-type 'usg-unix-v)
     (progn
       (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m nil t)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Win32 tweaks
@@ -254,6 +285,7 @@
 ;;(if (eq system-type 'windows-nt)
 ;;    (progn
 ;;      (setq comint-process-echoes t)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Basic stuff)
@@ -277,6 +309,7 @@
 ;; scroll step
 (setq scroll-step 1)
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Fonts & Colors)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -299,40 +332,40 @@
     (set-background-color "BLACK")
     (if (> emacs-version-num 19.34)
 	(progn
-	  ;; (set-face-background 'bold "BLACK")
-	  ;; (set-face-foreground 'bold "WHITE")
-	  ;; (set-face-background 'bold-italic "BLACK")
-	  ;; (set-face-foreground 'bold-italic "WHITE")
-	  ;; (set-face-background 'highlight "DARKSEAGREEN2")
-	  ;; (set-face-foreground 'highlight "WHITE")
-	  ;; (set-face-background 'italic "BLACK")
-	  ;; (set-face-foreground 'italic "WHITE")
-	  ;; (set-face-background 'secondary-selection "PALETURQUOISE")
-	  ;; (set-face-foreground 'secondary-selection "WHITE")
-	  ;; (set-face-background 'underline "BLACK")
-	  ;; (set-face-foreground 'underline "WHITE") 
-	  (set-face-background 'show-paren-match-face "NAVY")
-	  (set-face-foreground 'show-paren-match-face "CYAN")
-	  (set-face-background 'show-paren-mismatch-face "PURPLE")
-	  (set-face-foreground 'show-paren-mismatch-face "WHITE")
-	  (set-face-background 'font-lock-builtin-face "BLACK")
-	  (set-face-foreground 'font-lock-builtin-face "VIOLET")
+	    ;; (set-face-background 'bold "BLACK")
+	    ;; (set-face-foreground 'bold "WHITE")
+	    ;; (set-face-background 'bold-italic "BLACK")
+	    ;; (set-face-foreground 'bold-italic "WHITE")
+	    ;; (set-face-background 'highlight "DARKSEAGREEN2")
+	    ;; (set-face-foreground 'highlight "WHITE")
+	    ;; (set-face-background 'italic "BLACK")
+	    ;; (set-face-foreground 'italic "WHITE")
+	    ;; (set-face-background 'secondary-selection "PALETURQUOISE")
+	    ;; (set-face-foreground 'secondary-selection "WHITE")
+	    ;; (set-face-background 'underline "BLACK")
+	    ;; (set-face-foreground 'underline "WHITE") 
+	    (set-face-background 'show-paren-match-face "NAVY")
+	      (set-face-foreground 'show-paren-match-face "CYAN")
+	        (set-face-background 'show-paren-mismatch-face "PURPLE")
+		  (set-face-foreground 'show-paren-mismatch-face "WHITE")
+		    (set-face-background 'font-lock-builtin-face "BLACK")
+		      (set-face-foreground 'font-lock-builtin-face "VIOLET")
           (set-face-background 'font-lock-comment-face "BLACK")
           (set-face-foreground 'font-lock-comment-face "RED2")
-	  (set-face-background 'font-lock-constant-face "BLACK")
-	  (set-face-foreground 'font-lock-constant-face "CADETBLUE")
-	  (set-face-background 'font-lock-function-name-face "BLACK")
-	  (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
-	  (set-face-background 'font-lock-keyword-face "BLACK")
-	  (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
-	  (set-face-background 'font-lock-string-face "BLACK")
-	  (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
-	  (set-face-background 'font-lock-type-face "BLACK")
-	  (set-face-foreground 'font-lock-type-face "PALEGREEN")
-	  (set-face-background 'font-lock-variable-name-face "BLACK")
-	  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
-	  (set-face-background 'font-lock-warning-face "BLACK")
-	  (set-face-foreground 'font-lock-warning-face "RED") ))))
+	    (set-face-background 'font-lock-constant-face "BLACK")
+	      (set-face-foreground 'font-lock-constant-face "CADETBLUE")
+	        (set-face-background 'font-lock-function-name-face "BLACK")
+		  (set-face-foreground 'font-lock-function-name-face "LIGHTSKYBLUE")
+		    (set-face-background 'font-lock-keyword-face "BLACK")
+		      (set-face-foreground 'font-lock-keyword-face "LIGHTSTEELBLUE")
+		        (set-face-background 'font-lock-string-face "BLACK")
+			  (set-face-foreground 'font-lock-string-face "LIGHTSALMON")
+			    (set-face-background 'font-lock-type-face "BLACK")
+			      (set-face-foreground 'font-lock-type-face "PALEGREEN")
+			        (set-face-background 'font-lock-variable-name-face "BLACK")
+				  (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
+				    (set-face-background 'font-lock-warning-face "BLACK")
+				      (set-face-foreground 'font-lock-warning-face "RED") ))))
 
 ;; set up the font menu
 (setq
@@ -368,6 +401,7 @@
 	(cursor-color      . "green")
 	(menu-bar-lines    . 1)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Modeline)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -386,6 +420,7 @@
   (setq display-time-day-and-date t))
 (display-time)
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance (Titlebar)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -393,9 +428,10 @@
 (if (> emacs-version-num 19.28)
     (progn
       (setq frame-title-format
-	    (concat invocation-name "@" system-name " - %f"))
+	        (concat invocation-name "@" system-name " - %f"))
       (setq icon-title-format
-	    (concat invocation-name "@" system-name " - %b"))))
+	        (concat invocation-name "@" system-name " - %b"))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; My own functions
@@ -425,7 +461,7 @@
       (or (bolp) (forward-line 1))
       (while (< (point) TO)
 	(or (and (bolp) (eolp))
-	    (funcall indent-line-function))
+	        (funcall indent-line-function))
 	(forward-line 1))
       (move-marker TO nil))))
 
@@ -446,7 +482,7 @@
 	(length time-string)
 	?-))
       (insert "\n\n")))
-	
+
 ;  (insert (format-time-string "%a %b %d %H:%M:%S %Z %Y%n")))
 
 (defun my-list-buffers ()
@@ -512,6 +548,7 @@ If ARG is negative, delete that many comment characters instead."
           (delete-char 1 t)             ;null prefix
         (delete-char arg t)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -536,9 +573,9 @@ If ARG is negative, delete that many comment characters instead."
   (interactive)
   (if s-remove-first-completion
       (progn (setq s-remove-first-completion nil)
-	     (if (consp minibuffer-completion-table)
-		 (setq  minibuffer-completion-table 
-			(cdr minibuffer-completion-table)) ()))
+	          (if (consp minibuffer-completion-table)
+		       (setq  minibuffer-completion-table 
+			      (cdr minibuffer-completion-table)) ()))
     ())
   (minibuffer-complete))
 
@@ -547,9 +584,9 @@ If ARG is negative, delete that many comment characters instead."
   (interactive)
   (if s-remove-first-completion
       (progn (setq s-remove-first-completion nil)
-	     (if (consp minibuffer-completion-table)
-		 (setq  minibuffer-completion-table 
-			(cdr minibuffer-completion-table)) ()))
+	          (if (consp minibuffer-completion-table)
+		       (setq  minibuffer-completion-table 
+			      (cdr minibuffer-completion-table)) ()))
     ())
   (minibuffer-complete-word)
 )
@@ -559,9 +596,9 @@ If ARG is negative, delete that many comment characters instead."
   (interactive)
   (if s-remove-first-completion
       (progn (setq s-remove-first-completion nil)
-	     (if (consp minibuffer-completion-table)
-		 (setq  minibuffer-completion-table 
-			(cdr minibuffer-completion-table)) ()))
+	          (if (consp minibuffer-completion-table)
+		       (setq  minibuffer-completion-table 
+			      (cdr minibuffer-completion-table)) ()))
     ())
   (minibuffer-complete-and-exit))
 
@@ -590,6 +627,7 @@ If ARG is negative, delete that many comment characters instead."
         ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
         (t (self-insert-command (or arg 1)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -609,8 +647,8 @@ If ARG is negative, delete that many comment characters instead."
       (global-set-key [delete] 'delete-char)
       (global-set-key [67108927] 'help)))
 
-(global-unset-key "\362")		;M-r
-(global-unset-key "\361")		;M-q
+(global-unset-key "\362");M-r
+(global-unset-key "\361");M-q
 (global-unset-key "\C-xb")
 (global-unset-key "\C-x\C-b")
 (global-unset-key ";")
@@ -634,10 +672,13 @@ If ARG is negative, delete that many comment characters instead."
 (global-set-key [f8] 'compile)
 (global-set-key [f9] 'next-error)
 (global-set-key [M-f4] 'save-buffers-kill-emacs)
-(global-set-key "\356" 'goto-line)	;M-n
-(global-set-key "\362" 'revert-buffer)	;M-r
+(global-set-key [C-f4] 'kill-buffer)
+(global-set-key [M-f5] 'delete-frame)
+(global-set-key [C-f5] 'make-frame-command)
+(global-set-key "\356" 'goto-line);M-n
+(global-set-key "\362" 'revert-buffer);M-r
 (global-set-key "\221" 'fill-paragraph) ;C-M-q
-(global-set-key "\361" 'my-reindent)	;M-q
+(global-set-key "\361" 'my-reindent);M-q
 (global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
@@ -653,8 +694,8 @@ If ARG is negative, delete that many comment characters instead."
 
 (setq compile-command "gmake ")
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(setq debug-on-error nil)
-
