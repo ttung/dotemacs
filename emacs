@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 5.9
-;; 2000 May 24
+;; version 5.10
+;; 2000 May 30
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -149,6 +149,7 @@
 (if (fboundp 'global-font-lock-mode)
     (global-font-lock-mode t))
 (setq font-lock-maximum-decoration t)
+(setq font-lock-maximum-size nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Win32 utils
