@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id$
+;; $Id: emacs,v 8.22 2002/06/11 22:04:42 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -213,12 +213,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq comment-column 60)
   (auto-fill-mode)
   (setq fill-column 100)
-  (local-unset-key "\C-c\C-t")
   (local-set-key "\C-c\C-w" 'c-wrap-conditional)
-  (local-set-key "\C-c\C-h" 'c-toggle-auto-hungry-state)
-  (local-set-key "\C-c\C-t" 'c-insert-todo)
-  (local-set-key "\C-c\C-f" 'c-insert-fixme)
-  (local-set-key "\C-c\C-m" 'man)
   (local-set-key "\C-d" 'my-delete)
   (when (not (fboundp 'my-c-mode-common-hook-done))
     (c-add-style "cisco-c-style" cisco-c-style)
@@ -239,9 +234,12 @@ See require. Return non-nil if FEATURE is or was loaded."
   (if (string-match "cisco.com" system-name)
       (c-set-style "cisco-c-style")
     (c-set-style "my-c-style")))
-
-;; set hooks
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+(defun my-asm-mode-hook ()
+  (setq comment-start "# ")
+  (setq asm-comment-char 35))
+(add-hook 'asm-mode-hook 'my-asm-mode-hook)
 
 ;; set up the java system
 (setq auto-mode-alist (cons 
@@ -629,18 +627,6 @@ The R column contains a % for buffers that are read-only."
   "Removes comments from the beginning of lines within a region."
   (interactive "r")
   (comment-region from to -1))
-
-(defun c-insert-todo ()
-  "Inserts a TODO comment."
-  (interactive)
-  (insert "// TODO: ")
-  (indent-according-to-mode))
-
-(defun c-insert-fixme ()
-  "Inserts a FIXME comment."
-  (interactive)
-  (insert "// FIXME: ")
-  (indent-according-to-mode))
 
 (defun c-wrap-conditional (from to string)
   "Wraps the region with a preprocessor conditional."
