@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.9
+;; version 7.10
 ;; 2001 February 9
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -662,7 +662,8 @@ If ARG is negative, delete that many comment characters instead."
         (buffer-num 
          (get-unique-tag buffer-file-name (buffer-name))))
     (set (make-local-variable 'nice-buffer-file-name)
-         (concat shortened-file-name buffer-num))))
+         (concat shortened-file-name buffer-num)))
+  nil)
 (add-hook 'find-file-hooks 'record-nice-file-name)
 (add-hook 'write-file-hooks 'record-nice-file-name)
 
