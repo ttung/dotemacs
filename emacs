@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
 ;; version 7.28
-;; 2001 October 18
+;; 2001 October 21
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -197,8 +197,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; cisco cc-mode settings 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar cisco-c-style
-  '((c-auto-newline                 . t)
-    (tab-width                      . 4)
+  '((tab-width                      . 4)
     (c-basic-offset                 . 4) 
     (c-block-comments-indent-p      . t)
     (c-comment-only-line-offset     . 0)
