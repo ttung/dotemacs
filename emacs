@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.12
-;; 2001 February 12
+;; version 7.13
+;; 2001 February 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -902,7 +902,7 @@ it is put to the start of the list."
 ;; To get binding command, do this: First bind the key interactively, 
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
 
-(setq compile-command "gmake ")
+(setq compile-command "make ")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
