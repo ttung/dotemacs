@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.2
+;; version 8.3
 ;; 2001 October 23
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -702,6 +702,9 @@ If ARG is negative, delete that many comment characters instead."
               '(nice-buffer-file-name nice-buffer-file-name
                                       (buffer-file-name "%f" "%b")))
 
+(when (not window-system)
+  (setq mode-line-frame-identification '("  ")))
+
 (defun text-tab5 ()
   (setq tab-width 5)
   (auto-fill-mode))
@@ -855,6 +858,7 @@ it is put to the start of the list."
              (iswitchb-completion-help)
              )))))
 
+;; hack so that the "Mail" in the modeline shows only when the file was modified more recently than it was accessed
 (defun display-time-file-nonempty-p (file)
   (and (file-exists-p file)
        (let* ((fa (file-attributes (file-chase-links file)))
