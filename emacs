@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.8 2004/09/17 16:49:45 tonytung Exp $
+;; $Id: emacs,v 9.9 2005/01/18 00:41:46 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -651,8 +651,8 @@ If ARG is negative, delete that many comment characters instead."
                 '(nice-buffer-file-name nice-buffer-file-name
                                         (buffer-file-name "%f" "%b"))))
   
-(unless window-system
-  (setq mode-line-frame-identification '("  ")))
+(setq-default mode-line-mule-info '(""))
+(setq-default mode-line-frame-identification '("  "))
 
 (defun text-tab5 ()
   (interactive)
