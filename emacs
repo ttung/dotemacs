@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.0
+;; version 6.1
 ;; 2000 June 13
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -457,13 +457,13 @@ The list is displayed in a buffer named `*Buffer List*'.
 The M column contains a * for buffers that are modified.
 The R column contains a % for buffers that are read-only."
   (interactive)
-  (if (not (equal (buffer-name (car (buffer-list))) "*Buffer List*"))
-      (progn
-	(list-buffers)
-	(message (buffer-name (car (buffer-list))))
-	(other-window 1)
-	(goto-char (point-min))
-	(next-line 2))))
+  (list-buffers)
+  (if (not (equal (buffer-name) "*Buffer List*"))
+      (progn 
+        (other-window 1)
+        (goto-char (point-min))))
+  (if (= (point) (point-min))
+      (next-line 2)))
 
 (defun my-comment ()
   "Indents a region if the mark is active.  Otherwise starts a comment."
