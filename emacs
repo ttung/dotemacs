@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 6.10
-;; 2000 July 3
+;; version 6.11
+;; 2000 July 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -134,7 +134,7 @@ See require. Return non-nil if FEATURE is or was loaded."
       (add-hook 'verilog-mode-hook '(lambda () (font-lock-mode 1)))))
 
 ;; set up the VHDL system
-(if (> emacs-version-num 20.3)
+(if (> emacs-version-num 20.03)
     (if (want 'vhdl-mode)
         (progn 
           (autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
@@ -305,9 +305,9 @@ See require. Return non-nil if FEATURE is or was loaded."
     (show-paren-mode 1))
 
 ;; set the scroll bar to the right side
-(if (= emacs-version-num 20.2)
+(if (= emacs-version-num 20.02)
     (set-scroll-bar-mode 'right 'right))
-(if (> emacs-version-num 20.2)
+(if (> emacs-version-num 20.02)
     (set-scroll-bar-mode 'right))
 
 ;; show marked area
@@ -371,7 +371,7 @@ See require. Return non-nil if FEATURE is or was loaded."
           (set-face-foreground 'font-lock-variable-name-face "LIGHTGOLDENROD")
           (set-face-background 'font-lock-warning-face "BLACK")
           (set-face-foreground 'font-lock-warning-face "RED") ))
-    (if (> emacs-version-num 20.2)
+    (if (> emacs-version-num 20.02)
         (progn
           (set-face-background 'font-lock-constant-face "BLACK")
           (set-face-foreground 'font-lock-constant-face "TAN")))))
