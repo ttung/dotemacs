@@ -88,11 +88,11 @@ See require. Return non-nil if FEATURE is or was loaded."
 			 auto-mode-alist)))
 
 (setq auto-mode-alist (cons 
-                       '("\\.sched" . text-tab5) 
+                       '("\\.sched" . text-tab6) 
                        auto-mode-alist))
 
 (setq auto-mode-alist (cons 
-                       '("\\.crontab" . text-tab5) 
+                       '("\\.crontab" . text-tab6) 
                        auto-mode-alist))
 
 (setq auto-mode-alist (cons 
@@ -294,6 +294,9 @@ See require. Return non-nil if FEATURE is or was loaded."
          'comint-watch-for-password-prompt)
 (add-hook 'comint-output-filter-functions
          'comint-postoutput-scroll-to-bottom)
+
+;; minibuffer completion
+(define-key minibuffer-local-map "\t" 'comint-dynamic-complete)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -751,8 +754,8 @@ If ARG is negative, delete that many comment characters instead."
 (unless window-system
   (setq mode-line-frame-identification '("  ")))
 
-(defun text-tab5 ()
-  (setq tab-width 5)
+(defun text-tab6 ()
+  (setq tab-width 6)
   (auto-fill-mode))
 
 
@@ -956,10 +959,10 @@ it is put to the start of the list."
 (global-set-key [C-f4] 'kill-current-buffer)
 (global-set-key [M-f5] 'delete-frame)
 (global-set-key [C-f5] 'make-frame-command)
-(global-set-key "\356" 'goto-line)      ;M-n
+(global-set-key "l" 'goto-line)       ;M-l
 (global-set-key "\362" 'revert-buffer)  ;M-r
 ;;(global-set-key "\361" 'my-reindent)    ;M-q
-;; (global-set-key "\C-xb" 's-switch-to-buffer)
+;;(global-set-key "\C-xb" 's-switch-to-buffer)
 (global-set-key "\C-x\C-b" 'my-list-buffers)
 (global-set-key ";" 'my-comment)
 (if (>= emacs-version-num 21)
