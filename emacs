@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.3 2004/02/18 19:18:13 tonytung Exp $
+;; $Id: emacs,v 9.4 2004/06/15 07:08:50 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -71,6 +71,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'auto-mode-alist '("\\.crontab\\'"		. text-tab5))
 (add-to-list 'auto-mode-alist '("\\.procmailrc\\'"	. text-tab5))
 (add-to-list 'auto-mode-alist '("cshrc"			. shell-script-mode))
+(add-to-list 'auto-mode-alist '("\\.t?csh\\'"		. shell-script-mode))
 
 (add-to-list 'completion-ignored-extensions ".ps")
 (add-to-list 'completion-ignored-extensions ".pdf")
@@ -115,21 +116,21 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq iswitchb-default-method 'samewindow) ;always go to the same window
   (setq iswitchb-case t))
 
-(defun my-xcscope-setup ()
-  (unless (boundp 'my-xcscope-setup-done)
-    (setq cscope-database-regexps
-          '(
-            ( "^/vob/ios/"
-              ( t ("-dq") ) )
-            ( "."
-              ( t ("-dq") ) )))
-    (setq cscope-edit-single-match nil)
-    (setq cscope-auto-open-buffer nil)
-    (my-xcscope-bind-keys cscope:map)
-    (defvar my-xcscope-setup-done 't "t if my-xcscope-setup has already been executed")))
+(when (>= emacs-version-num 20.0)
+  (setq cscope-bind-default-keys nil) ;make sure cscope doesn't bind the default keys
+  (defun my-xcscope-setup ()
+    (unless (boundp 'my-xcscope-setup-done)
+      (setq cscope-database-regexps
+            '(
+              ( ".*"
+                ( t ("-dq") ) )))
+      (setq cscope-edit-single-match nil)
+      (setq cscope-auto-open-buffer nil)
+      (my-xcscope-bind-keys cscope:map)
+      (my-xcscope-bind-keys cscope-list-entry-keymap)
+      (defvar my-xcscope-setup-done 't "t if my-xcscope-setup has already been executed")))
   
-(defun my-xcscope-bind-keys (map)
-  (unless (boundp 'my-xcscope-bind-keys-done)
+  (defun my-xcscope-bind-keys (map)
     (define-key map "\C-cs" 'cscope-find-this-symbol)
     (define-key map "\C-cd" 'cscope-find-global-definition)
     (define-key map "\C-cg" 'cscope-find-global-definition)
@@ -139,15 +140,12 @@ See require. Return non-nil if FEATURE is or was loaded."
     (define-key map "\C-ct" 'cscope-find-this-text-string)
     (define-key map "\C-ce" 'cscope-find-egrep-pattern)
     (define-key map "\C-cf" 'cscope-find-this-file)
-    (define-key map "\C-ci" 'cscope-find-files-including-file)
-    (defvar my-xcscope-bind-keys-done 't "t if my-xcscope-bind-setup has already been executed")))
+    (define-key map "\C-ci" 'cscope-find-files-including-file))
 
-(when (and (getenv "CLEARCASE_ROOT") (want 'xcscope))
-  (defvar xcscope-loaded 't 
-    "t if xcscope is loaded")
-  (my-xcscope-setup)
-  (my-xcscope-bind-keys global-map))
-  
+  (when (and (getenv "CLEARCASE_ROOT") (want 'xcscope))
+    (defvar xcscope-loaded 't "t if xcscope is loaded")
+    (my-xcscope-bind-keys global-map)
+    (my-xcscope-setup)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -167,16 +165,22 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode))
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
-(setq compile-command "make ")
-(when (string-match "cisco\\.com" system-name)
-  (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
+;;(when (string-match "cisco\\.com" system-name)
+;;  (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
+
+(defvar ace-c-style
+  '("bsd"
+    (c-basic-offset                     . 4)
+    (c-comment-only-line-offset		0 . 0)
+    (c-offsets-alist                    . ((case-label          . 0)))
+    (fill-column                        . 74)))
 
 ;;
 ;; cisco cc-mode settings 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar cisco-c-style
-  '((tab-width				. 4)
-    (c-basic-offset			. 4) 
+  '((tab-width				. 8)
+    (c-basic-offset			. 4)
     (c-comment-only-line-offset		. 0)
     (c-echo-syntactic-information-p	. nil)
     (c-block-comment-prefix		. "* ")
@@ -209,6 +213,40 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-offsets-alist			. ((substatement-open	.	0))))
   "my java style")
 
+;; cisco c-mode customizations
+(defun my-cisco-customizations ()
+  ;; pre-declare some things we might set
+  (unless (fboundp 'compile-history)
+    (defvar compile-history nil))
+  (unless (fboundp 'gud-gdb-command-name)
+    (defvar gud-gdb-command-name nil))
+
+  (when (string-match "^\\(\\(/vob/\\|/view/.*vob/\\|.*copyo/.*/\\)ace/\\)" buffer-file-name)
+    ;; save the relevant matching parts
+    (let ((vobroot (substring buffer-file-name 
+                              (match-beginning 1) (match-end 1))))
+      (make-local-variable 'compile-command)
+      (make-local-variable 'compile-history)
+      (set 'compile-command (concat "make -C " vobroot " plat-zamboni"))
+      (add-to-list 'compile-history 
+                   (concat "make -C " vobroot " plat-macedon"))
+      (set 'gud-gdb-command-name 
+           (concat "/auto/macedon_tools/sde4/bin/sde-gdb " vobroot)))
+    (c-set-style "ace-c-style"))
+  (when (string-match "^\\(\\(/vob/\\|/view/.*vob/\\|.*copyo/.*/\\)ios/\\)" buffer-file-name)
+    ;; save the relevant matching parts
+    (let ((vobroot (substring buffer-file-name 
+                              (match-beginning 1) (match-end 1))))
+      (make-local-variable 'compile-command)
+      (make-local-variable 'compile-history)
+      (set 'compile-command (concat "make -C " vobroot "/sys/obj-4k-draco2-mp/ sub_macedon.o"))
+      (add-to-list 'compile-history 
+                   (concat "make -C " vobroot "/sys/obj-4k-apollo_plus/ sub_macedon_sp.o")))
+    (c-set-style "cisco-c-style")
+    (add-to-list 'c-font-lock-extra-types "boolean")
+    (add-to-list 'c++-font-lock-extra-types "boolean")))
+
+
 ;; c-mode customizations that don't load c-mode nor font-lock mode
 (defun my-c-mode-common-hook ()
   (setq comment-column 60)
@@ -220,11 +258,12 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-c>" 		'search-for-matching-endif)
   (local-set-key "\C-c<" 		'search-for-matching-ifdef)
   (when (not (fboundp 'my-c-mode-common-hook-done))
-    (when (want 'xcscope)
+    (when (and (> emacs-version-num 20.0) (want 'xcscope))
       (defvar xcscope-loaded 't "t if xcscope is loaded"))
-    (c-add-style "cisco-c-style" 	cisco-c-style)
-    (c-add-style "my-java-style" 	my-java-style)
-    (c-add-style "my-c-style" 		my-c-style)
+    (c-add-style "cisco-c-style"	cisco-c-style)
+    (c-add-style "ace-c-style"		ace-c-style)
+    (c-add-style "my-java-style"	my-java-style)
+    (c-add-style "my-c-style"		my-c-style)
     (font-lock-add-keywords
      'c-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -237,9 +276,10 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
-  (if (string-match "cisco\\.com" system-name)
-      (c-set-style "cisco-c-style")
-    (c-set-style "my-c-style"))
+  (cond ((string-match "cisco\\.com" system-name)
+         (my-cisco-customizations))
+        ('t
+         (c-set-style "my-c-style")))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
     (my-xcscope-setup)))
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -302,6 +342,7 @@ See require. Return non-nil if FEATURE is or was loaded."
          'comint-postoutput-scroll-to-bottom)
 
 (setq vc-follow-symlinks t)
+(setq ange-ftp-ftp-program-name "sftp")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
