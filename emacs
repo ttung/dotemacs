@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 8.32 2003/08/17 10:42:16 tonytung Exp $
+;; $Id: emacs,v 8.33 2003/09/02 20:16:02 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -163,18 +163,14 @@ See require. Return non-nil if FEATURE is or was loaded."
 (defvar cisco-c-style
   '((tab-width				. 4)
     (c-basic-offset			. 4) 
-    (c-block-comments-indent-p		. t)
     (c-comment-only-line-offset		. 0)
     (c-echo-syntactic-information-p	. nil)
-    (c-hanging-comment-starter-p	. nil)
-    (c-comment-continuation-stars	. "* ")
-    (c-hanging-comment-ender-p		. nil)
+    (c-block-comment-prefix		. "* ")
     (c-recognize-knr-p			. t) ; use nil if only have ANSI prototyp
     (c-tab-always-indent		. t)
     (comment-column			. 36)
     (comment-end			. " */")
     (comment-multi-line			. t)
-    (c-block-comments-indent-p		. nil)
     (comment-start			. "/* ")
     (c-offsets-alist			. ((knr-argdecl-intro   . +)
                                            (case-label          . 0)
@@ -183,7 +179,8 @@ See require. Return non-nil if FEATURE is or was loaded."
                                            (statement-case-open . +)
                                            (statement-cont      . +)
                                            (substatement-open   . 0)))
-    (c-cleanup-list			. (scope-operator brace-else-brace)))
+    (c-cleanup-list			. (scope-operator brace-else-brace))
+    (fill-column                        . 70))
   "cisco c-style for cc-mode")
 
 (defvar my-c-style
@@ -212,14 +209,14 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-add-style "my-c-style" my-c-style)
     (font-lock-add-keywords
      'c-mode
-     '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
-       ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
-       ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+     '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
     (font-lock-add-keywords
      'c++-mode
-     '(("\\<\\(NOTE\\):" 1 font-lock-warning-face t)
-       ("\\<\\(TODO\\):" 1 font-lock-warning-face t)
-       ("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+     '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
   (if (string-match "cisco.com" system-name)
@@ -231,6 +228,17 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq comment-start "# ")
   (setq asm-comment-char 35))
 (add-hook 'asm-mode-hook 'my-asm-mode-hook)
+
+(defun my-tcl-mode-hook ()
+  (when (not (fboundp 'my-tcl-mode-common-hook-done))
+    (font-lock-add-keywords
+     'tcl-mode
+     '(("\\<\\(NOTE:\\)" 1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)" 1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)" 1 font-lock-warning-face t)))
+    (defvar my-tcl-mode-common-hook-done t
+      "Indicates that my-tcl-mode-common-hook has been called")))
+(add-hook 'tcl-mode-hook 'my-tcl-mode-hook)
 
 ;; set up the java system
 (setq auto-mode-alist (cons 
@@ -415,6 +423,11 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set up some colors for basic stuff
 (set-cursor-color "GREEN")
 (set-mouse-color "MAGENTA")
+
+;; to know what face is at cursor, use one of these:
+;;   M-x describe-text-at RET
+;;   M-x text-properties-at RET
+;;   M-x list-text-properties-at RET
 
 ;; define some safe try-catch blocks to set faces
 (defun try-set-face-foreground (face color)
@@ -960,6 +973,22 @@ it is put to the start of the list."
 
 (global-set-key (quote [27 deletechar]) 'kill-word)
 
+(defun up-slightly () (interactive) (scroll-up 5))
+(defun down-slightly () (interactive) (scroll-down 5))
+(global-set-key [mouse-4] 'down-slightly)
+(global-set-key [mouse-5] 'up-slightly)
+      
+(defun up-one () (interactive) (scroll-up 1))
+(defun down-one () (interactive) (scroll-down 1))
+(global-set-key [S-mouse-4] 'down-one)
+(global-set-key [S-mouse-5] 'up-one)
+      
+      
+(defun up-a-lot () (interactive) (scroll-up))
+(defun down-a-lot () (interactive) (scroll-down))
+(global-set-key [C-mouse-4] 'down-a-lot)
+(global-set-key [C-mouse-5] 'up-a-lot)
+
 (when (locate-library "eshell")
   (global-set-key "!" 'eshell-command)
   (setq eshell-prefer-to-shell t))
@@ -971,6 +1000,8 @@ it is put to the start of the list."
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
 
 (setq compile-command "make ")
+(when (string-match "cisco.com" system-name)
+  (setq gud-gdb-command-name "/auto/macedon_tools/sde4/bin/sde-gdb /vob/ace/plat-zamboni/mcpu/Images/asiram"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
