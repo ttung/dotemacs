@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 8.15
+;; version 8.16
 ;; 2002 January 2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -903,13 +903,15 @@ it is put to the start of the list."
 (setq auto-save-interval 250)
 
 ;; keybindings...
-(when (and (eq window-system nil)
-         (eq (string-match "cisco.com" system-name) nil))
-  (keyboard-translate ?\C-h ?\C-?)
-  (keyboard-translate ?\C-? ?\C-h)
-  (global-set-key [backspace] 'delete-backward-char)
-  (global-set-key [delete] 'delete-char)
-  (global-set-key [67108927] 'help))
+(if (> emacs-version-num 21)
+    (normal-erase-is-backspace-mode)
+  (when (and (eq window-system nil)
+             (eq (string-match "cisco.com" system-name) nil))
+    (keyboard-translate ?\C-h ?\C-?)
+    (keyboard-translate ?\C-? ?\C-h)
+    (global-set-key [backspace] 'delete-backward-char)
+    (global-set-key [delete] 'delete-char)
+    (global-set-key [67108927] 'help)))
 
 (global-set-key "\C-f" 'forward-word)
 (global-set-key "\C-b" 'backward-word)
