@@ -1,7 +1,7 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; version 7.20
-;; 2001 May 29
+;; version 7.21
+;; 2001 May 30
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -933,5 +933,3 @@ it is put to the start of the list."
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(setq debug-on-error nil)
-
-        (autoload 'cscope-bind-keys "cscope" nil t)
