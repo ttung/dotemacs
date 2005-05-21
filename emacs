@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.9 2005/01/18 00:41:46 tonytung Exp $
+;; $Id: emacs,v 9.10 2005/01/18 00:51:22 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -267,7 +267,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; python mode stuff
 (when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
   (defun my-python-mode-hook ()
-    (auto-fill-mode 't))
+    (auto-fill-mode 't)
+    (setq fill-column 90))
 
   (add-hook 'python-mode-hook 'my-python-mode-hook)
 
