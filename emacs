@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.11 2005/05/21 07:08:33 tonytung Exp $
+;; $Id: emacs,v 9.12 2005/08/25 00:14:46 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -144,8 +144,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defun my-text-mode-hook ()
   (auto-fill-mode)
-  (setq fill-column 74)
-  (setq indent-tabs-mode 't))
+  (setq fill-column 74))
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 (defun my-sgml-mode-hook ()
@@ -346,7 +345,7 @@ Return only one group for each buffer."
       (with-current-buffer (get-buffer buffer)
         (cond
          ((member (buffer-name)
-                  '("*scratch*" "*Messages*" "*Completions*"))
+                  '("*scratch*" "*Messages*" "*Completions*" "*Buffer List*"))
           '("Misc")
           )
          ((eq major-mode 'dired-mode)
@@ -375,6 +374,7 @@ Return only one group for each buffer."
      ;; If you edit it by hand, you could mess it up, so be careful.
      ;; Your init file should contain only one such instance.
      ;; If there is more than one, they won't work right.
+     '(tabbar-default-face ((t (:inherit default :height 1.0 :foreground "gray60" :background "gray72"))))
      '(tabbar-selected-face ((t (:inherit tabbar-default-face :foreground "blue" :box (:line-width 2 :color "white" :style pressed-button)))))
      '(tabbar-unselected-face ((t (:inherit tabbar-default-face :foreground "midnightblue" :box (:line-width 2 :color "white" :style released-button))))))
 
@@ -853,6 +853,9 @@ it is put to the start of the list."
 ;; enable auto-save
 (setq auto-save-default 1)
 (setq auto-save-interval 250)
+(setq auto-save-file-name-transforms '(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/tmp/\\2" t)
+                                       ("\\`\\([^/]*/\\)*\\([^/]*\\)\\'" "~/.emacs.d/auto-saves/\\2" t)))
+
 
 ;; keybindings...
 (if (eq window-system nil)
