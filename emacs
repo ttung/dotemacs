@@ -1,12 +1,12 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.10 2005/01/18 00:51:22 tonytung Exp $
+;; $Id: emacs,v 9.11 2005/05/21 07:08:33 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;(setq debug-on-error t)
+(setq debug-on-error t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -132,12 +132,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (define-key map "\C-ct" 'cscope-find-this-text-string)
     (define-key map "\C-ce" 'cscope-find-egrep-pattern)
     (define-key map "\C-cf" 'cscope-find-this-file)
-    (define-key map "\C-ci" 'cscope-find-files-including-file))
-
-  (when (and (getenv "CLEARCASE_ROOT") (want 'xcscope))
-    (defvar xcscope-loaded 't "t if xcscope is loaded")
-    (my-xcscope-bind-keys global-map)
-    (my-xcscope-setup)))
+    (define-key map "\C-ci" 'cscope-find-files-including-file)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -339,7 +334,51 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (when (and window-system (>= emacs-version-num 21))
   (blink-cursor-mode -1)
-  (add-to-list 'default-frame-alist '(tool-bar-lines . 0)))
+  (add-to-list 'default-frame-alist '(tool-bar-lines . 0))
+  (when (want 'tabbar)
+    (tabbar-mode)
+    (global-set-key [M-S-left] 'tabbar-backward)
+    (global-set-key [M-S-right] 'tabbar-forward)
+
+    (defun tabbar-buffer-groups (buffer)
+      "Return the list of group names BUFFER belongs to.
+Return only one group for each buffer."
+      (with-current-buffer (get-buffer buffer)
+        (cond
+         ((member (buffer-name)
+                  '("*scratch*" "*Messages*" "*Completions*"))
+          '("Misc")
+          )
+         ((eq major-mode 'dired-mode)
+          '("Main")
+          )
+         ((memq major-mode
+                '(fundamental-mode help-mode apropos-mode Info-mode Man-mode))
+          '("Misc")
+          )
+         ((memq major-mode
+                '(tex-mode latex-mode text-mode xml-mode))
+          '("Main")
+          )
+         (t
+          '("Main")
+          )
+         )))
+    (custom-set-variables
+     ;; custom-set-variables was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     '(tabbar-cycling-scope (quote tabs)))
+    (custom-set-faces
+     ;; custom-set-faces was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     '(tabbar-selected-face ((t (:inherit tabbar-default-face :foreground "blue" :box (:line-width 2 :color "white" :style pressed-button)))))
+     '(tabbar-unselected-face ((t (:inherit tabbar-default-face :foreground "midnightblue" :box (:line-width 2 :color "white" :style released-button))))))
+
+    ))
 
 ;; kill the menu bar when there's no window system
 (unless window-system
@@ -447,8 +486,9 @@ See require. Return non-nil if FEATURE is or was loaded."
     (add-hook 'font-lock-mode-hook 'my-window-system-font-lock-mode-hook)
   (add-hook 'font-lock-mode-hook 'my-console-font-lock-mode-hook))
 
-(when (eq system-type 'darwin)
-  (add-to-list 'default-frame-alist '(font . "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman")))
+(if (eq system-type 'darwin)
+    (add-to-list 'default-frame-alist '(font . "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman"))
+  (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -474,14 +514,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (when (> emacs-version-num 19.28)
-  (let ((view (getenv "CLEARCASE_ROOT"))
-        (start 0))
-    (cond (view
-           (setq start (string-match "-.*$" view))
-           (setq tag (concat invocation-name "@" (substring view (+ 1 start)))))
-          ('t
-           (setq start (string-match "\\." system-name))
-           (setq tag (concat invocation-name "@" (substring system-name 0 start))))))
+  (setq start (string-match "\\." system-name))
+  (setq tag (concat invocation-name "@" (substring system-name 0 start)))
           
   (setq frame-title-format
         (concat tag " - %f"))
@@ -908,4 +942,5 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stop debugging messages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;(setq debug-on-error nil)
+(setq debug-on-error nil)
+
