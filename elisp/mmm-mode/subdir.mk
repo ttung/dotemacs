@@ -1,3 +1,5 @@
+EMACS=emacs
+
 LISP_FILES = 	mmm-auto.el \
 		mmm-class.el \
 		mmm-cmds.el \
@@ -20,4 +22,4 @@ all	:	$(ELC_FILES)
 
 
 %.elc	:	%.el subdir.mk
-	emacs -q -batch --eval '(setq load-path (cons nil load-path))' -f batch-byte-compile "$<"
+	$(EMACS) -q -batch --eval '(setq load-path (cons nil load-path))' -f batch-byte-compile "$<"
