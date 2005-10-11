@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.12 2005/08/25 00:14:46 tonytung Exp $
+;; $Id: emacs,v 9.13 2005/08/25 05:16:27 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -59,6 +59,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up the paths for custom files
 (add-to-list 'exec-path (expand-file-name "~/emacs/bin"))
+(add-to-list 'exec-path "/opt/local/bin/")
 (add-to-list 'load-path (expand-file-name "~/emacs/elisp"))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
@@ -93,11 +94,13 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq sgml-catalog-files '("~/emacs/etc/sgml/CATALOG" "CATALOG"))
   (setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
   ;;(defvar sgml-trace-entity-lookup t)
+  (setq sgml-warn-about-undefined-entities nil)
   
   ;; initialize psgml
   (autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
   (autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
-  (add-to-list 'auto-mode-alist '("\\.html\\'" . html-mode)))
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . html-mode))
+  (add-to-list 'auto-mode-alist '("\\.php[34]?\\'" . html-mode)))
 
 ;; set up html-ize
 (when (and (> emacs-version-num 19.28) window-system)
@@ -134,6 +137,58 @@ See require. Return non-nil if FEATURE is or was loaded."
     (define-key map "\C-cf" 'cscope-find-this-file)
     (define-key map "\C-ci" 'cscope-find-files-including-file)))
 
+;; PHP Mode 
+(when (locate-library "php-mode")
+  (autoload 'php-mode "php-mode" "Mode for editing PHP files" t)
+  (setq php-file-patterns '()))
+
+;; CSS Mode
+(when (locate-library "css-mode")
+  (autoload 'css-mode "css-mode" "Mode for editing CSS files" t)
+  (add-to-list 'auto-mode-alist '("\\.css$" . css-mode)))
+
+
+;; mmm mode 
+;; set up the paths for multiple major modes
+(add-to-list 'load-path (expand-file-name "~/emacs/elisp/mmm-mode") t)
+(when (want 'mmm-auto)
+  (setq mmm-global-mode 'maybe) 
+  (setq mmm-submode-decoration-level 1)
+  (set-face-background 'mmm-default-submode-face "BLACK")
+
+  ;; set up an mmm group for fancy html editing 
+  (mmm-add-group 
+   'fancy-html 
+   '( 
+     (html-javascript-embedded
+      :submode java-mode
+      :face mmm-code-submode-face 
+      :front "<script\[^>\]*>"
+      :back "</script>")
+     (html-css-embedded
+      :submode css-mode
+      :face mmm-code-submode-face 
+      :front "<style\[^>\]*>"
+      :back "</style>")
+     (html-php-tagged 
+      :submode php-mode 
+      :face mmm-code-submode-face 
+      :front "<[?]\\(php\\|=\\)?"
+      :back "[?]>") 
+     (html-css-attribute 
+      :submode css-mode 
+      :face mmm-declaration-submode-face 
+      :front "style=\"" 
+      :back "\"")
+     (html-javascript-attribute
+      :submode java-mode
+      :face mmm-code-submode-face 
+      :front "\\bon\\w+=\\s-*\""
+      :back "\"")
+     ))
+ 
+  (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
@@ -150,6 +205,16 @@ See require. Return non-nil if FEATURE is or was loaded."
 (defun my-sgml-mode-hook ()
   (auto-fill-mode))
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
+
+(defvar vmware-c-style
+  '("linux"
+    (c-basic-offset                     . 3)
+    (c-offsets-alist			. ((case-label   	. +)))
+    (comment-column                     . 40)
+    (comment-end			. " */")
+    (comment-multi-line			. t)
+    (comment-start			. "/* ")
+    (fill-column                        . 80)))
 
 (defvar pasemi-c-style
   '("linux"
@@ -193,6 +258,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-add-style "my-java-style"	my-java-style)
     (c-add-style "my-c-style"		my-c-style)
     (c-add-style "pasemi-c-style"	pasemi-c-style)
+    (c-add-style "vmware-c-style"	vmware-c-style)
     (font-lock-add-keywords
      'c-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -205,11 +271,13 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
-  (cond ((string-match "/elinks/src" buffer-file-name)
+  (cond ((or (not buffer-file-name) (string-match "/elinks/src" buffer-file-name))
          (setq tab-width 2)
          (c-set-style "my-c-style"))
         ((string-match "pasemi\\.com" system-name)
          (c-set-style "pasemi-c-style"))
+        ((string-match "CHRISTINEWU" system-name)
+         (c-set-style "vmware-c-style"))
         ('t
          (c-set-style "my-c-style")))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
@@ -339,45 +407,48 @@ See require. Return non-nil if FEATURE is or was loaded."
     (global-set-key [M-S-left] 'tabbar-backward)
     (global-set-key [M-S-right] 'tabbar-forward)
 
-    (defun tabbar-buffer-groups (buffer)
-      "Return the list of group names BUFFER belongs to.
+    (defun my-tabbar-buffer-groups (buffer)
+      "Return the list of group names BUFFER belongs to.                                                                                                        
 Return only one group for each buffer."
       (with-current-buffer (get-buffer buffer)
         (cond
+         ((or (get-buffer-process (current-buffer))
+              (memq major-mode
+                    '(comint-mode compilation-mode)))
+          '("process")
+          )
          ((member (buffer-name)
                   '("*scratch*" "*Messages*" "*Completions*" "*Buffer List*"))
-          '("Misc")
+          '("misc")
           )
          ((eq major-mode 'dired-mode)
-          '("Main")
+          '("dired")
           )
          ((memq major-mode
-                '(fundamental-mode help-mode apropos-mode Info-mode Man-mode))
-          '("Misc")
+                '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
+          '("misc")
           )
          ((memq major-mode
                 '(tex-mode latex-mode text-mode xml-mode))
-          '("Main")
+          '("main")
           )
          (t
-          '("Main")
+          '("main")
           )
          )))
-    (custom-set-variables
-     ;; custom-set-variables was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(tabbar-cycling-scope (quote tabs)))
-    (custom-set-faces
-     ;; custom-set-faces was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(tabbar-default-face ((t (:inherit default :height 1.0 :foreground "gray60" :background "gray72"))))
-     '(tabbar-selected-face ((t (:inherit tabbar-default-face :foreground "blue" :box (:line-width 2 :color "white" :style pressed-button)))))
-     '(tabbar-unselected-face ((t (:inherit tabbar-default-face :foreground "midnightblue" :box (:line-width 2 :color "white" :style released-button))))))
-
+    (setq tabbar-cycling-scope 'tabs)
+    (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
+    (set-face-attribute 'tabbar-default-face nil
+                        :inherit 'default
+                        :height 0.9
+                        :foreground "gray60"
+                        :background "gray72")
+    (set-face-attribute 'tabbar-selected-face nil
+                        :foreground "blue"
+                        :box '(:line-width 2 :color "white" :style pressed-button))
+    (set-face-attribute 'tabbar-unselected-face nil
+                        :foreground "midnightblue"
+                        :box '(:line-width 2 :color "white" :style released-button))
     ))
 
 ;; kill the menu bar when there's no window system
@@ -851,11 +922,15 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; enable auto-save
-(setq auto-save-default 1)
-(setq auto-save-interval 250)
-(setq auto-save-file-name-transforms '(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/tmp/\\2" t)
-                                       ("\\`\\([^/]*/\\)*\\([^/]*\\)\\'" "~/.emacs.d/auto-saves/\\2" t)))
+(unless (string-match "CHRISTINEWU" system-name)
+  (setq auto-save-default 1)
+  (setq auto-save-interval 250)
+  (setq auto-save-file-name-transforms '(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/tmp/\\2" t)
+                                         ("\\`\\([^/]*/\\)*\\([^/]*\\)\\'" "~/.emacs.d/auto-saves/\\2" t)))
 
+  (let ((dir (expand-file-name "~/.emacs.d/auto-saves/")))
+    (unless (file-exists-p dir)
+      (make-directory dir))))
 
 ;; keybindings...
 (if (eq window-system nil)
