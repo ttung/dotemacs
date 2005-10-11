@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000 by Michael Abraham Shulman
 
 ;; Author: Michael Abraham Shulman <viritrilbia@users.sourceforge.net>
-;; Version: $Id: mmm-region.el,v 1.38 2003/06/19 11:24:04 viritrilbia Exp $
+;; Version: $Id: mmm-region.el,v 1.1 2005/10/11 01:18:53 tonytung Exp $
 
 ;;{{{ GPL
 
@@ -369,6 +369,7 @@ SUBMODE is used.  In delimiter regions, \"--\" is shown.
 CREATION-HOOK should be a function to run after the region is created,
 with point at the start of the new region."
   ;; Check placement of region and delimiters
+  (and (not front) (eq evaporation 'front) (setq evaporation t))
   (unless (if (eq evaporation t)
 	    (< beg end)
 	  (<= beg end))
@@ -391,7 +392,6 @@ with point at the start of the new region."
   (mmm-mode-on)
   (when submode
     (mmm-update-mode-info submode))
-  (and (not front) (eq evaporation 'front) (setq evaporation t))
   (let ((region-ovl
 	 (mmm-make-overlay submode beg end name face beg-sticky end-sticky
 			   (or (eq evaporation t) nil) display-name)))
