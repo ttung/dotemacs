@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 9.14 2005/10/11 19:03:16 tonytung Exp $
+;; $Id: emacs,v 10.0 2005/10/11 19:03:17 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -330,7 +330,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 (when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
   (defun my-python-mode-hook ()
     (auto-fill-mode 't)
-    (setq fill-column 90))
+    (setq fill-column 90)
+    (font-lock-add-keywords
+     'python-mode
+     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t))))
 
   (add-hook 'python-mode-hook 'my-python-mode-hook)
 
@@ -408,7 +413,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (global-set-key [M-S-right] 'tabbar-forward)
 
     (defun my-tabbar-buffer-groups (buffer)
-      "Return the list of group names BUFFER belongs to.                                                                                                        
+      "Return the list of group names BUFFER belongs to.
 Return only one group for each buffer."
       (with-current-buffer (get-buffer buffer)
         (cond
