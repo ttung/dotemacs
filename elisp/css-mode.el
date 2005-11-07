@@ -173,7 +173,7 @@
 
 (let* ((css-keywords  "\\(url\\|![ \t]*important\\)")
        (css-nmstart   "[a-zA-Z]")
-       (css-nmchar    "[a-zA-Z0-9-]")
+       (css-nmchar    "[a-zA-Z0-9-_]")
        (css-ident     (concat css-nmstart css-nmchar "*"))
        (css-at-rule   (concat "\\(@" css-ident "\\)"))
        (css-element-s (concat "^\\(" css-ident "\\)"))
@@ -212,11 +212,11 @@
   (modify-syntax-entry ?\' "\""   css-mode-syntax-table)
   (cond
    ;; XEmacs 19 & 20
-   ((memq '8-bit c-emacs-features)
+   ((string-match "XEmacs" emacs-version)
     (modify-syntax-entry ?/  ". 1456" css-mode-syntax-table)
     (modify-syntax-entry ?*  ". 23"   css-mode-syntax-table))
    ;; Emacs 19 & 20
-   ((memq '1-bit c-emacs-features)
+   ((>= emacs-major-version 19)
     (modify-syntax-entry ?/  ". 124b" css-mode-syntax-table)
     (modify-syntax-entry ?*  ". 23"   css-mode-syntax-table))
    ;; incompatible
