@@ -1,6 +1,6 @@
 ;;;; psgml-charent.el
 ;;; Last edited: 1999-12-18 18:54:53 lenst
-;;; $Id: psgml-charent.el,v 1.6 1999/12/21 22:46:59 lenst Exp $
+;;; $Id: psgml-charent.el,v 1.7 2002/04/25 20:50:27 lenst Exp $
 
 ;; Copyright (C) 1994 Lennart Staflin
 
@@ -27,11 +27,14 @@
 ;;  Functions to convert character entities into displayable characters
 ;;  and displayable characters back into character entities.
 
+;; This should either use iso-cvt or do better with a multilingual set of entities 
+
 
 ;;;; Code:
 
 (provide 'psgml-charent)
 (require 'psgml-parse)
+(eval-when-compile (require 'cl))
 
 
 ;;;; Variable declarations
@@ -61,10 +64,11 @@ Alist with entity name as key and display character as content."
   (let (key disp-char alist)
     (while (re-search-forward "^\\([0-9]+\\)[ \t]+\\(.+\\)$" nil t)
       (setq key (buffer-substring (match-beginning 2) (match-end 2)))
-      (setq disp-char
-	    (char-to-string
-	     (string-to-number
-	      (buffer-substring (match-beginning 1) (match-end 1)))))
+      (setq disp-char (string-to-number (buffer-substring (match-beginning 1)
+							  (match-end 1))))
+      (if (fboundp 'unibyte-char-to-multibyte)
+	  (setq disp-char (unibyte-char-to-multibyte disp-char)))
+      (setq disp-char (char-to-string disp-char))
       (push (cons key disp-char)
 	    alist))
     alist))

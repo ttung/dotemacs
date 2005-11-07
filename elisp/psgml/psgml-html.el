@@ -1,5 +1,8 @@
 ;;; psgml-html.el --- HTML mode in conjunction with PSGML
 
+;; arch-tag: 68a4c8e6-2bb1-4f89-95aa-b964a5786dd5
+
+
 ;; Copyright (C) 1994 Nelson Minar.
 ;; Copyright (C) 1995 Nelson Minar and Ulrik Dickow.
 ;; Copyright (C) 1996 Ben Wing.
@@ -60,13 +63,13 @@
 (defgroup psgml-html nil
   "HTML mode in conjunction with PSGML"
   :tag "Psgml Html"
-  :prefix "html-helper-"
+  :prefix "psgml-html-"
   :group 'html
   :group 'psgml)
 
 ;;;; Modified for Debian: now accomodates Emacs as well
 ;; Set this to be whatever signature you want on the bottom of your pages.
-(defcustom html-helper-address-string
+(defcustom psgml-html-address-string
   (cond
    ((string-match "XEmacs" emacs-version) ; XEmacs/Lucid
     (concat "<a href=\"mailto:" (user-mail-address) "\">"
@@ -78,22 +81,22 @@
     :type 'string
     :group 'psgml-html)
 
-(defcustom html-helper-htmldtd-version "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
+(defcustom psgml-html-htmldtd-version "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
   "*Version of HTML DTD you're using."
   :type 'string
   :group 'psgml-html)
 
-(defcustom html-helper-do-write-file-hooks t
+(defcustom psgml-html-do-write-file-hooks t
   "*If not nil, then modify `local-write-file-hooks' to do timestamps."
   :type 'boolean
   :group 'psgml-html)
 
-(defcustom html-helper-build-new-buffer t
-  "*If not nil, then insert `html-helper-new-buffer-strings' for new buffers."
+(defcustom psgml-html-build-new-buffer t
+  "*If not nil, then insert `psgml-html-new-buffer-strings' for new buffers."
   :type 'boolean
   :group 'psgml-html)
 
-(defcustom html-helper-timestamp-hook 'html-helper-default-insert-timestamp
+(defcustom psgml-html-timestamp-hook 'psgml-html-default-insert-timestamp
   "*Hook called for timestamp insertion.
 Override this for your own timestamp styles."
   :type 'hook
@@ -101,8 +104,8 @@ Override this for your own timestamp styles."
 
 ;; strings you might want to change
 
-(defcustom html-helper-new-buffer-template
-  '(html-helper-htmldtd-version
+(defcustom psgml-html-new-buffer-template
+  '(psgml-html-htmldtd-version
     "<html>\n"
     "  <head>\n"
     "    <title>" (p "Document Title: " title) "</title>\n"
@@ -112,53 +115,53 @@ Override this for your own timestamp styles."
     "    <h1>" (s title) "</h1>\n\n"
     p
     "\n\n    <hr>\n"
-    "    <address>" html-helper-address-string "</address>\n"
-    (html-helper-return-created-string)
-    html-helper-timestamp-start
-    html-helper-timestamp-end
+    "    <address>" psgml-html-address-string "</address>\n"
+    (psgml-html-return-created-string)
+    psgml-html-timestamp-start
+    psgml-html-timestamp-end
     "\n  </body>\n</html>\n")
   "*Template for new buffers.
-Inserted by `html-helper-insert-new-buffer-strings' if
-`html-helper-build-new-buffer' is set to t"
+Inserted by `psgml-html-insert-new-buffer-strings' if
+`psgml-html-build-new-buffer' is set to t"
   :type 'sexp
   :group 'psgml-html)
 
-(defcustom html-helper-timestamp-start "<!-- hhmts start -->\n"
+(defcustom psgml-html-timestamp-start "<!-- hhmts start -->\n"
   "*Start delimiter for timestamps.
-Everything between `html-helper-timestamp-start' and
-`html-helper-timestamp-end' will be deleted and replaced with the output
-of the functions `html-helper-timestamp-hook' if
-`html-helper-do-write-file-hooks' is t"
+Everything between `psgml-html-timestamp-start' and
+`psgml-html-timestamp-end' will be deleted and replaced with the output
+of the functions `psgml-html-timestamp-hook' if
+`psgml-html-do-write-file-hooks' is t"
   :type 'string
   :group 'psgml-html)
 
-(defcustom html-helper-timestamp-end "<!-- hhmts end -->"
+(defcustom psgml-html-timestamp-end "<!-- hhmts end -->"
   "*End delimiter for timestamps.
-Everything between `html-helper-timestamp-start' and
-`html-helper-timestamp-end' will be deleted and replaced with the output
-of the function `html-helper-insert-timestamp' if
-`html-helper-do-write-file-hooks' is t"
+Everything between `psgml-html-timestamp-start' and
+`psgml-html-timestamp-end' will be deleted and replaced with the output
+of the function `psgml-html-insert-timestamp' if
+`psgml-html-do-write-file-hooks' is t"
   :type 'string
   :group 'psgml-html)
 
 ;; control over what types of tags to load. By default, we load all the
 ;; ones we know of.
 
-(defcustom html-helper-types-to-install
+(defcustom psgml-html-types-to-install
   '(anchor header logical phys list textel entity image head form table
 	   special)
-  "*List of tag types to install when html-helper-mode is first loaded.
+  "*List of tag types to install when psgml-html-mode is first loaded.
 If you want to not install some type of tag, override this variable.
 Order is significant: menus go in this order."
   :type '(repeat symbol)
   :group 'psgml-html)
 
-(defcustom html-helper-use-expert-menu nil
+(defcustom psgml-html-use-expert-menu nil
   "*If not nil, then use the full HTML menu."
   :type 'boolean
   :group 'psgml-html)
 
-(defcustom html-helper-user-menu nil
+(defcustom psgml-html-user-menu nil
   "*Extra items to put in the HTML expert menu.
 The value of this symbol is appended to the beginning of the expert
 menu that is handed off to easymenu for definition. It should be a
@@ -169,39 +172,42 @@ list of vectors or lists which themselves are vectors (for submenus)."
 ;;}}} end of user variables
 ;;{{{ type based keymap and menu variable and function setup
 
-;; html-helper-mode has a concept of "type" of tags. Each type is a
+;; psgml-html-mode has a concept of "type" of tags. Each type is a
 ;; list of tags that all go together in one keymap and one menu.
-;; Types can be added to the system after html-helper has been loaded,
-;; briefly by doing html-helper-add-type-to-alist, then
-;; html-helper-install-type, then html-helper-add-tag (for each tag)
-;; then html-helper-rebuild-menu. See the mode documentation for more detail.
+;; Types can be added to the system after psgml-html has been loaded,
+;; briefly by doing psgml-html-add-type-to-alist, then
+;; psgml-html-install-type, then psgml-html-add-tag (for each tag)
+;; then psgml-html-rebuild-menu. See the mode documentation for more detail.
 
-(defconst html-helper-type-alist nil
+(defconst psgml-html-type-alist nil
   "Alist: type of tag -> keymap, keybinding, menu, menu string.
-Add to this with `html-helper-add-type-to-alist'.")
+Add to this with `psgml-html-add-type-to-alist'.")
 
-;;{{{ accessor functions for html-helper-type-alist
+;;{{{ accessor functions for psgml-html-type-alist
+(tempo-define-template "html-skeleton" psgml-html-new-buffer-template
+                       nil
+                       "Insert a skeleton for a HTML document")
 
-(defun html-helper-keymap-for (type)
+(defun psgml-html-keymap-for (type)
   "Accessor function for alist: for type, return keymap or nil"
-  (nth 0 (cdr-safe (assq type html-helper-type-alist))))
+  (nth 0 (cdr-safe (assq type psgml-html-type-alist))))
 
-(defun html-helper-key-for (type)
+(defun psgml-html-key-for (type)
   "Accessor function for alist: for type, return keybinding or nil"
-  (nth 1 (cdr-safe (assq type html-helper-type-alist))))
+  (nth 1 (cdr-safe (assq type psgml-html-type-alist))))
 
-(defun html-helper-menu-for (type)
+(defun psgml-html-menu-for (type)
   "Accessor function for alist: for type, return menu or nil"
-  (nth 2 (cdr-safe (assq type html-helper-type-alist))))
+  (nth 2 (cdr-safe (assq type psgml-html-type-alist))))
 
-(defun html-helper-menu-string-for (type)
+(defun psgml-html-menu-string-for (type)
   "Accessor function for alist: for type, return menustring or nil"
-  (nth 3 (cdr-safe (assq type html-helper-type-alist))))
+  (nth 3 (cdr-safe (assq type psgml-html-type-alist))))
 
-(defun html-helper-normalized-menu-for (type)
+(defun psgml-html-normalized-menu-for (type)
   "Helper function for building menus from submenus: add on string to menu."
-  (cons (html-helper-menu-string-for type)
-	(eval (html-helper-menu-for type))))
+  (cons (psgml-html-menu-string-for type)
+	(eval (psgml-html-menu-for type))))
 
 ;;}}}
 
@@ -225,28 +231,35 @@ More specifically:
 "
   (make-local-variable 'sgml-declaration)
   (make-local-variable 'sgml-default-doctype-name)
+  (if (or
+       (not (boundp 'sgml-custom-dtd))
+       (not sgml-custom-dtd))
+      (setq 
+       sgml-custom-dtd
+       '(
+	 ( "HTML 4.01 Strict"
+	   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\">" )
+	 ( "HTML 4.01 Transitional"
+	   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">")
+	 ( "HTML 4.01 Frameset"
+	   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\">" )
+	 )
+       ))
+
+
   (setq sgml-declaration             (expand-file-name "html.decl"
 						       sgml-data-directory)
-	sgml-default-doctype-name    "html"
+	sgml-default-doctype-name    "HTML"
 	sgml-always-quote-attributes t
 	sgml-indent-step             2
 	sgml-indent-data	     t
 	sgml-inhibit-indent-tags     '("pre")
 	sgml-minimize-attributes     nil
 	sgml-omittag                 t
-	sgml-shorttag                t
+	sgml-shorttag                t)
+
 	;; Added for Debian
 	;; menus for creating new documents
-	sgml-custom-dtd
-	'(
-	  ( "HTML 4.01 Strict"
-	    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\">" )
-	  ( "HTML 4.01 Transitional"
-	    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">")
-	  ( "HTML 4.01 Frameset"
-	    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\">" )
-	  )
-	)
 
   ;; font-lock setup for various emacsen: XEmacs, Emacs 19.29+, Emacs <19.29.
   ;; By Ulrik Dickow <dickow@nbi.dk>.  (Last update: 05-Sep-1995).
@@ -267,11 +280,11 @@ More specifically:
 	 (setq font-lock-keywords html-font-lock-keywords)
 	 (setq font-lock-no-comments t)))
 
-  (if html-helper-do-write-file-hooks
-      (add-hook 'local-write-file-hooks 'html-helper-update-timestamp))
+  (if psgml-html-do-write-file-hooks
+      (add-hook 'local-write-file-hooks 'psgml-html-update-timestamp))
 
-  (if (and html-helper-build-new-buffer (zerop (buffer-size)))
-      (html-helper-insert-new-buffer-strings))
+  (if (and psgml-html-build-new-buffer (zerop (buffer-size)))
+      (psgml-html-insert-new-buffer-strings))
 
   (set (make-local-variable 'sgml-custom-markup)
        '(("<A>" "<A HREF=\"\">\r</a>")))
@@ -283,8 +296,8 @@ More specifically:
   (modify-syntax-entry ?\\ ".   " html-mode-syntax-table)
   (modify-syntax-entry ?'  "w   " html-mode-syntax-table)
 
-  (tempo-use-tag-list 'html-helper-tempo-tags html-helper-completion-finder)
-  (setq imenu-create-index-function 'html-helper-imenu-index)
+  (tempo-use-tag-list 'psgml-html-tempo-tags psgml-html-completion-finder)
+  (setq imenu-create-index-function 'psgml-html-imenu-index)
   (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
 
   ; sigh ...  need to call this now to get things working.
@@ -292,12 +305,13 @@ More specifically:
   ;; (add-submenu nil sgml-html-menu "SGML")
   (setq sgml-menu-name "HTML")
   (easy-menu-add sgml-html-menu)
-  (html-helper-rebuild-menu)
+  (psgml-html-rebuild-menu)
   (if (string-match "XEmacs" emacs-version)
       (unless (featurep 'infodock)
 	(delete-menu-item '("SGML")))))
 
-(defvar html-helper-imenu-regexp
+
+(defvar psgml-html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
   "*A regular expression matching a head line to be added to the menu.
 The first `match-string' should be a number from 1-9.
@@ -305,14 +319,14 @@ The second `match-string' matches extra tags and is ignored.
 The third `match-string' will be the used in the menu.")
 
 ;; Make an index for imenu
-(defun html-helper-imenu-index ()
+(defun psgml-html-imenu-index ()
   "Return an table of contents for an html buffer for use with Imenu."
   (let ((space ?\ ) ; a char
 	(toc-index '())
 	toc-str)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward html-helper-imenu-regexp nil t)
+      (while (re-search-forward psgml-html-imenu-regexp nil t)
 	(setq toc-str
 	      (concat
 	       (make-string
@@ -324,43 +338,43 @@ The third `match-string' will be the used in the menu.")
 	(end-of-line)))
     (nreverse toc-index)))
 
-(defun html-helper-add-type-to-alist (type)
+(defun psgml-html-add-type-to-alist (type)
   "Add a type specification to the alist.
 The spec goes (type . (keymap-symbol keyprefix menu-symbol menu-string)).
 See code for an example."
-  (setq html-helper-type-alist (cons type html-helper-type-alist)))
+  (setq psgml-html-type-alist (cons type psgml-html-type-alist)))
 
-;; Here are the types provided by html-helper-mode.
-(mapcar 'html-helper-add-type-to-alist
-  '((entity  . (nil nil html-helper-entity-menu "Insert Character Entities"))
-    (textel  . (nil nil html-helper-textel-menu "Insert Text Elements"))
-    (head    . (html-helper-head-map "\C-zw" html-helper-head-menu "Insert Structural Elements"))
-    (header  . (html-helper-base-map "\C-z" html-helper-header-menu "Insert Headers"))
-    (anchor  . (html-helper-base-map "\C-z" html-helper-anchor-menu "Insert Hyperlinks"))
-    (logical . (html-helper-base-map "\C-z" html-helper-logical-menu "Insert Logical Styles"))
-    (phys    . (html-helper-base-map "\C-z" html-helper-phys-menu "Insert Physical Styles"))
-    (list    . (html-helper-list-map "\C-zl" html-helper-list-menu "Insert List Elements"))
-    (form    . (html-helper-form-map "\C-zf" html-helper-form-menu "Insert Form Elements"))
-    (table   . (html-helper-table-map "\C-zt" html-helper-table-menu "Insert Table Elements"))
-    (image   . (html-helper-image-map "\C-zm" html-helper-image-menu "Insert Inlined Images"))
-    (special . (html-helper-base-map "\C-z" html-helper-special-menu "Insert Specials"))))
+;; Here are the types provided by psgml-html-mode.
+(mapcar 'psgml-html-add-type-to-alist
+  '((entity  . (nil nil psgml-html-entity-menu "Insert Character Entities"))
+    (textel  . (nil nil psgml-html-textel-menu "Insert Text Elements"))
+    (head    . (psgml-html-head-map "\C-zw" psgml-html-head-menu "Insert Structural Elements"))
+    (header  . (psgml-html-base-map "\C-z" psgml-html-header-menu "Insert Headers"))
+    (anchor  . (psgml-html-base-map "\C-z" psgml-html-anchor-menu "Insert Hyperlinks"))
+    (logical . (psgml-html-base-map "\C-z" psgml-html-logical-menu "Insert Logical Styles"))
+    (phys    . (psgml-html-base-map "\C-z" psgml-html-phys-menu "Insert Physical Styles"))
+    (list    . (psgml-html-list-map "\C-zl" psgml-html-list-menu "Insert List Elements"))
+    (form    . (psgml-html-form-map "\C-zf" psgml-html-form-menu "Insert Form Elements"))
+    (table   . (psgml-html-table-map "\C-zt" psgml-html-table-menu "Insert Table Elements"))
+    (image   . (psgml-html-image-map "\C-zm" psgml-html-image-menu "Insert Inlined Images"))
+    (special . (psgml-html-base-map "\C-z" psgml-html-special-menu "Insert Specials"))))
 
-;; Once html-helper-mode is aware of a type, it can then install the
+;; Once psgml-html-mode is aware of a type, it can then install the
 ;; type: arrange for keybindings, menus, etc.
 
-(defconst html-helper-installed-types nil
+(defconst psgml-html-installed-types nil
   "The types that have been installed (used when building menus).
 There is no support for removing a type once it has been installed.")
 
-(defun html-helper-install-type (type)
+(defun psgml-html-install-type (type)
   "Install a new tag type: add it to the keymap, menu structures, etc.
 For this to work, the type must first have been added to the list of types
-with html-helper-add-type-to-alist."
-  (setq html-helper-installed-types (cons type html-helper-installed-types))
-  (let ((keymap (html-helper-keymap-for type))
-	(key (html-helper-key-for type))
-	(menu (html-helper-menu-for type))
-	(menu-string (html-helper-menu-string-for type)))
+with psgml-html-add-type-to-alist."
+  (setq psgml-html-installed-types (cons type psgml-html-installed-types))
+  (let ((keymap (psgml-html-keymap-for type))
+	(key (psgml-html-key-for type))
+	(menu (psgml-html-menu-for type))
+	(menu-string (psgml-html-menu-string-for type)))
     (and key
 	 (progn
 	   (set keymap nil)
@@ -371,18 +385,18 @@ with html-helper-add-type-to-alist."
 	   (set menu nil)))))
 
 ;; install the default types.
-(mapcar 'html-helper-install-type html-helper-types-to-install)
+(mapcar 'psgml-html-install-type psgml-html-types-to-install)
 
 ;;}}}
 
-;;{{{ html-helper-add-tag function for building basic tags
+;;{{{ psgml-html-add-tag function for building basic tags
 
-(defvar html-helper-tempo-tags nil
+(defvar psgml-html-tempo-tags nil
   "List of tags used in completion.")
 
 ;; this while loop is awfully Cish
 ;; isn't there an emacs lisp function to do this?
-(defun html-helper-string-to-symbol (input-string)
+(defun psgml-html-string-to-symbol (input-string)
   "Given a string, downcase it and replace spaces with -.
 We use this to turn menu entries into good symbols for functions.
 It's not entirely successful, but fortunately emacs lisp is forgiving."
@@ -395,24 +409,24 @@ It's not entirely successful, but fortunately emacs lisp is forgiving."
     (concat "html-" s)))
 
 
-(defun html-helper-add-tag (l)
-  "Add a new tag to html-helper-mode.
+(defun psgml-html-add-tag (l)
+  "Add a new tag to psgml-html-mode.
 Builds a tempo-template for the tag and puts it into the
 appropriate keymap if a key is requested. Format:
-`(html-helper-add-tag '(type keybinding completion-tag menu-name template doc)'"
+`(psgml-html-add-tag '(type keybinding completion-tag menu-name template doc)'"
   (let* ((type (car l))
-	 (keymap (html-helper-keymap-for type))
-	 (menu (html-helper-menu-for type))
+	 (keymap (psgml-html-keymap-for type))
+	 (menu (psgml-html-menu-for type))
 	 (key (nth 1 l))
 	 (completer (nth 2 l))
 	 (name (nth 3 l))
 	 (tag (nth 4 l))
 	 (doc (nth 5 l))
-	 (command (tempo-define-template (html-helper-string-to-symbol name)
+	 (command (tempo-define-template (psgml-html-string-to-symbol name)
 					 tag completer doc
-					 'html-helper-tempo-tags)))
+					 'psgml-html-tempo-tags)))
 
-    (if (null (memq type html-helper-installed-types))    ;type loaded?
+    (if (null (memq type psgml-html-installed-types))    ;type loaded?
 	t                                                 ;no, do nothing.
       (if (stringp key)			                  ;bind key somewhere?
 	  (if keymap			                  ;special keymap?
@@ -436,7 +450,7 @@ appropriate keymap if a key is requested. Format:
 ;; not easy to fix.
 
 (mapcar
- 'html-helper-add-tag
+ 'psgml-html-add-tag
  '(
    ;;entities
    (entity  "\C-c#"   "&#"              "Ascii Code"     ("&#" (r "Ascii: ") ";"))
@@ -549,13 +563,13 @@ appropriate keymap if a key is requested. Format:
    ))
 
 ;;}}}
-;;{{{ html-helper-smart-insert-item
+;;{{{ psgml-html-smart-insert-item
 
 ;; there are two different kinds of items in HTML - those in regular
 ;; lists <li> and those in dictionaries <dt>..<dd>
 ;; This command will insert the appropriate one depending on context.
 
-(defun html-helper-smart-insert-item (&optional arg)
+(defun psgml-html-smart-insert-item (&optional arg)
   "Insert a new item, either in a regular list or a dictionary."
   (interactive "*P")
   (let ((case-fold-search t))
@@ -567,8 +581,8 @@ appropriate keymap if a key is requested. Format:
       (tempo-template-html-list-item arg))))
 
 ;; special keybindings in the prefix maps (not in the list of tags)
-(and (boundp 'html-helper-base-map)
-     (define-key html-helper-base-map "i" 'html-helper-smart-insert-item))
+(and (boundp 'psgml-html-base-map)
+     (define-key psgml-html-base-map "i" 'psgml-html-smart-insert-item))
 
 (if (eq window-system 'x)
     (define-key html-mode-map "\C-z\C-z" 'iconify-or-deiconify-frame)
@@ -577,74 +591,74 @@ appropriate keymap if a key is requested. Format:
 ;;(define-key html-mode-map "\C-zg" 'html-insert-mailto-reference-from-click)
 
 ;; and, special menu bindings
-(and (boundp 'html-helper-list-menu)
-     (setq html-helper-list-menu
-	   (cons '["List Item" html-helper-smart-insert-item t] html-helper-list-menu)))
+(and (boundp 'psgml-html-list-menu)
+     (setq psgml-html-list-menu
+	   (cons '["List Item" psgml-html-smart-insert-item t] psgml-html-list-menu)))
 
 ;;}}}
 
 ;;{{{ menu support
 
-;; menus are built for easymenu. html-helper-add-tag builds
+;; menus are built for easymenu. psgml-html-add-tag builds
 ;; submenus based on tag type, the expert menu code lumps them
 ;; together into one list and calls easy-menu-define
 
-(defun html-helper-rebuild-menu nil
+(defun psgml-html-rebuild-menu nil
   "Rebuild and install the HTML menu (using `easy-menu-define').
-If `html-helper-use-expert-menu' is nil, then just use a novice menu."
-  (let ((menu (html-helper-expert-menu)))
+If `psgml-html-use-expert-menu' is nil, then just use a novice menu."
+  (let ((menu (psgml-html-expert-menu)))
     (easy-menu-remove menu)
     (easy-menu-add menu html-mode-map)))
 
-(defun html-helper-toggle-expert-menu (&optional arg)
+(defun psgml-html-toggle-expert-menu (&optional arg)
   "Toggle full HTML menus. Optional arg acts like minor-mode args."
   (interactive "P")
-  (setq html-helper-use-expert-menu
-	(if (null arg) (not html-helper-use-expert-menu)
+  (setq psgml-html-use-expert-menu
+	(if (null arg) (not psgml-html-use-expert-menu)
 	  (> (prefix-numeric-value arg) 0)))
-  (html-helper-rebuild-menu))
+  (psgml-html-rebuild-menu))
 
-;; Expert menus: consed up out of html-helper-installed-types
-(defun html-helper-expert-menu ()
-  "This menu is based on the current value of `html-helper-installed-types'.
+;; Expert menus: consed up out of psgml-html-installed-types
+(defun psgml-html-expert-menu ()
+  "This menu is based on the current value of `psgml-html-installed-types'.
 This function can be called again, it redoes the entire menu."
   ;; Start with the user-provided menu stuff
-  (let ((html-helper-mode-menu html-helper-user-menu))
+  (let ((psgml-html-mode-menu psgml-html-user-menu))
     ;; Now cons in the browse-url functions
     (if (fboundp 'browse-url-of-file)
-	(setq html-helper-mode-menu
+	(setq psgml-html-mode-menu
 	      (cons '["Load this Buffer in Browser" browse-url-of-file t]
-		    html-helper-mode-menu)))
+		    psgml-html-mode-menu)))
     (if (and (boundp 'browse-url-browser-function)
 	     (fboundp 'browse-url-browser-function))
-	(setq html-helper-mode-menu
+	(setq psgml-html-mode-menu
 	      (cons (vector "Browse URL at point"
 			    browse-url-browser-function t)
-		    html-helper-mode-menu)))
+		    psgml-html-mode-menu)))
 
     ;; cons in the timestamp delimiters
-    (setq html-helper-mode-menu
+    (setq psgml-html-mode-menu
 	  (cons '["Insert Timestamp Delimiter"
-		  html-helper-insert-timestamp-delimiter-at-point t]
-		html-helper-mode-menu))
+		  psgml-html-insert-timestamp-delimiter-at-point t]
+		psgml-html-mode-menu))
 
     ;; now cons up the main menu out of the submenus
     (mapcar
      (function (lambda (type)
-		 (setq html-helper-mode-menu
-		       (cons (html-helper-normalized-menu-for type)
-			     html-helper-mode-menu))))
-     html-helper-installed-types)
+		 (setq psgml-html-mode-menu
+		       (cons (psgml-html-normalized-menu-for type)
+			     psgml-html-mode-menu))))
+     psgml-html-installed-types)
 
     ;; now tack on our name
-    (setq html-helper-mode-menu (cons "Insert" html-helper-mode-menu))
+    (setq psgml-html-mode-menu (cons "Insert" psgml-html-mode-menu))
 
     ;; special mode keys
     (define-key html-mode-map (kbd "<M-iso-left-tab>") 'tempo-complete-tag)
     ;;("\M-\C-f" tempo-forward-mark)
     ;;("\M-\C-b" tempo-backward-mark)
 
-    html-helper-mode-menu))
+    psgml-html-mode-menu))
 
 ;;}}}
 
@@ -679,26 +693,27 @@ This function can be called again, it redoes the entire menu."
 			     (memq face (face-list)))
 			   (make-face face))
 		       (not (face-differs-from-default-p face))))))
-      (if (funcall change-it 'html-helper-bold-face)
-	  (copy-face 'bold 'html-helper-bold-face))
-      (if (funcall change-it 'html-helper-italic-face)
-	  (copy-face 'italic 'html-helper-italic-face))
-      (if (funcall change-it 'html-helper-underline-face)
-	  (set-face-underline-p 'html-helper-underline-face t))
-      (if (funcall change-it 'font-lock-variable-name-face)
-	  (set-face-foreground 'font-lock-variable-name-face "salmon"))
-      (if (funcall change-it 'font-lock-reference-face)
-	  (set-face-foreground 'font-lock-reference-face "violet")))
+      (if (funcall change-it 'psgml-html-bold-face)
+	  (copy-face 'bold 'psgml-html-bold-face))
+      (if (funcall change-it 'psgml-html-italic-face)
+	  (copy-face 'italic 'psgml-html-italic-face))
+      (if (funcall change-it 'psgml-html-underline-face)
+	  (set-face-underline-p 'psgml-html-underline-face t))
+;;       (if (funcall change-it 'font-lock-variable-name-face)
+;; 	  (set-face-foreground 'font-lock-variable-name-face "salmon"))
+;;       (if (funcall change-it 'font-lock-reference-face)
+;; 	  (set-face-foreground 'font-lock-reference-face "violet"))
+      )
   ;; Emacs (any version)
   ;;
   ;; Note that Emacs evaluates the face entries in `font-lock-keywords',
   ;; while XEmacs doesn't.  So XEmacs doesn't use the following *variables*,
   ;; but instead the faces with the same names as the variables.
-  (defvar html-helper-bold-face 'bold
+  (defvar psgml-html-bold-face 'bold
     "Face used as bold.  Typically `bold'.")
-  (defvar html-helper-italic-face 'italic
+  (defvar psgml-html-italic-face 'italic
     "Face used as italic.  Typically `italic'.")
-  (defvar html-helper-underline-face 'underline
+  (defvar psgml-html-underline-face 'underline
     "Face used as underline.  Typically `underline'.")
   ;;
   (if (string-lessp "19.28.89" emacs-version)
@@ -742,20 +757,20 @@ This function can be called again, it redoes the entire menu."
      ;; Cunning repeated fontification to handle common cases of overlap.
      ;; Bold complex --- possibly with arbitrary other non-bold stuff inside.
      (list (concat "<" bword ">\\(" not-bend "*\\)</\\1>")
-	   3 'html-helper-bold-face t)
+	   3 'psgml-html-bold-face t)
      ;; Italic complex --- possibly with arbitrary non-italic kept inside.
      (list (concat "<" iword ">\\(" not-iend "*\\)</\\1>")
-	   3 'html-helper-italic-face t)
+	   3 'psgml-html-italic-face t)
      ;; Bold simple --- first fontify bold regions with no tags inside.
      (list (concat "<" bword ">\\("  "[^<]"  "*\\)</\\1>")
-	   3 'html-helper-bold-face t)
+	   3 'psgml-html-bold-face t)
      ;; Any tag, general rule, just after bold/italic stuff.
      '("\\(<[^>]*>\\)" 1 font-lock-type-face t)
      ;; Titles and level 1 headings (anchors do sometimes appear in h1's)
      (list (concat "<" tword ">\\(" not-tend "*\\)</\\1>")
 	   3 'font-lock-function-name-face t)
      ;; Underline is rarely used. Only handle it when no tags inside.
-     '("<u>\\([^<]*\\)</u>" 1 html-helper-underline-face t)
+     '("<u>\\([^<]*\\)</u>" 1 psgml-html-underline-face t)
      ;; Forms, anchors & images (also fontify strings inside)
      '("\\(<\\(form\\|i\\(mg\\|nput\\)\\)\\>[^>]*>\\)"
        1 font-lock-variable-name-face t)
@@ -790,7 +805,7 @@ This function can be called again, it redoes the entire menu."
 
 (if (featurep 'hilit19)
     (hilit-set-mode-patterns
-     'html-helper-mode
+     'psgml-html-mode
      '(("<!--" "-->" comment)
        ("<![a-z]+\\>[^<>]*\\(<[^>]*>[^<>]*\\)*>" nil comment) ;<!DOCTYPE ...>
        ("<title>" "</title>" defun)
@@ -815,35 +830,35 @@ This function can be called again, it redoes the entire menu."
 
 ;; The regexp finds everything between the last < or & and point,
 ;; which is good enough to match the tags HTML might complete.
-(defvar html-helper-completion-finder "\\(\\(<\\|&\\).*\\)\\="
+(defvar psgml-html-completion-finder "\\(\\(<\\|&\\).*\\)\\="
   "Passed to tempo-use-tag-list, used to find tags to complete.")
 
 ;;}}}
 
 ;;{{{ timestamps
 
-(defun html-helper-update-timestamp ()
+(defun psgml-html-update-timestamp ()
   "Basic function for updating timestamps.
 It finds the timestamp in the buffer by looking for
-`html-helper-timestamp-start', deletes all text up to
-`html-helper-timestamp-end', and runs `html-helper-timestamp-hook' which
+`psgml-html-timestamp-start', deletes all text up to
+`psgml-html-timestamp-end', and runs `psgml-html-timestamp-hook' which
 will should insert an appropriate timestamp in the buffer."
   (save-excursion
     (goto-char (point-max))
-    (if (not (search-backward html-helper-timestamp-start nil t))
+    (if (not (search-backward psgml-html-timestamp-start nil t))
 	(message "timestamp delimiter start was not found")
-      (let ((ts-start (+ (point) (length html-helper-timestamp-start)))
-	    (ts-end (if (search-forward html-helper-timestamp-end nil t)
-			(- (point) (length html-helper-timestamp-end))
+      (let ((ts-start (+ (point) (length psgml-html-timestamp-start)))
+	    (ts-end (if (search-forward psgml-html-timestamp-end nil t)
+			(- (point) (length psgml-html-timestamp-end))
 		      nil)))
 	(if (not ts-end)
 	    (message "timestamp delimiter end was not found. Type C-c C-t to insert one.")
 	  (delete-region ts-start ts-end)
 	  (goto-char ts-start)
-	  (run-hooks 'html-helper-timestamp-hook)))))
+	  (run-hooks 'psgml-html-timestamp-hook)))))
   nil)
 
-(defun html-helper-return-created-string ()
+(defun psgml-html-return-created-string ()
   "Return a \"Created:\" string."
   (let ((time (current-time-string)))
     (concat "<!-- Created: "
@@ -853,7 +868,7 @@ will should insert an appropriate timestamp in the buffer."
 	    (substring time -4)
 	    " -->\n")))
 
-(defun html-helper-default-insert-timestamp ()
+(defun psgml-html-default-insert-timestamp ()
   "Default timestamp insertion function."
   (let ((time (current-time-string)))
     (insert "Last modified: "
@@ -863,12 +878,12 @@ will should insert an appropriate timestamp in the buffer."
 	    (substring time -4)
 	    "\n")))
 
-(defun html-helper-insert-timestamp-delimiter-at-point ()
+(defun psgml-html-insert-timestamp-delimiter-at-point ()
   "Simple function that inserts timestamp delimiters at point.
 Useful for adding timestamps to existing buffers."
   (interactive)
-  (insert html-helper-timestamp-start)
-  (insert html-helper-timestamp-end))
+  (insert psgml-html-timestamp-start)
+  (insert psgml-html-timestamp-end))
 
 ;;}}}
 
@@ -931,15 +946,16 @@ get those characters to appear literally in the output."
       (insert "&gt;")
       (setq end (+ 3 end)))))
 
-;;{{{ html-helper-insert-new-buffer-strings
+;;{{{ psgml-html-insert-new-buffer-strings
 
-(tempo-define-template "html-skeleton" html-helper-new-buffer-template
+(tempo-define-template "html-skeleton" psgml-html-new-buffer-template
 		       nil
 		       "Insert a skeleton for a HTML document")
 
-(defun html-helper-insert-new-buffer-strings ()
-  "Insert `html-helper-new-buffer-strings'."
-  (tempo-template-html-skeleton))
+(defun psgml-html-insert-new-buffer-strings ()
+  "Insert `psgml-html-new-buffer-strings'."
+  (set-mark (point-min))
+  (tempo-template-html-skeleton nil))
 
 ;;}}}
 

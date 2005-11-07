@@ -1,6 +1,6 @@
 ;;; psgml-edit.el --- Editing commands for SGML-mode with parsing support
 ;;
-;; $Id: psgml-edit.el,v 2.60 2000/10/22 18:44:52 lenst Exp $
+;; $Id: psgml-edit.el,v 2.69 2002/08/13 15:13:23 lenst Exp $
 
 ;; Copyright (C) 1994, 1995, 1996 Lennart Staflin
 
@@ -31,9 +31,10 @@
 (provide 'psgml-edit)
 (require 'psgml)
 (require 'psgml-parse)
+(eval-when-compile (require 'cl))
 
-(eval-when-compile
-  (setq byte-compile-warnings '(free-vars unresolved callargs redefine)))
+;; (eval-when-compile
+;;   (setq byte-compile-warnings '(free-vars unresolved callargs redefine)))
 
 
 ;;;; Variables
@@ -98,7 +99,7 @@ That is move to after the end-tag or where an end-tag is implied."
 
 (defun sgml-backward-element ()
   "Move backward over previous element at this level.
-With implied tags this is ambigous."
+With implied tags this is ambiguous."
   (interactive)
   (let ((prev				; previous element
 	 (sgml-find-previous-element (point) (sgml-last-element))))
@@ -171,7 +172,11 @@ possible."
     (error "Illegal name"))
   (let* ((element (sgml-find-element-of (point)))
 	 (attspec (sgml-element-attribute-specification-list element))
-	 (oldattlist (sgml-element-attlist element)))
+	 (oldattlist (sgml-element-attlist element))
+         (tagc (if (and sgml-xml-p (sgml-element-empty element))
+                (sgml-delim "XML-TAGCE")
+              (sgml-delim "TAGC")))
+         (tagc-len (length tagc)))
     (goto-char (sgml-element-end element))
     (unless  (sgml-element-empty element)
       (delete-char (- (sgml-element-etag-len element))))
@@ -179,15 +184,15 @@ possible."
     (goto-char (sgml-element-start element))
     (delete-char (sgml-element-stag-len element))
     (insert (sgml-delim "STAGO")
-            (sgml-general-insert-case gi))
+            (sgml-general-insert-case (sgml-cohere-name gi))
+            tagc)
     (let* ((newel (sgml-find-context-of (point)))
 	   (newattlist (sgml-element-attlist newel))
 	   (newasl (sgml-translate-attribute-specification-list
 		    attspec oldattlist newattlist)))
-      (sgml-insert-attributes newasl newattlist))
-    (insert (if (and sgml-xml-p (sgml-element-empty element))
-                (sgml-delim "XML-TAGCE")
-              (sgml-delim "TAGC")))))
+      (backward-char tagc-len)
+      (sgml-insert-attributes newasl newattlist)
+      (forward-char tagc-len))))
 
 
 (defun sgml-translate-attribute-specification-list (values from to)
@@ -256,23 +261,18 @@ a list using attlist TO."
 If called from a program first two arguments are start and end of
 region. And optional third argument true unhides."
   (interactive "r\nP")
+  (setq selective-display t)
   (let ((mp (buffer-modified-p))
-	(inhibit-read-only t)		;
-	(buffer-read-only nil)		; should not need this, but
-					; perhaps some old version of
-					; emacs does not understand
-					; inhibit-read-only
-	(inhibit-modification-hooks t)
-	(before-change-functions nil)
+	(inhibit-read-only t)
+        (before-change-functions nil)
 	(after-change-functions nil))
-    (setq selective-display t)
     (unwind-protect
-	(subst-char-in-region beg end
-			      (if unhide ?\r ?\n)
-			      (if unhide ?\n ?\r)
-			      'noundo)
+        (subst-char-in-region beg end
+                              (if unhide ?\r ?\n)
+                              (if unhide ?\n ?\r)
+                              'noundo)
       (when sgml-buggy-subst-char-in-region
-	(set-buffer-modified-p mp)))))
+        (set-buffer-modified-p mp)))))
 
 (defun sgml-fold-element ()
   "Fold the lines comprising the current element, leaving the first line visible.
@@ -636,7 +636,11 @@ Deprecated: ELEMENT"
 
 
 (defun sgml-insert-tag (tag &optional silent no-nl-after)
-  "Insert a tag, reading tag name in minibuffer with completion."
+  "Insert a tag, reading tag name in minibuffer with completion.
+If sgml-leave-point-after-insert is t, the point is left after the
+inserted tag(s), unless the element has some required content. If
+sgml-leave-point-after-insert is nil the point is left after the first
+tag inserted."
   (interactive 
    (list
     (let ((completion-ignore-case sgml-namecase-general))
@@ -666,7 +670,7 @@ Deprecated: ELEMENT"
 (defun sgml-insert-element (name &optional after silent)
   "Reads element name from minibuffer and inserts start and end tags.
 If sgml-leave-point-after-insert is t, the point
-is left after the inserted tag(s), unless the element has som required
+is left after the inserted tag(s), unless the element has some required
 content.  If sgml-leave-point-after-insert is nil the point is left
 after the first tag inserted."
   (interactive (list (sgml-read-element-name "Element: ")
@@ -704,6 +708,7 @@ after the first tag inserted."
 	    (when tem			; more than one req elem
 	      (insert "\n")
 	      (when sgml-insert-missing-element-comment
+		(insert (format "<!-- one of %s -->" tem))
 		(sgml-indent-line)))))
 	(setq newpos (or newpos (point)))
 	(when sgml-insert-end-tag-on-new-line
@@ -783,7 +788,7 @@ AVL should be a assoc list mapping symbols to strings."
   (let ((quote ""))
 	(cond ((and (not sgml-always-quote-attributes)
 		    sgml-shorttag
-		    (string-match "\\`[.A-Za-z0-9---]+\\'" value))
+		    (string-match "\\`[-.A-Za-z0-9]+\\'" value))
 	       ) ; no need to quote
 	      ((not (string-match "\"" value)) ; can use "" quotes
 	       (setq quote "\""))
@@ -849,6 +854,13 @@ AVL should be a assoc list mapping symbols to strings."
 (defun sgml-change-start-tag (element asl)
   (let ((name (sgml-element-gi element))
 	(attlist (sgml-element-attlist element)))
+    ;; Concoct an attribute specification list using the names of the
+    ;; existing attributes and those ot be changed.
+    (when (and (not attlist) sgml-dtd-less)
+      (dolist (elt (mapcar 'car asl))
+	(unless (assoc elt attlist)	; avoid duplicates
+	  (push (sgml-make-attdecl elt 'CDATA 'REQUIRED) attlist)))
+      (setq attlist (nreverse attlist)))
     (assert (sgml-bpos-p (sgml-element-stag-epos element)))
     (goto-char (sgml-element-start element))
     (delete-char (sgml-element-stag-len element))
@@ -901,13 +913,18 @@ CURVALUE is nil or a string that will be used as default value."
             (let ((completion-ignore-case sgml-namecase-general))
               (completing-read
                "Attribute name: "
-               (mapcar (function (lambda (a) (list (sgml-attdecl-name a))))
-                       (sgml-non-fixed-attributes (sgml-element-attlist el)))
-               nil t)))))
+               (mapcar
+		(function (lambda (a) (list (sgml-attdecl-name a))))
+		(if sgml-dtd-less
+		    (sgml-tree-asl el)
+		  (sgml-non-fixed-attributes (sgml-element-attlist el))))
+               nil (not sgml-dtd-less))))))
      (list name
 	   (sgml-read-attribute-value
-	    (sgml-lookup-attdecl name (sgml-element-attlist el))
-			(sgml-element-name el)
+	    (if sgml-dtd-less
+		(list name)
+	      (sgml-lookup-attdecl name (sgml-element-attlist el)))
+	    (sgml-element-name el)
 	    (sgml-element-attval el name)))))
   ;; Body
   (assert (stringp name))
@@ -974,10 +991,10 @@ of then current element."
 ;;;; SGML mode: Menu inserting
 
 (defun sgml-tags-menu (event)
-  "Pop up a menu with valid tags and insert the choosen tag.
+  "Pop up a menu with valid tags and insert the chosen tag.
 If the variable sgml-balanced-tag-edit is t, also inserts the
 corresponding end tag. If sgml-leave-point-after-insert is t, the point
-is left after the inserted tag(s), unless the element has som required
+is left after the inserted tag(s), unless the element has some required
 content.  If sgml-leave-point-after-insert is nil the point is left
 after the first tag inserted."
   (interactive "*e")
@@ -1057,14 +1074,23 @@ tag inserted."
 	      (nconc tab
 		     (mapcar (function sgml-start-tag-of)
 			     (sgml-current-list-of-valid-eltypes)))))))
+    (if sgml-dtd-less
+	;; The best we can do is assemble a list of elements we've
+	;; seen so far.
+	(dolist (n (append (sgml-dtd-eltypes sgml-dtd-info) '())
+		   ;; Space avoids possible clash with valid element.
+		   (setq tab (cons "Any " (cons "--" tab))))
+	  (when (and (symbolp n) (not (memq n tab)))
+	    (push (symbol-name n) tab))))
     (or tab
 	(error "No valid %s at this point" type))
-    (or
-     (sgml-popup-menu event
-		      title
-		      (mapcar (function (lambda (x) (cons x x)))
-			      tab))
-     (message nil))))
+    (let ((elt (sgml-popup-menu event
+				title
+				(mapcar (function (lambda (x) (cons x x)))
+					tab))))
+      (if (equal elt "Any ")
+	  (setq elt (sgml-read-element-name "Element: ")))
+      (or elt (message nil)))))
 
 (defun sgml-entities-menu (event)
   (interactive "*e")
@@ -1085,7 +1111,7 @@ tag inserted."
 (defun sgml-doctype-insert (doctype vars)
   "Insert string DOCTYPE (ignored if nil) and set variables in &rest VARS.
 VARS should be a list of variables and values.
-For backward compatibility a singel string instead of a variable is 
+For backward compatibility a single string instead of a variable is 
 assigned to sgml-default-dtd-file.
 All variables are made buffer local and are also added to the
 buffers local variables list."
@@ -1109,13 +1135,27 @@ buffers local variables list."
 
 (defun sgml-attrib-menu (event)
   "Pop up a menu of the attributes of the current element
-\(or the element whith start-tag before point)."
+\(or the element with start-tag before point)."
   (interactive "e")
     (let ((menu (sgml-make-attrib-menu (sgml-find-attribute-element))))
       (sgml-popup-multi-menu event "Attributes" menu)))
 
 (defun sgml-make-attrib-menu (el)
   (let ((attlist (sgml-non-fixed-attributes (sgml-element-attlist el))))
+    (if (and (not attlist) sgml-dtd-less)
+      (let ((name
+	     (sgml-general-case
+	      (let ((completion-ignore-case sgml-namecase-general))
+		(completing-read
+		 "Attribute name: "
+		 (mapcar
+		  (lambda (a) (list (sgml-attdecl-name a)))
+		  (if sgml-dtd-less
+		      (sgml-tree-asl el)
+		    (sgml-non-fixed-attributes (sgml-element-attlist el))))
+		 nil (not sgml-dtd-less))))))
+	(if name
+	    (setq attlist (list (sgml-make-attdecl name 'CDATA nil))))))
     (or attlist
 	(error "No non-fixed attributes for element"))
     (loop for attdecl in attlist
@@ -1158,14 +1198,14 @@ buffers local variables list."
        (not (sgml-element-appdata element 'nofill))))
 
 (defun sgml-fill-element (element)
-  "Fill bigest enclosing element with mixed content.
+  "Fill biggest enclosing element with mixed content.
 If current element has pure element content, recursively fill the
 subelements."
   (interactive (list (sgml-find-element-of (point))))
   ;;
   (message "Filling...")
   (when (sgml-element-fillable element)
-    ;; Find bigest enclosing fillable element
+    ;; Find biggest enclosing fillable element
     (while (sgml-element-fillable (sgml-element-parent element))
       (setq element (sgml-element-parent element))))
   ;; 
@@ -1190,7 +1230,7 @@ subelements."
 	   ((sgml-element-fillable c))
 	   (t
 	    ;; Put region before element on agenda.  Can't fill it now
-	    ;; that would mangle the parse tree that is beeing traversed.
+	    ;; that would mangle the parse tree that is being traversed.
 	    (push (cons last-pos (sgml-element-start c))
 		  agenda)
 	    (goto-char (sgml-element-start c))
@@ -1279,7 +1319,6 @@ Editing is done in a separate window."
 	   (xml-p sgml-xml-p))
       (switch-to-buffer-other-window
        (sgml-attribute-buffer element asl))
-      (sgml-edit-attrib-mode)
       (make-local-variable 'sgml-start-attributes)
       (setq sgml-start-attributes start)
       (make-local-variable 'sgml-always-quote-attributes)
@@ -1322,12 +1361,15 @@ Editing is done in a separate window."
       (setq buf (get-buffer-create bname))
       (set-buffer buf)
       (erase-buffer)
+      (sgml-edit-attrib-mode)
       (make-local-variable 'sgml-attlist)
       (setq sgml-attlist (sgml-effective-attlist
                           (sgml-element-eltype element)))
       (sgml-insert '(read-only t)
-		   "<%s  -- Edit values and finish with C-c C-c --\n"
-		   (sgml-element-name element))
+                   (substitute-command-keys
+                    "<%s  -- Edit values and finish with \
+\\[sgml-edit-attrib-finish], abort with \\[sgml-edit-attrib-abort] --\n")
+                   (sgml-element-name element))
       (loop
        for attr in sgml-attlist do
        ;; Produce text like
@@ -1347,9 +1389,10 @@ Editing is done in a separate window."
 	  ((and (null cur-value)
 		(or (memq def-value '(IMPLIED CONREF CURRENT))
 		    (sgml-default-value-attval def-value)))
-           (sgml-insert '(read-only t category sgml-form) " ")
-	   (sgml-insert '(category sgml-default rear-nonsticky (category)
-                                   read-only sgml-default)
+           (sgml-insert '(read-only t category sgml-form
+                                    rear-nonsticky (read-only category))
+                        " ")
+	   (sgml-insert '(category sgml-default rear-nonsticky (category))
 			"#DEFAULT"))
 	  (t
            (sgml-insert '(read-only t category sgml-form
@@ -1390,7 +1433,7 @@ Editing is done in a separate window."
 
 (define-key sgml-edit-attrib-mode-map "\C-c\C-c" 'sgml-edit-attrib-finish)
 (define-key sgml-edit-attrib-mode-map "\C-c\C-d" 'sgml-edit-attrib-default)
-(define-key sgml-edit-attrib-mode-map "\C-c\C-k" 'sgml-edit-attrib-clear)
+(define-key sgml-edit-attrib-mode-map "\C-c\C-k" 'sgml-edit-attrib-abort)
 
 (define-key sgml-edit-attrib-mode-map "\C-a"  'sgml-edit-attrib-field-start)
 (define-key sgml-edit-attrib-mode-map "\C-e"  'sgml-edit-attrib-field-end)
@@ -1401,7 +1444,7 @@ Editing is done in a separate window."
 Use \\[sgml-edit-attrib-next] to move between input fields.  Use
 \\[sgml-edit-attrib-default] to make an attribute have its default
 value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
-\(\\[delete-window]).  To finsh edit use \\[sgml-edit-attrib-finish].
+\(\\[delete-window]).  To finish edit use \\[sgml-edit-attrib-finish].
 
 \\{sgml-edit-attrib-mode-map}"
   (setq mode-name "SGML edit attributes"
@@ -1409,6 +1452,16 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
   (use-local-map sgml-edit-attrib-mode-map)
   (run-hooks 'text-mode-hook 'sgml-edit-attrib-mode-hook))
 
+(defun sgml-edit-attrib-abort ()
+  "Abort the attribute editor, removing the window."
+  (interactive)
+  (let ((cb (current-buffer))
+	(start sgml-start-attributes))
+    (delete-windows-on cb)
+    (kill-buffer cb)
+    (when (markerp start)
+      (switch-to-buffer (marker-buffer start))
+      (goto-char start))))
 
 (defun sgml-edit-attrib-finish ()
   "Finish editing and insert attribute values in original buffer."
@@ -1460,6 +1513,11 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
       (narrow-to-region (point)
 			(progn (sgml-edit-attrib-field-end)
 			       (point)))
+      (goto-char (point-min))
+      (while (not (eobp))
+        (if (eq 'sgml-default (get-text-property (point) 'category))
+            (delete-char 1)
+          (forward-char 1)))
       (unless (eq type 'CDATA)
 	(subst-char-in-region (point-min) (point-max) ?\n ? )
 	(goto-char (point-min))
@@ -1476,11 +1534,8 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
   (interactive)
   (sgml-edit-attrib-clear)
   (save-excursion
-    (sgml-insert '(category sgml-default read-only sgml-default)
-		 "#DEFAULT"))
-  (let ((inhibit-read-only t))
-    (put-text-property (1- (point)) (point)
-                       'rear-nonsticky '(category))))
+    (sgml-insert '(category sgml-default rear-nonsticky (category))
+                 "#DEFAULT")))
 
 (defun sgml-edit-attrib-clear ()
   "Kill the value of current attribute."
@@ -1529,20 +1584,25 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
 (defun sgml-edit-attrib-next ()
   "Move to next attribute value."
   (interactive)
-  (or (search-forward-regexp "^ *[_.:A-Za-z0-9---]+ *= ?" nil t)
+  (if (eq t (get-text-property (point) 'read-only))
+      (beginning-of-line 1))
+  (or (search-forward-regexp (if sgml-have-re-char-clases
+				 "^ *[-_.:[:alnum:]]+ *= ?"
+			       "^ *[-_.:A-Za-z0-9]+ *= ?") nil t)
       (goto-char (point-min))))
 
 
 ;;;; SGML mode: Hiding tags/attributes
 
 (defconst sgml-tag-regexp
-  "\\(</?>\\|</?[_A-Za-z][---_:A-Za-z0-9.]*\\(\\([^'\"></]\\|'[^']*'\\|\"[^\"]*\"\\)*\\)/?>?\\)")
+  (if sgml-have-re-char-clases
+      "\\(</?>\\|</?[_[:alpha:]][-_:[:alnum:].]*\\(\\([^'\"></]\\|'[^']*'\\|\"[^\"]*\"\\)*\\)/?>?\\)"
+    "\\(</?>\\|</?[_A-Za-z][-_:A-Za-z0-9.]*\\(\\([^'\"></]\\|'[^']*'\\|\"[^\"]*\"\\)*\\)/?>?\\)"))
 
 (defun sgml-operate-on-tags (action &optional attr-p)
   (let ((buffer-modified-p (buffer-modified-p))
 	(inhibit-read-only t)
 	(buffer-read-only nil)
-	(inhibit-modification-hooks t)
 	(before-change-functions nil)
 	(markup-index			; match-data index in tag regexp
 	 (if attr-p 2 1))
@@ -1569,7 +1629,7 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
 				      '(invisible nil)))
 	     (t (error "Invalid action: %s" action)))
 	    (incf tagcount)))
-      (set-buffer-modified-p buffer-modified-p))))
+      (sgml-restore-buffer-modified-p buffer-modified-p))))
 
 (defun sgml-hide-tags ()
   "Hide all tags in buffer."
@@ -1595,8 +1655,7 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
 ;;;; SGML mode: Normalize (and misc manipulations)
 
 (defun sgml-expand-shortref-to-text (name)
-  (let ((before-change-functions nil)
-	(inhibit-modification-hooks t)
+  (let (before-change-functions
 	(entity (sgml-lookup-entity name (sgml-dtd-entities sgml-dtd-info))))
     (cond
      ((null entity) (sgml-error "Undefined entity %s" name))
@@ -1613,8 +1672,7 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
 (defun sgml-expand-shortref-to-entity (name)
   (let ((end (point))
 	(re-found nil)
-	(before-change-functions nil)
-	(inhibit-modification-hooks t))
+	before-change-functions)
     (goto-char sgml-markup-start)
     (setq re-found (search-forward "\n" end t))
     (delete-region sgml-markup-start end)	   
@@ -1625,10 +1683,10 @@ value.  To abort edit kill buffer (\\[kill-buffer]) and remove window
 (defun sgml-expand-all-shortrefs (to-entity)
   "Expand all short references in the buffer.
 Short references to text entities are expanded to the replacement text
-of the entity other short references are expanded into general entity
-references.  If argument, TO-ENTITY, is non-nil, or if called
-interactive with numeric prefix argument, all short references are
-replaced by generaly entity references."
+of the entity; other short references are expanded into general entity
+references.  If argument TO-ENTITY is non-nil, or if called
+interactively with a numeric prefix argument, all short references are
+replaced by general entity references."
   (interactive "*P")
   (sgml-reparse-buffer
    (if to-entity
@@ -1639,7 +1697,7 @@ replaced by generaly entity references."
   "Normalize buffer by filling in omitted tags and expanding empty tags.
 Argument TO-ENTITY controls how short references are expanded as with
 `sgml-expand-all-shortrefs'.  An optional argument ELEMENT can be the
-element to normalize insted of the whole buffer, if used no short
+element to normalize instead of the whole buffer, if used no short
 references will be expanded."
   (interactive "*P")
   (unless element
@@ -1647,8 +1705,10 @@ references will be expanded."
   (let ((only-one (not (null element))))
     (setq element (or element (sgml-top-element)))
     (goto-char (sgml-element-end element)) 
-    (let ((before-change-functions nil)
-	  (inhibit-modification-hooks t))
+    ;; FIXME: actually the sgml-note-change-at called by the
+    ;; before-change-functions need to be delayed to after the normalize
+    ;; to avoid destroying the tree wile traversing it.
+    (let ((before-change-functions nil))
       (sgml-normalize-content element only-one)))
   (sgml-note-change-at (sgml-element-start element))
   (sgml-message "Done"))
@@ -1708,7 +1768,9 @@ elements with omitted end-tags."
   "Convert character after point into a character reference.
 If called with a numeric argument, convert a character reference back
 to a normal character.  If called from a program, set optional
-argument INVERT to non-nil."
+argument INVERT to non-nil.  If the function `decode-char' is defined,
+convert to and from Unicodes.  Otherwise will only work for ASCII or 8-bit
+characters in the current coding system."
   (interactive "*P")
   (cond
    (invert
@@ -1718,11 +1780,20 @@ argument INVERT to non-nil."
 					      (match-end 1)))))
       (delete-region (match-beginning 0)
 		     (match-end 0))
+      (if (fboundp 'decode-char)	; Emacs 21, Mule-UCS
+	  (setq c (decode-char 'ucs c))
+	;; Else have to assume 8-bit character.
+	(if (fboundp 'unibyte-char-to-multibyte) ; Emacs 20
+	    (setq c (unibyte-char-to-multibyte c))))
       (insert c)))
    ;; Convert character to &#nn;
    (t
     (let ((c (following-char)))
       (delete-char 1)
+      (if (fboundp 'encode-char)
+	  (setq c (encode-char c 'ucs))
+	(if (fboundp 'multibyte-char-to-unibyte)
+	    (setq c (multibyte-char-to-unibyte c))))
       (insert (format "&#%d;" c))))))
 
 (defun sgml-expand-entity-reference ()
@@ -1939,6 +2010,7 @@ If it is something else complete with ispell-complete-word."
     (when var
       (sgml-do-set-option var event))))
 
+;; Fixme: Use Customize for this.
 (defun sgml-do-set-option (var &optional event)
   (let ((type (sgml-variable-type var))
 	(val (symbol-value var)))
@@ -2044,13 +2116,16 @@ will reset the variable.")
         (s (sgml-element-model el))
         (found nil))
     (loop do
-          (dolist (tok (nconc (sgml-optional-tokens s)
-                              (sgml-required-tokens s)))
-            (unless (memq tok found)
-              ;; tok is optional here and not already found -- check that
-              ;; it would not make the content invalid
-              (when (sgml--add-before-p tok s c)
-                  (push tok found))))
+	  ;; Fixme: this test avoids an error when DTD-less, but it's
+	  ;; probably an inappropriate kludge.  -- fx
+          (when (not (eq s 'ANY))
+	    (dolist (tok (nconc (sgml-optional-tokens s)
+				(sgml-required-tokens s)))
+	      (unless (memq tok found)
+		;; tok is optional here and not already found -- check that
+		;; it would not make the content invalid
+		(when (sgml--add-before-p tok s c)
+                  (push tok found)))))
           while c do
           (setq s (sgml-element-pstate c))
           (setq c (sgml-element-next c)))

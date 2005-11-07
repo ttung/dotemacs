@@ -1,6 +1,6 @@
 ;;;; psgml-info.el
 ;;; Last edited: 2000-11-09 19:23:50 lenst
-;;; $Id: psgml-info.el,v 2.12 2001/02/08 19:09:25 lenst Exp $
+;;; $Id: psgml-info.el,v 2.15 2002/04/25 20:50:27 lenst Exp $
 
 ;; Copyright (C) 1994, 1995 Lennart Staflin
 
@@ -52,6 +52,7 @@
 
 (defconst sgml-attr-col 18)
 
+(eval-when-compile (require 'cl))
 
 ;;;; Utility functions
 
@@ -72,6 +73,30 @@
   (sgml-map-eltypes func
 		    (sgml-pstate-dtd sgml-buffer-parse-state)
 		    t))
+
+
+(defun sgml-set-difference (l1 l2)
+  (if (or (null l1) (null l2))
+      l1
+    (let ((res nil))
+      (while l1
+	(or (member (car l1)
+		   l2)
+	    (push (car l1) res))
+	(pop l1))
+      res)))
+
+(defun sgml-union (l1 l2)
+  (cond ((null l1) l2) ((null l2) l1)
+	((equal l1 l2) l1)
+	(t
+	 (or (>= (length l1) (length l2))
+	     (setq l1 (prog1 l2 (setq l2 l1))))
+	 (while l2
+	   (or (member (car l2) l1)
+	       (push (car l2) l1))
+	   (pop l2))
+	 l1)))
 
 (defun sgml-eltype-refrenced-elements (eltype)
   "List of element types referenced in the model of ELTYPE."
@@ -94,7 +119,7 @@
 	   (loop for m in (append (sgml-state-opts (car agenda))
 				  (sgml-state-reqs (car agenda)))
 		 do
-		 (pushnew (sgml-move-token m) res)
+		 (add-to-list 'res (sgml-move-token m))
 		 (sgml-add-last-unique (sgml-move-dest m) states)))
        
 	  (t				; &-node
@@ -102,10 +127,11 @@
 	   (loop for dfa in (sgml-and-node-dfas (car agenda)) do
 		 (sgml-add-last-unique dfa states))))
 	 (setq agenda (cdr agenda)))
-       (setq res (sort (copy-seq (set-difference
-                                  (union res (sgml-eltype-includes eltype))
-                                  (sgml-eltype-excludes eltype)))
-		       (function string-lessp)))
+       (setq res
+             (sort (copy-sequence (sgml-set-difference
+                                   (sgml-union res (sgml-eltype-includes eltype))
+                                   (sgml-eltype-excludes eltype)))
+                   (function string-lessp)))
        (setf (sgml-eltype-appdata eltype 're-cache) res)
        res)))))
 
@@ -370,7 +396,7 @@
       (cond ((symbolp (sgml-eltype-model et)) (princ (sgml-eltype-model et)))
 	    (t
 	     (princ (if (sgml-eltype-mixed et) "mixed\n\n"
-                      "element\n\n"))	     
+                      "element\n\n"))
 	     (sgml-princ-names
 	      (mapcar #'symbol-name (sgml-eltype-refrenced-elements et)))))
       (let ((incl (sgml-eltype-includes et))
