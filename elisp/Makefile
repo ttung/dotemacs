@@ -3,6 +3,7 @@ EMACS=emacs
 LISP_FILES = 	css-mode.el \
 		gnuserv.el \
 		htmlize.el \
+		javascript-mode.el \
 		pc-bufsw.el \
 		php-mode.el \
 		python-mode.el \

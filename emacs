@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 10.0 2005/10/11 19:03:17 tonytung Exp $
+;; $Id: emacs,v 10.1 2005/10/11 19:16:38 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -100,7 +100,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
   (autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
   (add-to-list 'auto-mode-alist '("\\.html\\'" . html-mode))
-  (add-to-list 'auto-mode-alist '("\\.php[34]?\\'" . html-mode)))
+  (add-to-list 'auto-mode-alist '("\\.php[34]?\\'" . html-mode))
+  (setq psgml-html-htmldtd-version "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"))
 
 ;; set up html-ize
 (when (and (> emacs-version-num 19.28) window-system)
@@ -145,7 +146,15 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; CSS Mode
 (when (locate-library "css-mode")
   (autoload 'css-mode "css-mode" "Mode for editing CSS files" t)
-  (add-to-list 'auto-mode-alist '("\\.css$" . css-mode)))
+  (add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
+  (defun my-css-mode-hook ()
+    (setq css-tab-mode 'indent))
+  (add-hook 'css-mode-hook 'my-css-mode-hook))
+
+;; javascript mode
+(when (locate-library "javascript-mode")
+  (autoload 'javascript-mode "javascript-mode" "Mode for editing Javascript files" t)
+  (add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode)))
 
 
 ;; mmm mode 
@@ -235,13 +244,16 @@ See require. Return non-nil if FEATURE is or was loaded."
 (defvar my-java-style
   '("java"
     (c-basic-offset			. 2)
-    (c-offsets-alist			. ((substatement-open	.	0))))
+    (c-offsets-alist			. ((substatement-open	.	0)))
+    (c-hanging-braces-alist             . ((brace-list-open)
+                                           (brace-entry-open)))
+     )
   "my java style")
 
 
 ;; c-mode customizations that don't load c-mode nor font-lock mode
 (defun my-c-mode-common-hook ()
-  (setq comment-column 60)
+  (setq comment-column 50)
   (auto-fill-mode)
   (setq fill-column 100)
   (abbrev-mode -1)
@@ -293,6 +305,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
 
 (defun my-java-mode-hook ()
+  (local-set-key "\C-d"			'my-delete)
   (when (not (fboundp 'my-java-mode-hook-done))
     (font-lock-add-keywords
      'java-mode
@@ -303,6 +316,23 @@ See require. Return non-nil if FEATURE is or was loaded."
       "Indicates that my-java-mode-hook has been called"))
   (c-set-style "my-java-style"))
 (add-hook 'java-mode-hook 'my-java-mode-hook)
+
+;; javascript-mode customizations
+(defun my-javascript-mode-hook ()
+  (setq comment-column 70)
+  (auto-fill-mode)
+  (setq fill-column 100)
+  (abbrev-mode -1)
+  (local-set-key "\C-d"			'my-delete)
+  (when (not (fboundp 'my-javascript-mode-hook-done))
+    (font-lock-add-keywords
+     'javascript-mode
+     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
+    (defvar my-javascript-mode-hook-done t 
+      "Indicates that my-javascript-mode-hook has been called")))
+(add-hook 'javascript-mode-hook 'my-javascript-mode-hook)
 
 ;; set up the font-lock system
 (when (fboundp 'global-font-lock-mode)
@@ -342,6 +372,12 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'python-mode "python-mode" "Major mode to edit Python files." t)
   (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
   (add-to-list 'interpreter-mode-alist '("python" . python-mode)))
+
+;; support for cvs over ssh
+(setenv "CVS_RSH" "ssh")
+(let ((ssh-agent-sock (expand-file-name "~/.ssh/agent-sock")))
+  (when (file-exists-p ssh-agent-sock)
+    (setenv "SSH_AUTH_SOCK" ssh-agent-sock)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -563,7 +599,7 @@ Return only one group for each buffer."
   (add-hook 'font-lock-mode-hook 'my-console-font-lock-mode-hook))
 
 (if (eq system-type 'darwin)
-    (add-to-list 'default-frame-alist '(font . "-apple-monaco-medium-r-normal--10-100-75-75-m-100-mac-roman"))
+    (add-to-list 'default-frame-alist '(font . "-apple-monaco-medium-r-normal--10-100-72-72-m-100-mac-roman"))
   (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")))
 
 
@@ -582,6 +618,7 @@ Return only one group for each buffer."
 (when window-system
   (setq display-time-day-and-date t)
   (setq display-time-interval 30)
+  (setq display-time-mail-file t)
   (display-time))
 
 
@@ -998,7 +1035,9 @@ it is put to the start of the list."
 (defun down-slightly () (interactive) (scroll-down 5))
 (global-set-key [mouse-4]	'down-slightly)
 (global-set-key [mouse-5]	'up-slightly)
-      
+(global-set-key [wheel-down]	'up-slightly)
+(global-set-key [wheel-up]	'down-slightly)
+
 (defun up-one   () (interactive) (scroll-up 1))
 (defun down-one () (interactive) (scroll-down 1))
 (global-set-key [S-mouse-4]	'down-one)
@@ -1009,6 +1048,7 @@ it is put to the start of the list."
 (defun down-a-lot () (interactive) (scroll-down))
 (global-set-key [C-mouse-4]	'down-a-lot)
 (global-set-key [C-mouse-5]	'up-a-lot)
+
 
 (setq mouse-yank-at-point 't)
 (when (eq system-type 'darwin)
