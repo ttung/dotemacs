@@ -24,7 +24,7 @@ all	:	$(ELC_FILES) $(GEN-SUBDIRS) compile-psgml
 	$(EMACS) -q -batch -f batch-byte-compile "$<"
 
 $(GEN-SUBDIRS): gen-%:
-	make -f subdir.mk -C $*
+	$(MAKE) -f subdir.mk -C $*
 
 compile-psgml	:	psgml
 	cd psgml; \

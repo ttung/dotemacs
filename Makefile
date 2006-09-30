@@ -6,4 +6,4 @@ ${HOME}/.emacs	:	emacs
 	ln -fs ${CURDIR}/emacs ${HOME}/.emacs
 
 elisp-compile	:
-	${MAKE} -C elisp all
+	$(MAKE) -C elisp all
