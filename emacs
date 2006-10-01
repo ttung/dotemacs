@@ -1,6 +1,6 @@
 ;; Nice Emacs Package
 ;; (Yen-Ting) Tony Tung
-;; $Id: emacs,v 10.1 2005/10/11 19:16:38 tonytung Exp $
+;; $Id: emacs,v 10.2 2006/02/08 20:23:32 tonytung Exp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start debugging messages
@@ -75,6 +75,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'completion-ignored-extensions ".ps")
 (add-to-list 'completion-ignored-extensions ".pdf")
 (add-to-list 'completion-ignored-extensions ".gz")
+(add-to-list 'completion-ignored-extensions ".pyc")
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'upcase-region 'disabled nil)
@@ -261,7 +262,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (local-set-key "\C-d"			'my-delete)
   (local-set-key "\C-c>" 		'search-for-matching-endif)
   (local-set-key "\C-c<" 		'search-for-matching-ifdef)
-  (when (not (fboundp 'my-c-mode-common-hook-done))
+  (when (not (boundp 'my-c-mode-common-hook-done))
     (when (and (> emacs-version-num 20.0) (want 'xcscope))
       (defvar xcscope-loaded 't "t if xcscope is loaded")
       (when (string-match "pasemi\\.com" system-name)
@@ -598,8 +599,18 @@ Return only one group for each buffer."
     (add-hook 'font-lock-mode-hook 'my-window-system-font-lock-mode-hook)
   (add-hook 'font-lock-mode-hook 'my-console-font-lock-mode-hook))
 
-(if (eq system-type 'darwin)
-    (add-to-list 'default-frame-alist '(font . "-apple-monaco-medium-r-normal--10-100-72-72-m-100-mac-roman"))
+(if (and window-system (eq system-type 'darwin))
+    (progn
+      (set-keyboard-coding-system 'mac-roman)
+
+      (create-fontset-from-fontset-spec
+       "-apple-monaco-medium-r-normal--10-*-*-*-*-*-fontset-mac,
+  ascii:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
+  latin-iso88510-1:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
+  mule-unicode-0100-24ff:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman")
+      (set-frame-font "fontset-mac" 'keep)
+      (add-to-list 'default-frame-alist
+                   '(font . "fontset-mac")))
   (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")))
 
 
