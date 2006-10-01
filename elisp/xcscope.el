@@ -2,7 +2,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; File:         xcscope.el
-; RCS:          $RCSfile: xcscope.el,v $ $Revision: 1.3 $ $Date: 2004/06/21 18:51:38 $ $Author: tonytung $
+; RCS:          $RCSfile: xcscope.el,v $ $Revision: 1.4 $ $Date: 2004/06/21 18:57:27 $ $Author: tonytung $
 ; Description:  cscope interface for (X)Emacs
 ; Author:       Darryl Okahata
 ; Created:      Wed Apr 19 17:03:38 2000
@@ -2047,8 +2047,8 @@ SENTINEL-FUNC are optional process filter and sentinel, respectively."
 	(progn ;; Not in the *cscope buffer.
 	  ;; Set the cscope-marker-window to whichever window this search
 	  ;; was launched from.
-	  (setq cscope-marker-window (get-buffer-window old-buffer))
-	(setq cscope-marker (point-marker))))
+          (setq cscope-marker-window (get-buffer-window old-buffer))
+          (setq cscope-marker (point-marker))))
     (save-excursion
       (set-buffer outbuf)
       (if cscope-display-times
