@@ -202,6 +202,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;      ))
  
 ;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
+(add-to-list 'load-path (expand-file-name "~/emacs/elisp/dvc"))
+(require 'dvc-autoloads)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -295,7 +297,7 @@ See require. Return non-nil if FEATURE is or was loaded."
          (c-set-style "facebook-c-style")
          (setq c-basic-offset 8)
          (setq indent-tabs-mode t))
-        ((string-match "facebook\\.com" system-name)
+        ((or (string-match "facebook\\.com" system-name) (string-match "Tony-Tung.local" system-name))
          (c-set-style "facebook-c-style"))
         ((string-match "CHRISTINEWU" system-name)
          (c-set-style "vmware-c-style"))
