@@ -101,7 +101,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
   (autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
   (add-to-list 'auto-mode-alist '("\\.html\\'" . html-mode))
-  (add-to-list 'auto-mode-alist '("\\.php[34]?\\'" . html-mode))
   (setq psgml-html-htmldtd-version "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"))
 
 ;; set up html-ize
@@ -142,7 +141,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; PHP Mode 
 (when (locate-library "php-mode")
   (autoload 'php-mode "php-mode" "Mode for editing PHP files" t)
-  (setq php-file-patterns '()))
+  (add-to-list 'auto-mode-alist '("\\.php$" . php-mode))
+  (font-lock-add-keywords
+   'php-mode
+   '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+     ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+     ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t))))
 
 ;; CSS Mode
 (when (locate-library "css-mode")
@@ -160,44 +164,44 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; mmm mode 
 ;; set up the paths for multiple major modes
-(add-to-list 'load-path (expand-file-name "~/emacs/elisp/mmm-mode") t)
-(when (want 'mmm-auto)
-  (setq mmm-global-mode 'maybe) 
-  (setq mmm-submode-decoration-level 1)
-  (set-face-background 'mmm-default-submode-face "BLACK")
+;; (add-to-list 'load-path (expand-file-name "~/emacs/elisp/mmm-mode") t)
+;; (when (want 'mmm-auto)
+;;   (setq mmm-global-mode 'maybe) 
+;;   (setq mmm-submode-decoration-level 1)
+;;   (set-face-background 'mmm-default-submode-face "BLACK")
 
-  ;; set up an mmm group for fancy html editing 
-  (mmm-add-group 
-   'fancy-html 
-   '( 
-     (html-javascript-embedded
-      :submode java-mode
-      :face mmm-code-submode-face 
-      :front "<script\[^>\]*>"
-      :back "</script>")
-     (html-css-embedded
-      :submode css-mode
-      :face mmm-code-submode-face 
-      :front "<style\[^>\]*>"
-      :back "</style>")
-     (html-php-tagged 
-      :submode php-mode 
-      :face mmm-code-submode-face 
-      :front "<[?]\\(php\\|=\\)?"
-      :back "[?]>") 
-     (html-css-attribute 
-      :submode css-mode 
-      :face mmm-declaration-submode-face 
-      :front "style=\"" 
-      :back "\"")
-     (html-javascript-attribute
-      :submode java-mode
-      :face mmm-code-submode-face 
-      :front "\\bon\\w+=\\s-*\""
-      :back "\"")
-     ))
+;;   ;; set up an mmm group for fancy html editing 
+;;   (mmm-add-group 
+;;    'fancy-html 
+;;    '( 
+;;      (html-javascript-embedded
+;;       :submode java-mode
+;;       :face mmm-code-submode-face 
+;;       :front "<script\[^>\]*>"
+;;       :back "</script>")
+;;      (html-css-embedded
+;;       :submode css-mode
+;;       :face mmm-code-submode-face 
+;;       :front "<style\[^>\]*>"
+;;       :back "</style>")
+;;      (html-php-tagged 
+;;       :submode php-mode 
+;;       :face mmm-code-submode-face 
+;;       :front "<[?]\\(php\\|=\\)?"
+;;       :back "[?]>") 
+;;      (html-css-attribute 
+;;       :submode css-mode 
+;;       :face mmm-declaration-submode-face 
+;;       :front "style=\"" 
+;;       :back "\"")
+;;      (html-javascript-attribute
+;;       :submode java-mode
+;;       :face mmm-code-submode-face 
+;;       :front "\\bon\\w+=\\s-*\""
+;;       :back "\"")
+;;      ))
  
-  (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
+;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -226,14 +230,14 @@ See require. Return non-nil if FEATURE is or was loaded."
     (comment-start			. "/* ")
     (fill-column                        . 80)))
 
-(defvar pasemi-c-style
+(defvar facebook-c-style
   '("linux"
     (c-basic-offset                     . 2)
     (c-offsets-alist			. ((case-label   	. +)))
     (comment-column                     . 40)
-    (comment-end			. " */")
-    (comment-multi-line			. t)
-    (comment-start			. "/* ")
+    (comment-multi-line			. nil)
+    (comment-start			. "// ")
+    (comment-end			. "")
     (fill-column                        . 80)))
 
 (defvar my-c-style
@@ -258,19 +262,19 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode)
   (setq fill-column 100)
   (abbrev-mode -1)
-  (local-set-key "\C-c\C-w"		'c-wrap-conditional)
+  (local-set-key "\C-c\C-x\C-w"		'c-wrap-conditional)
   (local-set-key "\C-d"			'my-delete)
   (local-set-key "\C-c>" 		'search-for-matching-endif)
   (local-set-key "\C-c<" 		'search-for-matching-ifdef)
   (when (not (boundp 'my-c-mode-common-hook-done))
     (when (and (> emacs-version-num 20.0) (want 'xcscope))
-      (defvar xcscope-loaded 't "t if xcscope is loaded")
-      (when (string-match "pasemi\\.com" system-name)
-        (load "xcscope")
-        (define-key cscope-list-entry-keymap (kbd "RET") 'cscope-select-entry-other-window)))
+      (defvar xcscope-loaded 't "t if xcscope is loaded"))
+;;       (when (string-match "pasemi\\.com" system-name)
+;;         (load "xcscope")
+;;         (define-key cscope-list-entry-keymap (kbd "RET") 'cscope-select-entry-other-window)))
     (c-add-style "my-java-style"	my-java-style)
     (c-add-style "my-c-style"		my-c-style)
-    (c-add-style "pasemi-c-style"	pasemi-c-style)
+    (c-add-style "facebook-c-style"	facebook-c-style)
     (c-add-style "vmware-c-style"	vmware-c-style)
     (font-lock-add-keywords
      'c-mode
@@ -284,11 +288,15 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t 
       "Indicates that my-c-mode-common-hook has been called"))
-  (cond ((or (not buffer-file-name) (string-match "/elinks/src" buffer-file-name))
+  (cond ((and buffer-file-name (string-match "/elinks/src" buffer-file-name))
          (setq tab-width 2)
          (c-set-style "my-c-style"))
-        ((string-match "pasemi\\.com" system-name)
-         (c-set-style "pasemi-c-style"))
+        ((and buffer-file-name (string-match "/mcproxy/" buffer-file-name))
+         (c-set-style "facebook-c-style")
+         (setq c-basic-offset 8)
+         (setq indent-tabs-mode t))
+        ((string-match "facebook\\.com" system-name)
+         (c-set-style "facebook-c-style"))
         ((string-match "CHRISTINEWU" system-name)
          (c-set-style "vmware-c-style"))
         ('t
@@ -611,7 +619,7 @@ Return only one group for each buffer."
       (set-frame-font "fontset-mac" 'keep)
       (add-to-list 'default-frame-alist
                    '(font . "fontset-mac")))
-  (add-to-list 'default-frame-alist '(font . "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")))
+  (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1034,8 +1042,10 @@ it is put to the start of the list."
 (global-set-key "\C-c\C-l"	'comment-line)
 (global-set-key "\C-d"		'my-delete)
 
-(global-set-key [M-down]	'scroll-up-line) 
 (global-set-key [M-up]		'scroll-down-line)
+(global-set-key [M-down]	'scroll-up-line) 
+(global-set-key [27 up]         'scroll-down-line)
+(global-set-key [27 down]       'scroll-up-line)
 
 (global-set-key [home]		'beginning-of-buffer)
 (global-set-key [end]		'end-of-buffer)
