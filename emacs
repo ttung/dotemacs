@@ -106,7 +106,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set up html-ize
 (when (and (> emacs-version-num 19.28) window-system)
   (want 'htmlize))
-
+        
 (when (want 'iswitchb)
   (iswitchb-default-keybindings)
   (setq iswitchb-default-method 'samewindow) ;always go to the same window
@@ -235,9 +235,9 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-basic-offset                     . 2)
     (c-offsets-alist			. ((case-label   	. +)))
     (comment-column                     . 40)
-    (comment-multi-line			. nil)
-    (comment-start			. "// ")
-    (comment-end			. "")
+    (comment-end			. " */")
+    (comment-multi-line			. t)
+    (comment-start			. "/* ")
     (fill-column                        . 80)))
 
 (defvar my-c-style
@@ -291,12 +291,12 @@ See require. Return non-nil if FEATURE is or was loaded."
   (cond ((and buffer-file-name (string-match "/elinks/src" buffer-file-name))
          (setq tab-width 2)
          (c-set-style "my-c-style"))
-        ((and buffer-file-name (string-match "/mcproxy/" buffer-file-name))
+        ((or (string-match "facebook\\.com" system-name) 
+             (string-match "Tony-Tung\\.local" system-name))
          (c-set-style "facebook-c-style")
-         (setq c-basic-offset 8)
-         (setq indent-tabs-mode t))
-        ((string-match "facebook\\.com" system-name)
-         (c-set-style "facebook-c-style"))
+         (when (and buffer-file-name (string-match "/mcproxy.*/" buffer-file-name))
+           (setq c-basic-offset 8)
+           (setq indent-tabs-mode t)))
         ((string-match "CHRISTINEWU" system-name)
          (c-set-style "vmware-c-style"))
         ('t
@@ -387,6 +387,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 (let ((ssh-agent-sock (expand-file-name "~/.ssh/agent-sock")))
   (when (file-exists-p ssh-agent-sock)
     (setenv "SSH_AUTH_SOCK" ssh-agent-sock)))
+
+(when (locate-library "monotone")
+  (when (not (boundp 'monotone-loaded))
+    (load-library "monotone")
+    (monotone-set-vc-prefix-key "\C-xv")
+    (defvar monotone-loaded 't "t if monotone is loaded")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -587,6 +593,7 @@ Return only one group for each buffer."
         (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
       (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
     (try-set-face-foreground 'diff-context-face                 "WHITE")
+    (try-set-face-foreground 'cscope-line-face                  "LIGHTGOLDENROD")
 
     (try-set-face-background 'font-lock-comment-face		"unspecified-bg")
     (try-set-face-background 'font-lock-function-name-face	"unspecified-bg")
@@ -757,6 +764,18 @@ If ARG is negative, delete that many comment characters instead."
       (if (consp arg)
           (delete-char 1 t)             ;null prefix
         (delete-char arg t)))))
+
+(defun my-comint-delete (&optional arg)
+  "Deletes the region if the mark is active.  Otherwise runs comint-delchar-or-maybe-eof."
+  (interactive "P")
+  (if mark-active
+      (delete-region (point) (mark))
+    (if (eq arg nil)
+        (comint-delchar-or-maybe-eof 1)             ;no prefix
+      (comint-delchar-or-maybe-eof arg))))
+
+(eval-after-load "shell"
+  '(define-key shell-mode-map "\C-d" 'my-comint-delete))
 
 (defun previous-error (&optional arg)
   "Similar to next-error, except it visits the previous compilation error."
@@ -979,6 +998,17 @@ it is put to the start of the list."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Site-specific configuration tweaks.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(when (or (string-match "facebook\\.com" system-name) 
+          (string-match "Tony-Tung\\.local" system-name))
+  (set-face-background 'trailing-whitespace "#900000")
+  (setq-default show-trailing-whitespace t)
+  (when (fboundp 'delete-trailing-whitespace)
+    (add-hook 'write-file-hooks 'delete-trailing-whitespace)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conveniences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1013,10 +1043,10 @@ it is put to the start of the list."
     (define-key function-key-map "[4~"	[end])))
 (setq term-setup-hook 'keymap-setup)
 
-(global-set-key "\C-f"		'forward-word)
-(global-set-key "\C-b"		'backward-word)
-(global-set-key "\346"		'forward-char)   ;M-f
-(global-set-key "\342"		'backward-char)  ;M-b
+(global-set-key "\C-f"         'forward-word)
+(global-set-key "\C-b"         'backward-word)
+(global-set-key "\346"         'forward-char)   ;M-f
+(global-set-key "\342"         'backward-char)  ;M-b
 
 (global-set-key [f2]		'save-buffer)
 (global-set-key [f3]		'find-file)
