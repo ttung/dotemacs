@@ -20,7 +20,7 @@
 ;; Version stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconst emacs-version-num 
+(defconst emacs-version-num
   (+
    emacs-major-version
    (/ emacs-minor-version 100.0))
@@ -96,7 +96,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq sgml-ecat-files '("~/emacs/etc/sgml/ECAT" "ECAT"))
   ;;(defvar sgml-trace-entity-lookup t)
   (setq sgml-warn-about-undefined-entities nil)
-  
+
   ;; initialize psgml
   (autoload 'sgml-mode "psgml" "Major mode to edit SGML files." t)
   (autoload 'html-mode "psgml-html" "Major mode to edit HTML files." t)
@@ -106,7 +106,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; set up html-ize
 (when (and (> emacs-version-num 19.28) window-system)
   (want 'htmlize))
-        
+
 (when (want 'iswitchb)
   (iswitchb-default-keybindings)
   (setq iswitchb-default-method 'samewindow) ;always go to the same window
@@ -125,7 +125,7 @@ See require. Return non-nil if FEATURE is or was loaded."
       (my-xcscope-bind-keys cscope:map)
       (my-xcscope-bind-keys cscope-list-entry-keymap)
       (defvar my-xcscope-setup-done 't "t if my-xcscope-setup has already been executed")))
-  
+
   (defun my-xcscope-bind-keys (map)
     (define-key map "\C-cs" 'cscope-find-this-symbol)
     (define-key map "\C-cd" 'cscope-find-global-definition)
@@ -138,7 +138,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (define-key map "\C-cf" 'cscope-find-this-file)
     (define-key map "\C-ci" 'cscope-find-files-including-file)))
 
-;; PHP Mode 
+;; PHP Mode
 (when (locate-library "php-mode")
   (autoload 'php-mode "php-mode" "Mode for editing PHP files" t)
   (add-to-list 'auto-mode-alist '("\\.php$" . php-mode))
@@ -162,45 +162,45 @@ See require. Return non-nil if FEATURE is or was loaded."
   (add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode)))
 
 
-;; mmm mode 
+;; mmm mode
 ;; set up the paths for multiple major modes
 ;; (add-to-list 'load-path (expand-file-name "~/emacs/elisp/mmm-mode") t)
 ;; (when (want 'mmm-auto)
-;;   (setq mmm-global-mode 'maybe) 
+;;   (setq mmm-global-mode 'maybe)
 ;;   (setq mmm-submode-decoration-level 1)
 ;;   (set-face-background 'mmm-default-submode-face "BLACK")
 
-;;   ;; set up an mmm group for fancy html editing 
-;;   (mmm-add-group 
-;;    'fancy-html 
-;;    '( 
+;;   ;; set up an mmm group for fancy html editing
+;;   (mmm-add-group
+;;    'fancy-html
+;;    '(
 ;;      (html-javascript-embedded
 ;;       :submode java-mode
-;;       :face mmm-code-submode-face 
+;;       :face mmm-code-submode-face
 ;;       :front "<script\[^>\]*>"
 ;;       :back "</script>")
 ;;      (html-css-embedded
 ;;       :submode css-mode
-;;       :face mmm-code-submode-face 
+;;       :face mmm-code-submode-face
 ;;       :front "<style\[^>\]*>"
 ;;       :back "</style>")
-;;      (html-php-tagged 
-;;       :submode php-mode 
-;;       :face mmm-code-submode-face 
+;;      (html-php-tagged
+;;       :submode php-mode
+;;       :face mmm-code-submode-face
 ;;       :front "<[?]\\(php\\|=\\)?"
-;;       :back "[?]>") 
-;;      (html-css-attribute 
-;;       :submode css-mode 
-;;       :face mmm-declaration-submode-face 
-;;       :front "style=\"" 
+;;       :back "[?]>")
+;;      (html-css-attribute
+;;       :submode css-mode
+;;       :face mmm-declaration-submode-face
+;;       :front "style=\""
 ;;       :back "\"")
 ;;      (html-javascript-attribute
 ;;       :submode java-mode
-;;       :face mmm-code-submode-face 
+;;       :face mmm-code-submode-face
 ;;       :front "\\bon\\w+=\\s-*\""
 ;;       :back "\"")
 ;;      ))
- 
+
 ;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
 
 
@@ -286,12 +286,12 @@ See require. Return non-nil if FEATURE is or was loaded."
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
        ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
-    (defvar my-c-mode-common-hook-done t 
+    (defvar my-c-mode-common-hook-done t
       "Indicates that my-c-mode-common-hook has been called"))
   (cond ((and buffer-file-name (string-match "/elinks/src" buffer-file-name))
          (setq tab-width 2)
          (c-set-style "my-c-style"))
-        ((or (string-match "facebook\\.com" system-name) 
+        ((or (string-match "facebook\\.com" system-name)
              (string-match "Tony-Tung\\.local" system-name))
          (c-set-style "facebook-c-style")
          (when (and buffer-file-name (string-match "/mcproxy.*/" buffer-file-name))
@@ -321,7 +321,7 @@ See require. Return non-nil if FEATURE is or was loaded."
      '(("\\<\\(NOTE\\):"	1 font-lock-warning-face t)
        ("\\<\\(TODO\\):"	1 font-lock-warning-face t)
        ("\\<\\(FIXME\\):"	1 font-lock-warning-face t)))
-    (defvar my-java-mode-hook-done t 
+    (defvar my-java-mode-hook-done t
       "Indicates that my-java-mode-hook has been called"))
   (c-set-style "my-java-style"))
 (add-hook 'java-mode-hook 'my-java-mode-hook)
@@ -339,7 +339,7 @@ See require. Return non-nil if FEATURE is or was loaded."
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
        ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
-    (defvar my-javascript-mode-hook-done t 
+    (defvar my-javascript-mode-hook-done t
       "Indicates that my-javascript-mode-hook has been called")))
 (add-hook 'javascript-mode-hook 'my-javascript-mode-hook)
 
@@ -431,7 +431,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'default-frame-alist '(foreground-color  	.	"white"))
 (add-to-list 'default-frame-alist '(background-color  	.	"black"))
 (add-to-list 'default-frame-alist '(cursor-color  	.	"green"))
-      
+
 (setq standard-indent 2)
 
 ;; set up matching parentheses
@@ -564,7 +564,7 @@ Return only one group for each buffer."
 
 (defun my-window-system-font-lock-mode-hook ()
   (when (not (fboundp 'my-window-system-font-lock-mode-hook-done))
-        
+
     (try-set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE")
     (try-set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE")
     (try-set-face-foreground 'font-lock-string-face		"LIGHTSALMON")
@@ -577,7 +577,7 @@ Return only one group for each buffer."
       (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
     (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
 
-  (defvar my-window-system-font-lock-mode-hook-done t 
+  (defvar my-window-system-font-lock-mode-hook-done t
     "Indicates that my-window-system-font-lock-mode-hook has been called")))
 
 (defun my-console-font-lock-mode-hook ()
@@ -607,9 +607,9 @@ Return only one group for each buffer."
         (try-set-face-background 'font-lock-reference-face	"unspecified-bg")
       (try-set-face-background 'font-lock-constant-face		"unspecified-bg"))
 
-    (defvar my-console-font-lock-mode-hook-done t 
+    (defvar my-console-font-lock-mode-hook-done t
       "Indicates that my-console-font-lock-mode-hook has been called")))
-  
+
 (if window-system
     (add-hook 'font-lock-mode-hook 'my-window-system-font-lock-mode-hook)
   (add-hook 'font-lock-mode-hook 'my-console-font-lock-mode-hook))
@@ -655,7 +655,7 @@ Return only one group for each buffer."
 (when (> emacs-version-num 19.28)
   (setq start (string-match "\\." system-name))
   (setq tag (concat invocation-name "@" (substring system-name 0 start)))
-          
+
   (setq frame-title-format
         (concat tag " - %f"))
   (setq icon-title-format
@@ -666,14 +666,14 @@ Return only one group for each buffer."
 ;; My own functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;Scroll buffer without moving point 
-(defun scroll-down-line () 
-  "Scroll one line down." 
+;;Scroll buffer without moving point
+(defun scroll-down-line ()
+  "Scroll one line down."
   (interactive)
   (scroll-down 1))
 
-(defun scroll-up-line () 
-  "Scroll one line up." 
+(defun scroll-up-line ()
+  "Scroll one line up."
   (interactive)
   (scroll-up 1))
 
@@ -684,16 +684,16 @@ With a prefix argument, it does not insert the dashes below and above the time."
   (let ((time-string (format-time-string "%a %b %d %H:%M:%S %Z %Y")))
     (unless nodashes
       (insert "\n")
-      (insert 
-       (make-string 
+      (insert
+       (make-string
         (length time-string)
         ?-))
       (insert "\n"))
     (insert time-string)
     (unless nodashes
       (insert "\n")
-      (insert 
-       (make-string 
+      (insert
+       (make-string
         (length time-string)
         ?-))
       (insert "\n\n"))))
@@ -808,7 +808,7 @@ If ARG is negative, delete that many comment characters instead."
             (setq retval (concat retval "/")))
         (setq cntr (+ 1 cntr)))
       retval))
-    
+
   (if (eq system-type 'windows-nt)
       (defun get-unique-tag (bfn bn)
         (if (or (string-match "<[0-9]+>\\'" bn)
@@ -819,9 +819,9 @@ If ARG is negative, delete that many comment characters instead."
                 (not (string= bn (file-name-nondirectory bfn))))
             (substring bn (match-beginning 0)))))
 
-  (let ((shortened-file-name 
+  (let ((shortened-file-name
          (limit-tree (abbreviate-file-name buffer-file-name) 1))
-        (buffer-num 
+        (buffer-num
          (get-unique-tag buffer-file-name (buffer-name))))
     (set (make-local-variable 'nice-buffer-file-name)
          (concat shortened-file-name buffer-num)))
@@ -836,7 +836,7 @@ If ARG is negative, delete that many comment characters instead."
   (setq-default mode-line-buffer-identification
                 '(nice-buffer-file-name nice-buffer-file-name
                                         (buffer-file-name "%f" "%b"))))
-  
+
 (setq-default mode-line-mule-info '(""))
 (setq-default mode-line-frame-identification '("  "))
 
@@ -942,19 +942,19 @@ If ARG is negative, delete that many comment characters instead."
 (defun iswitchb-make-buflist (&optional default)
   "Set `iswitchb-buflist' to the current list of buffers.
 Currently visible buffers are put at the end of the list.
-The hook `iswitchb-make-buflist-hook' is run after the list has been 
+The hook `iswitchb-make-buflist-hook' is run after the list has been
 created to allow the user to further modify the order of the buffer names
 in this list.  If DEFAULT is non-nil, and corresponds to an existing buffer,
 it is put to the start of the list."
-  (setq iswitchb-buflist 
+  (setq iswitchb-buflist
         (let* ((iswitchb-current-buffers (list (buffer-name)))
                (iswitchb-temp-buflist
-                (delq nil 
+                (delq nil
                       (mapcar
                        (lambda (x)
                          (let ((b-name (buffer-name x)))
-                           (if (not 
-                                (or 
+                           (if (not
+                                (or
                                  (iswitchb-ignore-buffername-p b-name)
                                  (memq b-name iswitchb-current-buffers)))
                                b-name)))
@@ -965,9 +965,9 @@ it is put to the start of the list."
           ;; final thing to be run?
           (if default
               (progn
-                (setq iswitchb-temp-buflist 
+                (setq iswitchb-temp-buflist
                       (delete default iswitchb-temp-buflist))
-                (setq iswitchb-temp-buflist 
+                (setq iswitchb-temp-buflist
                       (cons default iswitchb-temp-buflist))))
           iswitchb-temp-buflist)))
 
@@ -977,7 +977,7 @@ it is put to the start of the list."
   (let (res)
     (cond ((not  iswitchb-matches)
 	   (iswitchb-completion-help))
-	  
+
 ;; 	  ((= 1 (length iswitchb-matches))
 ;; 	   ;; only one choice, so select it.
 ;; 	   (exit-minibuffer))
@@ -1000,12 +1000,15 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Site-specific configuration tweaks.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(when (or (string-match "facebook\\.com" system-name) 
+(when (or (string-match "facebook\\.com" system-name)
           (string-match "Tony-Tung\\.local" system-name))
   (set-face-background 'trailing-whitespace "#900000")
   (setq-default show-trailing-whitespace t)
+  (defun my-delete-trailing-whitespace ()
+    (unless (string-match "/viewmtn/" buffer-file-name)
+      (delete-trailing-whitespace)))
   (when (fboundp 'delete-trailing-whitespace)
-    (add-hook 'write-file-hooks 'delete-trailing-whitespace)))
+    (add-hook 'write-file-hooks 'my-delete-trailing-whitespace)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1073,7 +1076,7 @@ it is put to the start of the list."
 (global-set-key "\C-d"		'my-delete)
 
 (global-set-key [M-up]		'scroll-down-line)
-(global-set-key [M-down]	'scroll-up-line) 
+(global-set-key [M-down]	'scroll-up-line)
 (global-set-key [27 up]         'scroll-down-line)
 (global-set-key [27 down]       'scroll-up-line)
 
@@ -1093,8 +1096,8 @@ it is put to the start of the list."
 (defun down-one () (interactive) (scroll-down 1))
 (global-set-key [S-mouse-4]	'down-one)
 (global-set-key [S-mouse-5]	'up-one)
-      
-      
+
+
 (defun up-a-lot   () (interactive) (scroll-up))
 (defun down-a-lot () (interactive) (scroll-down))
 (global-set-key [C-mouse-4]	'down-a-lot)
@@ -1109,7 +1112,7 @@ it is put to the start of the list."
   (global-set-key "!" 'eshell-command)
   (setq eshell-prefer-to-shell t))
 
-;; To get binding command, do this: First bind the key interactively, 
+;; To get binding command, do this: First bind the key interactively,
 ;; then immediately type "C-x ESC ESC C-a C-k C-g".
 
 

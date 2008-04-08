@@ -7,7 +7,6 @@ LISP_FILES = 	css-mode.el \
 		monotone.el \
 		pc-bufsw.el \
 		php-mode.el \
-		python-mode.el \
 		tabbar.el \
 		xcscope.el \
 
@@ -31,5 +30,5 @@ compile-psgml	:	psgml
 	cd psgml; \
 	$(EMACS) -q -batch -l psgml-maint.el -f psgml-compile-files
 
-clean	:	
+clean	:
 	find . -name '*.elc' -exec rm {} \;
