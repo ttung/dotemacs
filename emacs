@@ -231,7 +231,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (fill-column                        . 80)))
 
 (defvar facebook-c-style
-  '("linux"
+  '("gnu"
     (c-basic-offset                     . 2)
     (c-offsets-alist			. ((case-label   	. +)))
     (comment-column                     . 40)
@@ -363,7 +363,6 @@ See require. Return non-nil if FEATURE is or was loaded."
          'comint-postoutput-scroll-to-bottom)
 
 (setq vc-follow-symlinks t)
-(setq ange-ftp-ftp-program-name "sftp")
 
 ;; python mode stuff
 (when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
@@ -606,6 +605,9 @@ Return only one group for each buffer."
     (if (< emacs-version-num 20.02)
         (try-set-face-background 'font-lock-reference-face	"unspecified-bg")
       (try-set-face-background 'font-lock-constant-face		"unspecified-bg"))
+
+    (try-set-face-foreground 'ediff-fine-diff-A                 "BLUE")
+    (try-set-face-foreground 'ediff-fine-diff-B                 "BLUE")
 
     (defvar my-console-font-lock-mode-hook-done t
       "Indicates that my-console-font-lock-mode-hook has been called")))
@@ -1005,7 +1007,9 @@ it is put to the start of the list."
   (set-face-background 'trailing-whitespace "#900000")
   (setq-default show-trailing-whitespace t)
   (defun my-delete-trailing-whitespace ()
-    (unless (string-match "/viewmtn/" buffer-file-name)
+    (unless (or
+             (string-match "/viewmtn/" buffer-file-name)
+             (eq 'diff-mode major-mode))
       (delete-trailing-whitespace)))
   (when (fboundp 'delete-trailing-whitespace)
     (add-hook 'write-file-hooks 'my-delete-trailing-whitespace)))
@@ -1016,15 +1020,17 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; enable auto-save
-(unless (string-match "CHRISTINEWU" system-name)
-  (setq auto-save-default 1)
-  (setq auto-save-interval 250)
-  (setq auto-save-file-name-transforms '(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/tmp/\\2" t)
-                                         ("\\`\\([^/]*/\\)*\\([^/]*\\)\\'" "~/.emacs.d/auto-saves/\\2" t)))
-
+(unless (or (string-match "CHRISTINEWU" system-name)
+            (not (string= init-file-user user-login-name)))
   (let ((dir (expand-file-name "~/.emacs.d/auto-saves/")))
-    (unless (file-exists-p dir)
-      (make-directory dir))))
+    (when (or (file-exists-p dir)
+              (not (condition-case nil
+                       (make-directory dir)
+                     (error t))))
+      (setq auto-save-default 1)
+      (setq auto-save-interval 250)
+      (setq auto-save-file-name-transforms '(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/tmp/\\2" t)
+                                             ("\\`\\([^/]*/\\)*\\([^/]*\\)\\'" "~/.emacs.d/auto-saves/\\2" t))))))
 
 ;; keybindings...
 (if (eq window-system nil)
