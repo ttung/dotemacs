@@ -59,7 +59,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up the paths for custom files
 (add-to-list 'exec-path (expand-file-name "~/emacs/bin"))
+(add-to-list 'exec-path (expand-file-name "~/software/bin"))
 (add-to-list 'exec-path "/opt/local/bin/")
+(setenv "PATH" (format "%s:%s" "/opt/local/bin" (getenv "PATH")))
 (add-to-list 'load-path (expand-file-name "~/emacs/elisp"))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
@@ -291,6 +293,9 @@ See require. Return non-nil if FEATURE is or was loaded."
   (cond ((and buffer-file-name (string-match "/elinks/src" buffer-file-name))
          (setq tab-width 2)
          (c-set-style "my-c-style"))
+        ((or (not buffer-file-name) (string-match "libtransmission" buffer-file-name))
+         (c-set-style "my-c-style")
+         (setq c-basic-offset 4))
         ((or (string-match "facebook\\.com" system-name)
              (string-match "Tony-Tung\\.local" system-name))
          (c-set-style "facebook-c-style")
@@ -387,7 +392,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   (when (file-exists-p ssh-agent-sock)
     (setenv "SSH_AUTH_SOCK" ssh-agent-sock)))
 
-(when (locate-library "monotone")
+(when (and (< emacs-version-num 22.02)
+           (locate-library "monotone"))
   (when (not (boundp 'monotone-loaded))
     (load-library "monotone")
     (monotone-set-vc-prefix-key "\C-xv")
@@ -627,7 +633,8 @@ Return only one group for each buffer."
   mule-unicode-0100-24ff:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman")
       (set-frame-font "fontset-mac" 'keep)
       (add-to-list 'default-frame-alist
-                   '(font . "fontset-mac")))
+                   '(font . "fontset-mac"))
+      (setq mac-allow-anti-aliasing nil))
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 
@@ -1008,17 +1015,22 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Site-specific configuration tweaks.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(when (or (string-match "facebook\\.com" system-name)
-          (string-match "Tony-Tung\\.local" system-name))
-  (set-face-background 'trailing-whitespace "#900000")
-  (setq-default show-trailing-whitespace t)
-  (defun my-delete-trailing-whitespace ()
-    (unless (or
-             (string-match "/viewmtn/" buffer-file-name)
-             (eq 'diff-mode major-mode))
-      (delete-trailing-whitespace)))
-  (when (fboundp 'delete-trailing-whitespace)
-    (add-hook 'write-file-hooks 'my-delete-trailing-whitespace)))
+(set-face-background 'trailing-whitespace "#900000")
+(setq-default show-trailing-whitespace t)
+(defun maybe-delete-trailing-whitespace ()
+  (when (and
+         buffer-file-name
+         (string-match "/Users/tonytung/work/" buffer-file-name)
+         (not (or
+               (string-match "/viewmtn/" buffer-file-name)
+               (eq 'diff-mode major-mode))))
+    (delete-trailing-whitespace)))
+(when (fboundp 'delete-trailing-whitespace)
+  (when (or (string-match "facebook\\.com" system-name) 
+            (string-match "Tony-Tung\\.local" system-name))
+    (add-hook 'write-file-hooks 'delete-trailing-whitespace))
+  (when (string-match "fourier\\.local" system-name)
+    (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1031,7 +1043,7 @@ it is put to the start of the list."
   (let ((dir (expand-file-name "~/.emacs.d/auto-saves/")))
     (when (or (file-exists-p dir)
               (not (condition-case nil
-                       (make-directory dir)
+                       (make-directory dir 't)
                      (error t))))
       (setq auto-save-default 1)
       (setq auto-save-interval 250)
