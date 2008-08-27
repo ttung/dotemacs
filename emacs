@@ -940,6 +940,12 @@ If ARG is negative, delete that many comment characters instead."
    (> (window-height (next-window (selected-window))) 4))
       (enlarge-window arg side)))
 
+;; if the scratch buffer is not in the buflist, then manually add it in.
+(defun my-iswitchb-make-buflist-hook ()
+  (unless (member "*scratch*" iswitchb-temp-buflist)
+    (setq iswitchb-temp-buflist (append iswitchb-temp-buflist (list "*scratch*")))))
+(add-hook 'iswitchb-make-buflist-hook 'my-iswitchb-make-buflist-hook)
+
 ;; stolen from iswitchb.el
 (defun iswitchb-make-buflist (&optional default)
   "Set `iswitchb-buflist' to the current list of buffers.
