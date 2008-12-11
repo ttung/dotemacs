@@ -65,17 +65,17 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 
 ;; set up the paths for custom files
-(add-to-list 'exec-path 
+(add-to-list 'exec-path
              (reduce 'path-join '("emacs" "bin") :initial-value home-directory))
-(add-to-list 'exec-path 
+(add-to-list 'exec-path
              (reduce 'path-join '("software" "bin") :initial-value home-directory))
-(add-to-list 'exec-path 
+(add-to-list 'exec-path
              (reduce 'path-join '("opt" "local" "bin") :initial-value "/"))
 (setenv "PATH" (format "%s%s%s"
                 (reduce 'path-join '("opt" "local" "bin") :initial-value "/")
-                path-separator 
+                path-separator
                 (getenv "PATH")))
-(add-to-list 'load-path 
+(add-to-list 'load-path
              (reduce 'path-join '("emacs" "elisp") :initial-value home-directory))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
@@ -104,7 +104,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; set up the paths for psgml
-(add-to-list 'load-path 
+(add-to-list 'load-path
              (reduce 'path-join '("emacs" "elisp" "psgml") :initial-value home-directory))
 
 (when (and (> emacs-version-num 19.34) (locate-library "psgml"))
@@ -251,7 +251,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (fill-column                        . 80)))
 
 (defvar facebook-c-style
-  '("gnu"
+  '("linux"
     (c-basic-offset                     . 2)
     (c-offsets-alist			. ((case-label   	. +)))
     (comment-column                     . 40)
@@ -659,7 +659,7 @@ Return only one group for each buffer."
                (eq 'diff-mode major-mode))))
     (delete-trailing-whitespace)))
 (when (fboundp 'delete-trailing-whitespace)
-  (when (or (string-match "facebook\\.com" system-name) 
+  (when (or (string-match "facebook\\.com" system-name)
             (string-match "Tony-Tung\\.local" system-name))
     (setq-default show-trailing-whitespace t)
     (add-hook 'write-file-hooks 'delete-trailing-whitespace))
