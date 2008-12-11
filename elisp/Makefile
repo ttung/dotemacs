@@ -1,10 +1,10 @@
 EMACS=emacs
 
 LISP_FILES = 	css-mode.el \
+		dvc-load.el \
 		gnuserv.el \
 		htmlize.el \
 		javascript-mode.el \
-		monotone.el \
 		pc-bufsw.el \
 		php-mode.el \
 		tabbar.el \
@@ -12,6 +12,7 @@ LISP_FILES = 	css-mode.el \
 
 
 SUBDIRS = 	mmm-mode \
+		dvc
 
 
 ELC_FILES = $(LISP_FILES:.el=.elc)

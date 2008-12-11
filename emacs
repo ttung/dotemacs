@@ -28,6 +28,12 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Global settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq safe-local-variable-values 
+      (append safe-local-variable-values '(save-buffer-coding-system . undecided-unix)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global extras
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -57,12 +63,25 @@ See require. Return non-nil if FEATURE is or was loaded."
         "If COND yields nil, do BODY, else return nil."
         (cons 'if (cons cond (cons nil body))))))
 
+
+(require 'cl)
+
 ;; set up the paths for custom files
-(add-to-list 'exec-path (expand-file-name "~/emacs/bin"))
-(add-to-list 'exec-path (expand-file-name "~/software/bin"))
-(add-to-list 'exec-path "/opt/local/bin/")
-(setenv "PATH" (format "%s:%s" "/opt/local/bin" (getenv "PATH")))
-(add-to-list 'load-path (expand-file-name "~/emacs/elisp"))
+(defvar home-directory (file-name-directory user-init-file))
+(defun path-join (head tail)
+  (concat (file-name-as-directory head) tail))
+(add-to-list 'exec-path 
+             (reduce 'path-join '("emacs" "bin") :initial-value home-directory))
+(add-to-list 'exec-path 
+             (reduce 'path-join '("software" "bin") :initial-value home-directory))
+(add-to-list 'exec-path 
+             (reduce 'path-join '("opt" "local" "bin") :initial-value "/"))
+(setenv "PATH" (format "%s%s%s"
+                (reduce 'path-join '("opt" "local" "bin") :initial-value "/")
+                path-separator 
+                (getenv "PATH")))
+(add-to-list 'load-path 
+             (reduce 'path-join '("emacs" "elisp") :initial-value home-directory))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
 (add-to-list 'auto-mode-alist '("\\.h\\'"		. c++-mode))
@@ -90,7 +109,8 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; set up the paths for psgml
-(add-to-list 'load-path (expand-file-name "~/emacs/elisp/psgml") t)
+(add-to-list 'load-path 
+             (reduce 'path-join '("emacs" "elisp" "psgml") :initial-value home-directory))
 
 (when (and (> emacs-version-num 19.34) (locate-library "psgml"))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
@@ -204,6 +224,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;      ))
 
 ;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
+
+;; initialize DVC
+(load-file (reduce 'path-join '("emacs" "elisp" "dvc-load.el") :initial-value home-directory))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -368,6 +391,7 @@ See require. Return non-nil if FEATURE is or was loaded."
          'comint-postoutput-scroll-to-bottom)
 
 (setq vc-follow-symlinks t)
+(setq vc-handled-backends (remove* 'Mtn vc-handled-backends))
 
 ;; python mode stuff
 (when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
@@ -391,13 +415,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 (let ((ssh-agent-sock (expand-file-name "~/.ssh/agent-sock")))
   (when (file-exists-p ssh-agent-sock)
     (setenv "SSH_AUTH_SOCK" ssh-agent-sock)))
-
-(when (and (< emacs-version-num 22.02)
-           (locate-library "monotone"))
-  (when (not (boundp 'monotone-loaded))
-    (load-library "monotone")
-    (monotone-set-vc-prefix-key "\C-xv")
-    (defvar monotone-loaded 't "t if monotone is loaded")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -554,6 +571,7 @@ Return only one group for each buffer."
 (try-set-face-foreground 'modeline				"CYAN")
 (try-set-face-foreground 'show-paren-match-face			"CYAN")
 (try-set-face-foreground 'show-paren-mismatch-face		"WHITE")
+(try-set-face-background 'trailing-whitespace "#900000")
 
 ;; set up colors dependent on window-system
 (if window-system
@@ -578,9 +596,9 @@ Return only one group for each buffer."
     (try-set-face-foreground 'font-lock-warning-face		"RED")
     (try-set-face-foreground 'font-lock-comment-face		"ROSYBROWN2")
     (try-set-face-foreground 'font-lock-type-face		"PALEGREEN")
-  (if (< emacs-version-num 20.02)
-      (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
-    (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
+    (if (< emacs-version-num 20.02)
+        (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE")
+      (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
 
   (defvar my-window-system-font-lock-mode-hook-done t
     "Indicates that my-window-system-font-lock-mode-hook has been called")))
@@ -636,6 +654,25 @@ Return only one group for each buffer."
                    '(font . "fontset-mac"))
       (setq mac-allow-anti-aliasing nil))
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
+
+(defun maybe-delete-trailing-whitespace ()
+  (when (and
+         buffer-file-name
+         (string-match "/Users/tonytung/work/" buffer-file-name)
+         (not (or
+               (string-match "/viewmtn/" buffer-file-name)
+               (eq 'diff-mode major-mode))))
+    (delete-trailing-whitespace)))
+(when (fboundp 'delete-trailing-whitespace)
+  (when (or (string-match "facebook\\.com" system-name) 
+            (string-match "Tony-Tung\\.local" system-name))
+    (setq-default show-trailing-whitespace t)
+    (add-hook 'write-file-hooks 'delete-trailing-whitespace))
+  (when (string-match "fourier\\.local" system-name)
+    (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace)))
+
+(add-hook 'find-file-hooks (lambda () "enable trailing whitespace"
+                             (setq show-trailing-whitespace t)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1011,26 +1048,98 @@ it is put to the start of the list."
 	     (iswitchb-completion-help)
 	     )))))
 
+(unless (fboundp 'ignore-errors)
+  (defmacro ignore-errors (&rest body)
+    "Execute BODY; if an error occurs, return nil.
+Otherwise, return result of last form in BODY."
+    `(condition-case nil (progn ,@body) (error nil))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Site-specific configuration tweaks.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(set-face-background 'trailing-whitespace "#900000")
-(setq-default show-trailing-whitespace t)
-(defun maybe-delete-trailing-whitespace ()
-  (when (and
-         buffer-file-name
-         (string-match "/Users/tonytung/work/" buffer-file-name)
-         (not (or
-               (string-match "/viewmtn/" buffer-file-name)
-               (eq 'diff-mode major-mode))))
-    (delete-trailing-whitespace)))
-(when (fboundp 'delete-trailing-whitespace)
-  (when (or (string-match "facebook\\.com" system-name) 
-            (string-match "Tony-Tung\\.local" system-name))
-    (add-hook 'write-file-hooks 'delete-trailing-whitespace))
-  (when (string-match "fourier\\.local" system-name)
-    (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace)))
+(defun vc-mtn-registered (file)
+  (if (vc-find-root file vc-mtn-admin-format)
+      (progn
+        (load "vc-mtn")
+
+        (defun vc-cache-mtn-status (file)
+          (ignore-errors
+            (let ((root (vc-mtn-root file)))
+              (when root
+                ;; we have a root, let's get the file attributes of the revision file, the options file, and the actual file.
+                (let* ((admin-dir (concat (file-name-as-directory root) "_MTN"))
+                       (revision-filepath (concat (file-name-as-directory admin-dir) "revision"))
+                       (options-filepath (concat (file-name-as-directory admin-dir) "options")))
+                  ;; ensure that the files actually exist.
+                  (when (and (file-exists-p revision-filepath)
+                             (file-exists-p options-filepath))
+                    (let ((revision-last-modified (nth 5 (file-attributes revision-filepath)))
+                          (options-contents 
+                           (with-temp-buffer
+                             (insert-file-contents options-filepath)
+                             (buffer-string)))
+                          (file-last-modified (nth 5 (file-attributes file)))
+                          (revision-last-modified-cached (vc-file-getprop file 'vc-mtn-status-cache-revision))
+                          (options-contents-cached (vc-file-getprop file 'vc-mtn-status-cache-options))
+                          (file-last-modified-cached (vc-file-getprop file 'vc-mtn-status-cache-file))
+                          (file-status (vc-file-getprop file 'vc-mtn-status-cache)))
+                      (if (and (equal revision-last-modified revision-last-modified-cached)
+                               (equal options-contents options-contents-cached)
+                               (equal file-last-modified file-last-modified-cached)
+                               file-status)
+                          ;; cached!
+                          file-status
+
+                        ;; not cached
+                        (with-temp-buffer
+                          (vc-mtn-command t 0 file "status")
+                          (let ((status (buffer-string)))
+                            (vc-file-setprop file 'vc-mtn-status-cache-revision revision-last-modified)
+                            (vc-file-setprop file 'vc-mtn-status-cache-options options-contents)
+                            (vc-file-setprop file 'vc-mtn-status-cache-file file-last-modified)
+                            (vc-file-setprop file 'vc-mtn-status-cache status)
+                            status))))))))))
+
+        (defun vc-mtn-state (file)
+          ;; If `mtn' fails or returns status>0, or if the search files, just
+          ;; return nil.
+
+;;           (message "mtn-state")
+;;           (backtrace)
+          (ignore-errors
+            (with-temp-buffer
+              ;; hack to use the cached status
+              (insert (vc-cache-mtn-status file))
+              (goto-char (point-min))
+              (re-search-forward "^  \\(?:patched \\(.*\\)\\|no changes$\\)")
+              (if (match-end 1)
+                  'edited
+                'up-to-date))))
+
+        (defun vc-mtn-workfile-version (file)
+          ;; If `mtn' fails or returns status>0, or if the search fails, just
+          ;; return nil.
+
+;;           (message "mtn-workfile-version")
+;;           (backtrace)
+          (ignore-errors
+            (with-temp-buffer
+              (insert (vc-cache-mtn-status file))
+              (goto-char (point-min))
+              (re-search-forward "Current branch: \\(.*\\)\nChanges against parent \\(.*\\)")
+              (match-string 2))))
+
+        (defun vc-mtn-workfile-branch (file)
+          ;; If `mtn' fails or returns status>0, or if the search files, just
+          ;; return nil.
+
+;;           (message "mtn-workfile-branch")
+;;           (backtrace)
+          (ignore-errors
+            (with-temp-buffer
+              (insert (vc-cache-mtn-status file))
+              (goto-char (point-min))
+              (re-search-forward "Current branch: \\(.*\\)\nChanges against parent \\(.*\\)")
+              (match-string 1))))
+
+        (vc-mtn-registered file))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1145,3 +1254,15 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq debug-on-error nil)
 
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values (quote ((save-buffer-coding-system . undecided-unix)))))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ )
