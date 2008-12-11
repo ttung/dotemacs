@@ -233,7 +233,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (fill-column                        . 80)))
 
 (defvar facebook-c-style
-  '("gnu"
+  '("linux"
     (c-basic-offset                     . 2)
     (c-offsets-alist			. ((case-label   	. +)))
     (comment-column                     . 40)
@@ -1026,7 +1026,7 @@ it is put to the start of the list."
                (eq 'diff-mode major-mode))))
     (delete-trailing-whitespace)))
 (when (fboundp 'delete-trailing-whitespace)
-  (when (or (string-match "facebook\\.com" system-name) 
+  (when (or (string-match "facebook\\.com" system-name)
             (string-match "Tony-Tung\\.local" system-name))
     (add-hook 'write-file-hooks 'delete-trailing-whitespace))
   (when (string-match "fourier\\.local" system-name)
