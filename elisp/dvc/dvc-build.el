@@ -120,8 +120,6 @@
     (unless (locate-library "tree-widget")
       '("tla-browse.el")))))
 
-(setq --to-compile '())
-
 ;; Warnings we care about.
 (defvar --warnings '(unresolved callargs redefine))
 
@@ -387,24 +385,26 @@ fixed in Emacs after 21.3."
           (with-temp-file "dvc-autoloads.el"
             (insert tail-blurb)))))
 
-    ;; Compile `--to-compile' files.
-    (when changed
-      (dolist (file --to-compile)
-        (load (srcdir/ file) nil nil t))
-      ;; We compute full fanout, not just root-set one-level-downstream.
-      ;; In this way we err on the safe side.
-      (let (todo)
-        (while changed
-          (nconc changed (f-set-difference
-                          (f-intersection
-                           (mapcar 'file-name-nondirectory
-                                   (file-dependents
-                                    (srcdir/ (car changed))))
-                           --to-compile)
-                          todo))
-          (pushnew (pop changed) todo :test 'string=))
-        (mapc 'zonk-file (mapcar 'byte-compile-dest-file todo))
-        (mapc 'byte-compile-file (mapcar 'srcdir/ todo)))))
+;;     ;; Compile `--to-compile' files.
+;;     (when changed
+;;       (dolist (file --to-compile)
+;;         (load (srcdir/ file) nil nil t))
+;;       ;; We compute full fanout, not just root-set one-level-downstream.
+;;       ;; In this way we err on the safe side.
+;;       (let (todo)
+;;         (while changed
+;;           (nconc changed (f-set-difference
+;;                           (f-intersection
+;;                            (mapcar 'file-name-nondirectory
+;;                                    (file-dependents
+;;                                     (srcdir/ (car changed))))
+;;                            --to-compile)
+;;                           todo))
+;;           (pushnew (pop changed) todo :test 'string=))
+;;         (mapc 'zonk-file (mapcar 'byte-compile-dest-file todo))
+;; 	(mapc 'byte-compile-file (mapcar 'srcdir/ todo))
+;; 	))
+    )
 
   ;; All done.  TODO: Summarize.
   (bye-bye))
