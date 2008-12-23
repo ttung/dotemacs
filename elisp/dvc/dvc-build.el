@@ -120,6 +120,8 @@
     (unless (locate-library "tree-widget")
       '("tla-browse.el")))))
 
+(setq --to-compile '())
+
 ;; Warnings we care about.
 (defvar --warnings '(unresolved callargs redefine))
 
