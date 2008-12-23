@@ -67,6 +67,11 @@ BCC-LOAD-SOURCE-FILE should load the original file.")
   "List of files loaded with bcc-load-source-file. List of conses.
 car is origname, cdr is cachename.")
 
+(defcustom bcc-quiet t
+  "Whether to suppress detailed messages when loading"
+  :type 'boolean
+  :group 'byte-code-cache)
+
 (defconst bcc-compiled-doc-string 4
   "From lisp.h")
 
@@ -259,7 +264,7 @@ ORIGNAME. NOERROR and NOMESSAGE mean what they do for LOAD."
                 'never
               ad-default-compilation-action)))
 
-      (unless nomessage
+      (unless (or nomessage bcc-quiet)
         (message "Loading %S as %S..." cachename origname))
 
       (unwind-protect
@@ -280,7 +285,7 @@ ORIGNAME. NOERROR and NOMESSAGE mean what they do for LOAD."
 
       (do-after-load-evaluation origname)
 
-      (unless nomessage
+      (unless (or nomessage bcc-quiet)
         (message "Loading %S as %S...done" cachename origname))
 
       t)))
