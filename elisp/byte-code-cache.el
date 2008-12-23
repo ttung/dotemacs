@@ -163,6 +163,7 @@ loads ORIGNAME."
   (let ((byte-compile-verbose nil)
         (font-lock-verbose nil)
         (byte-compile-warnings '())
+        (byte-optimize-log nil)
         (temp-file
          (make-temp-file (expand-file-name
                           "fake-cache-"
@@ -195,6 +196,7 @@ thing it does for LOAD."
   (let ((byte-compile-verbose nil)
         (font-lock-verbose nil)
         (byte-compile-warnings '())
+        (byte-optimize-log nil)
         (kill-buffer-query-functions '())
 
         ;; byte-comp (for some reason) sets the mode in its input
@@ -292,7 +294,7 @@ it."
 
   (let (cachename
         hist-ent loaded-from-bcc-cache
-        bcc-loaded-fake-cache-entry)
+        bcc-loaded-fake-cache-entry retval)
 
     (when (and bcc-enabled
                (not (save-match-data
@@ -307,14 +309,16 @@ it."
         (bcc-regenerate-cache fullname cachename nomessage))
 
       (when (file-readable-p cachename)
-        (bcc-load-cached-file cachename fullname noerror nomessage)
+        (setq retval (bcc-load-cached-file cachename fullname noerror nomessage))
 
         (unless bcc-loaded-fake-cache-entry
           (setq loaded-from-bcc-cache t))))
 
     (unless loaded-from-bcc-cache
       (funcall bcc-old-load-source-file-function
-               fullname file noerror nomessage))))
+               fullname file noerror nomessage))
+
+    retval))
 
 (defadvice documentation-property (before bcc-documentation-property-fix activate)
   "Work around Emacs bug"
