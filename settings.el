@@ -259,6 +259,15 @@ See require. Return non-nil if FEATURE is or was loaded."
     (comment-start			. "/* ")
     (fill-column                        . 80)))
 
+(defvar facebook-php-style
+  '("linux"
+    (c-basic-offset                     . 2)
+    (c-offsets-alist			. ((case-label   	. +)))
+    (comment-column                     . 40)
+    (comment-end			. "")
+    (comment-start			. "// ")
+    (fill-column                        . 80)))
+
 (defvar my-c-style
   '("linux"
     (c-basic-offset			. 2)
@@ -294,6 +303,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-add-style "my-java-style"	my-java-style)
     (c-add-style "my-c-style"		my-c-style)
     (c-add-style "facebook-c-style"	facebook-c-style)
+    (c-add-style "facebook-php-style"	facebook-php-style)
     (c-add-style "vmware-c-style"	vmware-c-style)
     (font-lock-add-keywords
      'c-mode
@@ -315,7 +325,10 @@ See require. Return non-nil if FEATURE is or was loaded."
          (setq c-basic-offset 4))
         ((or (string-match "facebook\\.com" system-name)
              (string-match "Tony-Tung\\.local" system-name))
-         (c-set-style "facebook-c-style")
+         (cond ((and buffer-file-name (string-match "\.php$" buffer-file-name))
+                (c-set-style "facebook-php-style"))
+               ('t
+                (c-set-style "facebook-c-style")))
          (when (and buffer-file-name (string-match "/mcproxy.*/" buffer-file-name))
            (setq c-basic-offset 8)
            (setq indent-tabs-mode t)))
@@ -650,23 +663,23 @@ Return only one group for each buffer."
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 (defun maybe-delete-trailing-whitespace ()
-  (when (and
-         buffer-file-name
-         (string-match "/Users/tonytung/work/" buffer-file-name)
-         (not (or
-               (string-match "/viewmtn/" buffer-file-name)
-               (eq 'diff-mode major-mode))))
-    (delete-trailing-whitespace)))
-(when (fboundp 'delete-trailing-whitespace)
   (when (or (string-match "facebook\\.com" system-name)
             (string-match "Tony-Tung\\.local" system-name))
-    (setq-default show-trailing-whitespace t)
-    (add-hook 'write-file-hooks 'delete-trailing-whitespace))
+    ;; facebook settings.  always nuke whitespaces except in diff mode.
+    (unless (eq 'diff-mode major-mode)
+      (delete-trailing-whitespace)))
   (when (string-match "fourier\\.local" system-name)
-    (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace)))
+    (when (and
+           buffer-file-name
+           (string-match "/Users/tonytung/work/" buffer-file-name)
+           (not (or
+                 (string-match "/viewmtn/" buffer-file-name)
+                 (eq 'diff-mode major-mode))))
+      (delete-trailing-whitespace))))
 
-(add-hook 'find-file-hooks (lambda () "enable trailing whitespace"
-                             (setq show-trailing-whitespace t)))
+(setq-default show-trailing-whitespace t)
+(when (fboundp 'delete-trailing-whitespace)
+  (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
