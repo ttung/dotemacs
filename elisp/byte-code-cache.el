@@ -246,49 +246,56 @@ ORIGNAME. NOERROR and NOMESSAGE mean what they do for LOAD."
       (and (null noerror)
 	   (signal 'file-error (list "Cannot open load file" cachename)))
 
-    (let* ((default-major-mode 'fundamental-mode)
-           (default-enable-multibyte-characters nil)
-           (buffer (get-buffer-create (generate-new-buffer-name " *load*")))
-           (load-in-progress t)
+    (let ((reset-major-mode nil))
+      (let* ((default-major-mode 'fundamental-mode)
+             (default-enable-multibyte-characters nil)
+             (buffer (get-buffer-create (generate-new-buffer-name " *load*")))
+             (load-in-progress t)
 
-           ;; BYTE-COMPILER-WARNINGS is sometimes unbound even though
-           ;; (featurep 'bytecomp) is true. This happens when we're
-           ;; loading custom files, since BYTE-COMPILER-WARNINGS is a
-           ;; customization variable. Advice notices that bytecomp is
-           ;; loaded and tries to compile advised functions, which
-           ;; fails because we're in some strange customize-induced
-           ;; twilight zone.
-           (ad-default-compilation-action
-            (if (and (featurep 'bytecomp)
-                     (not (boundp 'byte-compiler-warnings)))
-                'never
-              ad-default-compilation-action)))
+             ;; BYTE-COMPILER-WARNINGS is sometimes unbound even though
+             ;; (featurep 'bytecomp) is true. This happens when we're
+             ;; loading custom files, since BYTE-COMPILER-WARNINGS is a
+             ;; customization variable. Advice notices that bytecomp is
+             ;; loaded and tries to compile advised functions, which
+             ;; fails because we're in some strange customize-induced
+             ;; twilight zone.
+             (ad-default-compilation-action
+              (if (and (featurep 'bytecomp)
+                       (not (boundp 'byte-compiler-warnings)))
+                  'never
+                ad-default-compilation-action)))
 
-      (unless (or nomessage bcc-quiet)
-        (message "Loading %S as %S..." cachename origname))
+        (unless (or nomessage bcc-quiet)
+          (message "Loading %S as %S..." cachename origname))
 
-      (unwind-protect
-          (let ((load-file-name origname)
-                (inhibit-file-name-operation nil))
+        (unwind-protect
+            (let ((load-file-name origname)
+                  (inhibit-file-name-operation nil))
 
-            (with-current-buffer buffer
-              (let ((coding-system-for-read 'no-conversion)
-                    deactivate-mark
-                    buffer-undo-list)
-                (insert-file-contents cachename)
-                (set-buffer-multibyte nil)))
+              (with-current-buffer buffer
+                (let ((coding-system-for-read 'no-conversion)
+                      deactivate-mark
+                      buffer-undo-list)
+                  (insert-file-contents cachename)
+                  (set-buffer-multibyte nil)))
 
-            (setq bcc-loaded (cons (cons origname cachename) bcc-loaded))
-            (eval-buffer buffer nil origname nil t))
+              (setq bcc-loaded (cons (cons origname cachename) bcc-loaded))
+              (eval-buffer buffer nil origname nil t))
 
-        (bcc-unconditionally-kill-buffer buffer))
+          (bcc-unconditionally-kill-buffer buffer))
 
-      (do-after-load-evaluation origname)
+        (unless (eq default-major-mode 'fundamental-mode)
+          (setq reset-major-mode default-major-mode))
 
-      (unless (or nomessage bcc-quiet)
-        (message "Loading %S as %S...done" cachename origname))
+        (do-after-load-evaluation origname)
 
-      t)))
+        (unless (or nomessage bcc-quiet)
+          (message "Loading %S as %S...done" cachename origname))
+
+        t)
+
+      (when reset-major-mode
+        (setq default-major-mode reset-major-mode)))))
 
 (defun bcc-load-source-file (fullname file noerror nomessage)
   "Load the given file. If it's a plain elisp file, compile it
