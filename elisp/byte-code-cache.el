@@ -290,12 +290,12 @@ ORIGNAME. NOERROR and NOMESSAGE mean what they do for LOAD."
         (do-after-load-evaluation origname)
 
         (unless (or nomessage bcc-quiet)
-          (message "Loading %S as %S...done" cachename origname))
-
-        t)
+          (message "Loading %S as %S...done" cachename origname)))
 
       (when reset-major-mode
-        (setq default-major-mode reset-major-mode)))))
+        (setq default-major-mode reset-major-mode))
+
+      t)))
 
 (defun bcc-load-source-file (fullname file noerror nomessage)
   "Load the given file. If it's a plain elisp file, compile it
