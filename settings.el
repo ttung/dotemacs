@@ -222,6 +222,14 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; initialize DVC
 (load-file (reduce 'path-join '("emacs" "elisp" "dvc-load.el") :initial-value home-directory))
 
+;; initialize whitespace
+(when (locate-library "whitespace")
+  (setq whitespace-style '(lines-tail))
+  (autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t)
+  (autoload 'global-whitespace-mode "whitespace" "Toggle whitespace visualization." t)
+  (when (string-match "facebook\\.com" system-name)
+    (global-whitespace-mode 't)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
