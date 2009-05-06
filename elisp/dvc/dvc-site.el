@@ -29,8 +29,8 @@
 
 ;;; Code:
 
-(defvar dvc-site-tla-executable "")
-(defvar dvc-site-baz-executable "")
+(defvar dvc-site-tla-executable "tla")
+(defvar dvc-site-baz-executable "baz")
 (defvar dvc-site-diff-executable "diff")
 (defvar dvc-site-patch-executable "patch")
 (defvar dvc-site-arch-branch 'none)
