@@ -299,8 +299,9 @@ fixed in Emacs after 21.3."
 ;; Update custom-autoloads and autoloads (merging them for GNU Emacs),
 ;; and compile everything that needs compiling.
 (defun dvc-build-all ()
-  (unless command-line-args-left
-    (setq byte-compile-warnings --warnings))
+  ;; The default warnings don't look so bad to me!
+  ;;(unless command-line-args-left
+  ;;  (setq byte-compile-warnings --warnings))
   (setq command-line-args-left nil)
 
   (let ((fake-c-l-a-l (list srcdir))
@@ -402,9 +403,7 @@ fixed in Emacs after 21.3."
 ;;                           todo))
 ;;           (pushnew (pop changed) todo :test 'string=))
 ;;         (mapc 'zonk-file (mapcar 'byte-compile-dest-file todo))
-;; 	(mapc 'byte-compile-file (mapcar 'srcdir/ todo))
-;; 	))
-    )
+;;         (mapc 'byte-compile-file (mapcar 'srcdir/ todo)))))
 
   ;; All done.  TODO: Summarize.
   (bye-bye))
