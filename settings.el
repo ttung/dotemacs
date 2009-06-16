@@ -332,7 +332,8 @@ See require. Return non-nil if FEATURE is or was loaded."
          (c-set-style "my-c-style")
          (setq c-basic-offset 4))
         ((or (string-match "facebook\\.com" system-name)
-             (string-match "Tony-Tung\\.local" system-name))
+             (and (string-match "fourier\\.local" system-name)
+                  (string-match "/tonytung/work/" buffer-file-name)))
          (cond ((and buffer-file-name (string-match "\.php$" buffer-file-name))
                 (c-set-style "facebook-php-style"))
                ('t
