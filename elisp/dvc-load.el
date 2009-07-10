@@ -13,11 +13,11 @@
 ;;
 ;; to your ~/.emacs.el
 
-(add-to-list 'load-path 
-             (reduce 'path-join '("emacs" "elisp" "dvc") :initial-value home-directory))
+(add-to-list 'load-path
+             (reduce 'path-join '("emacs" "elisp" "dvc") :initial-value nep-base))
 (unless (locate-library "ewoc")
-  (add-to-list 'load-path 
-               (reduce 'path-join '("emacs" "elisp" "dvc" "contrib") :initial-value home-directory)))
+  (add-to-list 'load-path
+               (reduce 'path-join '("emacs" "elisp" "dvc" "contrib") :initial-value nep-base)))
 
 (if (featurep 'dvc-core)
     (dvc-reload)

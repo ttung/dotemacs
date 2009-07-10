@@ -65,9 +65,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up the paths for custom files
 (add-to-list 'exec-path
-             (reduce 'path-join '("emacs" "bin") :initial-value home-directory))
+             (reduce 'path-join '("emacs" "bin") :initial-value nep-base))
 (add-to-list 'exec-path
-             (reduce 'path-join '("software" "bin") :initial-value home-directory))
+             (reduce 'path-join '("software" "bin") :initial-value nep-base))
 (add-to-list 'exec-path
              (reduce 'path-join '("opt" "local" "bin") :initial-value "/"))
 (setenv "PATH" (format "%s%s%s"
@@ -75,7 +75,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                 path-separator
                 (getenv "PATH")))
 (add-to-list 'load-path
-             (reduce 'path-join '("emacs" "elisp") :initial-value home-directory))
+             (reduce 'path-join '("emacs" "elisp") :initial-value nep-base))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
 (add-to-list 'auto-mode-alist '("\\.h\\'"		. c++-mode))
@@ -104,7 +104,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up the paths for psgml
 (add-to-list 'load-path
-             (reduce 'path-join '("emacs" "elisp" "psgml") :initial-value home-directory))
+             (reduce 'path-join '("emacs" "elisp" "psgml") :initial-value nep-base))
 
 (when (and (> emacs-version-num 19.34) (locate-library "psgml"))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
@@ -220,15 +220,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
 
 ;; initialize DVC
-(load-file (reduce 'path-join '("emacs" "elisp" "dvc-load.el") :initial-value home-directory))
+(load-file (reduce 'path-join '("emacs" "elisp" "dvc-load.el") :initial-value nep-base))
 
 ;; initialize whitespace
 (when (locate-library "whitespace")
   (setq whitespace-style '(lines-tail))
-  (autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t)
-  (autoload 'global-whitespace-mode "whitespace" "Toggle whitespace visualization." t)
-  (when (string-match "facebook\\.com" system-name)
-    (global-whitespace-mode 't)))
+  (autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -340,7 +337,9 @@ See require. Return non-nil if FEATURE is or was loaded."
                 (c-set-style "facebook-c-style")))
          (when (and buffer-file-name (string-match "/mcproxy.*/" buffer-file-name))
            (setq c-basic-offset 8)
-           (setq indent-tabs-mode t)))
+           (setq indent-tabs-mode t))
+         (when (string-match "/www.*/" buffer-file-name)
+           (whitespace-mode 't)))
         ((string-match "CHRISTINEWU" system-name)
          (c-set-style "vmware-c-style"))
         ('t
@@ -410,7 +409,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq vc-handled-backends (remove* 'Mtn vc-handled-backends))
 
 ;; python mode stuff
-(when (and (> emacs-version-num 19.34) (locate-library "python-mode"))
+(when (locate-library "python")
   (defun my-python-mode-hook ()
     (auto-fill-mode 't)
     (setq fill-column 90)
@@ -420,11 +419,7 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t))))
 
-  (add-hook 'python-mode-hook 'my-python-mode-hook)
-
-  (autoload 'python-mode "python-mode" "Major mode to edit Python files." t)
-  (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
-  (add-to-list 'interpreter-mode-alist '("python" . python-mode)))
+  (add-hook 'python-mode-hook 'my-python-mode-hook))
 
 ;; support for cvs over ssh
 (setenv "CVS_RSH" "ssh")
