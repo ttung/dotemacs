@@ -872,9 +872,12 @@ If ARG is negative, delete that many comment characters instead."
                 (not (compare-strings bn 0 nil (file-name-nondirectory bfn) 0 nil 't)))
             (substring bn (match-beginning 0))))
       (defun get-unique-tag (bfn bn)
-        (if (or (string-match "<[0-9]+>\\'" bn)
-                (not (string= bn (file-name-nondirectory bfn))))
-            (substring bn (match-beginning 0)))))
+        (cond ((string-match "<[0-9]+>\\'" bn)
+               (substring bn (match-beginning 0)))
+              ((not (string= bn (file-name-nondirectory bfn)))
+               (format "<%s>" bn))
+              ('t
+               nil))))
 
   (let ((shortened-file-name
          (limit-tree (abbreviate-file-name buffer-file-name) 1))
