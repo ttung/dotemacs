@@ -96,6 +96,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (setq inhibit-startup-message t)
+(setq initial-scratch-message nil)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -228,6 +229,9 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t))
 
 
+(want 'modulecmd)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -329,7 +333,7 @@ See require. Return non-nil if FEATURE is or was loaded."
          (c-set-style "my-c-style")
          (setq c-basic-offset 4))
         ((or (string-match "facebook\\.com" system-name)
-             (and (string-match "fourier\\.local" system-name)
+             (and (string-match "neuron\\.local" system-name)
                   (string-match "/tonytung/work/" buffer-file-name)))
          (cond ((and buffer-file-name (string-match "\.php$" buffer-file-name))
                 (c-set-style "facebook-php-style"))
@@ -672,7 +676,7 @@ Return only one group for each buffer."
     ;; facebook settings.  always nuke whitespaces except in diff mode.
     (unless (eq 'diff-mode major-mode)
       (delete-trailing-whitespace)))
-  (when (string-match "fourier\\.local" system-name)
+  (when (string-match "neuron\\.local" system-name)
     (when (and
            buffer-file-name
            (string-match "/Users/tonytung/work/" buffer-file-name)

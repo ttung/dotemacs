@@ -20,7 +20,7 @@
   (setq debug-on-error 't)
 
   (let* ((temp-byte-code-cache-directory
-          (reduce 'path-join (list ".emacs.d" (format "%s" emacs-version-num) "byte-cache") :initial-value home-directory))
+          (reduce 'path-join (list ".emacs.d" "byte-cache" (format "%s" emacs-version-num)) :initial-value home-directory))
          (fail-code
           (cond
            ((<= emacs-version-num 22.0)
