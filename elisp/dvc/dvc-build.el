@@ -404,6 +404,7 @@ fixed in Emacs after 21.3."
 ;;           (pushnew (pop changed) todo :test 'string=))
 ;;         (mapc 'zonk-file (mapcar 'byte-compile-dest-file todo))
 ;;         (mapc 'byte-compile-file (mapcar 'srcdir/ todo)))))
+    )
 
   ;; All done.  TODO: Summarize.
   (bye-bye))
