@@ -205,13 +205,13 @@
 					 actionscript-expr-kwds
 					 actionscript-other-kwds) 'words))
 
-(defvar actionscript-mode-abbrev-table nil
-  "Abbreviation table used in actionscript-mode buffers.")
-(define-abbrev-table 'actionscript-mode-abbrev-table
-		'(("else" "else" c-electric-continued-statement 0)
-			("while" "while" c-electric-continued-statement 0)
-			("catch" "catch" c-electric-continued-statement 0)
-			("finally" "finally" c-electric-continued-statement 0)))
+;; (defvar actionscript-mode-abbrev-table nil
+;;   "Abbreviation table used in actionscript-mode buffers.")
+;; (define-abbrev-table 'actionscript-mode-abbrev-table
+;; 		'(("else" "else" c-electric-continued-statement 0)
+;; 			("while" "while" c-electric-continued-statement 0)
+;; 			("catch" "catch" c-electric-continued-statement 0)
+;; 			("finally" "finally" c-electric-continued-statement 0)))
 
 ;; keywords introducing conditional blocks
 (setq actionscript-conditional-key
@@ -258,10 +258,10 @@ Key bindings:
 	(kill-all-local-variables)
 	(c-initialize-cc-mode t)
 	(set-syntax-table actionscript-mode-syntax-table)
-	(setq major-mode 'actionscript-mode
-				mode-name "Actionscript"
-				local-abbrev-table actionscript-mode-abbrev-table
-                abbrev-mode t)
+;; 	(setq major-mode 'actionscript-mode
+;; 				mode-name "Actionscript"
+;; 				local-abbrev-table actionscript-mode-abbrev-table
+;;                 abbrev-mode t)
 	(use-local-map actionscript-mode-map);;BHL
     (c-init-language-vars actionscript-mode)
 	(c-common-init 'actionscript-mode)
