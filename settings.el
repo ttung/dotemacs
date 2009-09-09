@@ -228,6 +228,11 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq whitespace-style '(lines-tail))
   (autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t))
 
+;; actionscript mode
+(when (locate-library "actionscript-mode")
+  (autoload 'actionscript-mode "actionscript-mode" "Mode for editing Actionscript files" t)
+  (add-to-list 'auto-mode-alist '("\\.as$" . actionscript-mode)))
+
 
 (want 'modulecmd)
 
