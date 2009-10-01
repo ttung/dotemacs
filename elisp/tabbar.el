@@ -1076,7 +1076,7 @@ Returns non-nil if the new state is enabled."
       (unless (eq header-line-format tabbar-header-line-format)
         ;; Save current default value of `header-line-format'.
         (setq tabbar-old-global-hlf (default-value 'header-line-format))
-        (add-hook 'kill-buffer-hook 'tabbar-buffer-kill-buffer-hook)
+        ;; (add-hook 'kill-buffer-hook 'tabbar-buffer-kill-buffer-hook)
         (tabbar-init-tabsets-store)
         (setq-default header-line-format tabbar-header-line-format))
 ;;; OFF
@@ -1084,7 +1084,7 @@ Returns non-nil if the new state is enabled."
     (when (eq (default-value 'header-line-format)
               tabbar-header-line-format)
       (setq-default header-line-format tabbar-old-global-hlf))
-    (remove-hook 'kill-buffer-hook 'tabbar-buffer-kill-buffer-hook)
+    ;; (remove-hook 'kill-buffer-hook 'tabbar-buffer-kill-buffer-hook)
     (tabbar-free-tabsets-store)
     ;; Turn off locals tab bar mode
     (mapc #'(lambda (b)
