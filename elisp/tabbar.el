@@ -1905,7 +1905,8 @@ Run as `tabbar-init-hook'."
         tabbar-home-function 'tabbar-buffer-click-on-home
         tabbar-home-help-function 'tabbar-buffer-help-on-home
         )
-  (add-hook 'kill-buffer-hook 'tabbar-buffer-track-killed))
+  ;; (add-hook 'kill-buffer-hook 'tabbar-buffer-track-killed)
+  )
 
 (defun tabbar-buffer-quit ()
   "Quit tab bar buffer.
@@ -1920,7 +1921,8 @@ Run as `tabbar-quit-hook'."
         tabbar-home-function nil
         tabbar-home-help-function nil
         )
-  (remove-hook 'kill-buffer-hook 'tabbar-buffer-track-killed))
+  ;;(remove-hook 'kill-buffer-hook 'tabbar-buffer-track-killed)
+  )
 
 (add-hook 'tabbar-init-hook 'tabbar-buffer-init)
 (add-hook 'tabbar-quit-hook 'tabbar-buffer-quit)
