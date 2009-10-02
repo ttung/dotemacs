@@ -1052,7 +1052,7 @@ element."
           (propertize (car label)
                       'tabbar-button name
                       'face 'tabbar-button
-                      'mouse-face 'tabbar-button-highlight
+                      ;; 'mouse-face 'tabbar-button-highlight
                       'pointer 'hand
                       'local-map (tabbar-make-button-keymap name)
                       'help-echo 'tabbar-help-on-button)
@@ -1113,7 +1113,7 @@ Call `tabbar-tab-label-function' to obtain a label for TAB."
            'tabbar-tab tab
            'local-map (tabbar-make-tab-keymap tab)
            'help-echo 'tabbar-help-on-tab
-           'mouse-face 'tabbar-highlight
+           ;; 'mouse-face 'tabbar-highlight
            'face (if (tabbar-selected-p tab (tabbar-current-tabset))
                      'tabbar-selected
                    'tabbar-unselected)

@@ -505,49 +505,53 @@ See require. Return non-nil if FEATURE is or was loaded."
     (global-set-key [M-S-left] 'tabbar-backward)
     (global-set-key [M-S-right] 'tabbar-forward)
 
-    (defun my-tabbar-buffer-groups (buffer)
-      "Return the list of group names BUFFER belongs to.
-Return only one group for each buffer."
-      (with-current-buffer (get-buffer buffer)
-        (cond
-         ((or (get-buffer-process (current-buffer))
-              (memq major-mode
-                    '(comint-mode compilation-mode)))
-          '("process")
-          )
-         ((member (buffer-name)
-                  '("*scratch*" "*Messages*" "*Completions*" "*Buffer List*"))
-          '("misc")
-          )
-         ((eq major-mode 'dired-mode)
-          '("dired")
-          )
-         ((memq major-mode
-                '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
-          '("misc")
-          )
-         ((memq major-mode
-                '(tex-mode latex-mode text-mode xml-mode))
-          '("main")
-          )
-         (t
-          '("main")
-          )
-         )))
+    (defun my-tabbar-buffer-groups ()
+      "Return the list of group names the current buffer belongs to.
+Return a list of one element based on major mode."
+      (setq debug-on-error 't)
+      (list
+       (cond
+        ((or (get-buffer-process (current-buffer))
+             ;; Check if the major mode derives from `comint-mode' or
+             ;; `compilation-mode'.
+             (tabbar-buffer-mode-derived-p
+              major-mode '(comint-mode compilation-mode)))
+         "process"
+         )
+        ((member (buffer-name)
+                 '("*scratch*" "*Messages*" "*Completions*" "*Buffer List*"))
+         "misc"
+         )
+        ((eq major-mode 'dired-mode)
+         "dired"
+         )
+        ((memq major-mode
+               '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
+         "misc"
+         )
+        ((memq major-mode
+               '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
+         "misc"
+         )
+        (t
+         "main"
+         )
+        )))
     (setq tabbar-cycling-scope 'tabs)
     (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
-    (set-face-attribute 'tabbar-default-face nil
+    (set-face-attribute 'tabbar-default nil
                         :inherit 'default
                         :height 0.9
                         :foreground "gray60"
                         :background "gray72")
-    (set-face-attribute 'tabbar-selected-face nil
+    (set-face-attribute 'tabbar-selected nil
                         :foreground "blue"
                         :box '(:line-width 2 :color "white" :style pressed-button))
-    (set-face-attribute 'tabbar-unselected-face nil
+    (set-face-attribute 'tabbar-unselected nil
                         :foreground "midnightblue"
                         :box '(:line-width 2 :color "white" :style released-button))
-    ))
+    )
+)
 
 ;; kill the menu bar when there's no window system
 (unless window-system
