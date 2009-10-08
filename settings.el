@@ -508,7 +508,6 @@ See require. Return non-nil if FEATURE is or was loaded."
     (defun my-tabbar-buffer-groups ()
       "Return the list of group names the current buffer belongs to.
 Return a list of one element based on major mode."
-      (setq debug-on-error 't)
       (list
        (cond
         ((or (get-buffer-process (current-buffer))
@@ -537,7 +536,7 @@ Return a list of one element based on major mode."
          "main"
          )
         )))
-    (setq tabbar-cycling-scope 'tabs)
+    (setq tabbar-cycle-scope 'tabs)
     (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
     (set-face-attribute 'tabbar-default nil
                         :inherit 'default
@@ -676,7 +675,13 @@ Return a list of one element based on major mode."
       (set-frame-font "fontset-mac" 'keep)
       (add-to-list 'default-frame-alist
                    '(font . "fontset-mac"))
-      (setq mac-allow-anti-aliasing nil))
+      (setq mac-allow-anti-aliasing nil)
+      (when (eq window-system 'ns)
+        ;; the ns window system by default maps option to meta and command to super.
+        (setq ns-option-modifier 'none)
+        (setq ns-command-modifier 'meta)
+
+        (setq mac-allow-anti-aliasing nil)))
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 (defun maybe-delete-trailing-whitespace ()
