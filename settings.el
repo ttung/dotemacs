@@ -253,16 +253,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (auto-fill-mode))
 (add-hook 'sgml-mode-hook 'my-sgml-mode-hook)
 
-(defvar vmware-c-style
-  '("linux"
-    (c-basic-offset                     . 3)
-    (c-offsets-alist			. ((case-label   	. +)))
-    (comment-column                     . 40)
-    (comment-end			. " */")
-    (comment-multi-line			. t)
-    (comment-start			. "/* ")
-    (fill-column                        . 80)))
-
 (defvar facebook-c-style
   '("linux"
     (c-basic-offset                     . 2)
@@ -318,7 +308,6 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-add-style "my-c-style"		my-c-style)
     (c-add-style "facebook-c-style"	facebook-c-style)
     (c-add-style "facebook-php-style"	facebook-php-style)
-    (c-add-style "vmware-c-style"	vmware-c-style)
     (font-lock-add-keywords
      'c-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -349,8 +338,6 @@ See require. Return non-nil if FEATURE is or was loaded."
            (setq indent-tabs-mode t))
          (when (string-match "/www.*/" buffer-file-name)
            (whitespace-mode 't)))
-        ((string-match "CHRISTINEWU" system-name)
-         (c-set-style "vmware-c-style"))
         ('t
          (c-set-style "my-c-style")))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
@@ -690,7 +677,8 @@ Return only one group for each buffer."
                  (eq 'diff-mode major-mode))))
       (delete-trailing-whitespace))))
 
-(setq-default show-trailing-whitespace t)
+(unless (string-match "christinewu" user-login-name)
+  (setq-default show-trailing-whitespace t))
 (when (fboundp 'delete-trailing-whitespace)
   (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace))
 
@@ -1077,8 +1065,7 @@ it is put to the start of the list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; enable auto-save
-(unless (or (string-match "CHRISTINEWU" system-name)
-            (not (string= init-file-user user-login-name)))
+(when (string= init-file-user user-login-name)
   (let ((dir (expand-file-name "~/.emacs.d/auto-saves/")))
     (when (or (file-exists-p dir)
               (not (condition-case nil
