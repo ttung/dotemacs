@@ -681,6 +681,10 @@ Return a list of one element based on major mode."
         (setq ns-option-modifier 'none)
         (setq ns-command-modifier 'meta)
 
+        (global-set-key "\M-h" 'ns-do-hide-emacs)
+        (global-set-key "\M-`" 'ns-next-frame)
+        (global-set-key "\M-~" 'ns-prev-frame)
+
         (setq mac-allow-anti-aliasing nil)))
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
