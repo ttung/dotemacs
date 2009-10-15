@@ -121,7 +121,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq psgml-html-htmldtd-version "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"))
 
 ;; set up html-ize
-(when (and (> emacs-version-num 19.28) window-system)
+(when (> emacs-version-num 19.28)
   (want 'htmlize))
 
 (when (want 'iswitchb)
@@ -464,11 +464,10 @@ See require. Return non-nil if FEATURE is or was loaded."
     (show-paren-mode 1))
 
 ;; set the scroll bar to the right side
-(when window-system
-  (when (= emacs-version-num 20.02)
-    (set-scroll-bar-mode 'right 'right))
-  (when (> emacs-version-num 20.02)
-    (set-scroll-bar-mode 'right)))
+(when (= emacs-version-num 20.02)
+  (set-scroll-bar-mode 'right 'right))
+(when (> emacs-version-num 20.02)
+  (set-scroll-bar-mode 'right))
 
 ;; show marked area
 (transient-mark-mode t)
@@ -482,7 +481,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (when (and window-system (>= emacs-version-num 21))
   (blink-cursor-mode -1)
-  (add-to-list 'default-frame-alist '(tool-bar-lines . 0))
   (when (want 'tabbar)
     (tabbar-mode)
     (global-set-key [M-S-left] 'tabbar-backward)
@@ -581,86 +579,89 @@ Return a list of one element based on major mode."
 
     ;; ;; set up colors not dependent on window system
     (set-face-background 'highlight			"DARKSEAGREEN2" current-frame)
-    (set-face-background 'mode-line				"MIDNIGHTBLUE" current-frame)
-    (set-face-background 'region				"NAVY" current-frame)
+    (set-face-background 'mode-line			"MIDNIGHTBLUE" current-frame)
+    (set-face-background 'region			"NAVY" current-frame)
     (set-face-background 'show-paren-match-face		"NAVY" current-frame)
-    (set-face-background 'show-paren-mismatch-face		"PURPLE" current-frame)
-    (set-face-background 'fringe				"grey30" current-frame)
+    (set-face-background 'show-paren-mismatch-face	"PURPLE" current-frame)
+    (set-face-background 'fringe			"grey30" current-frame)
 
-    (set-foreground-color 					"WHITE")
+    (set-foreground-color 				"WHITE")
     (set-face-foreground 'highlight			"WHITE" current-frame)
-    (set-face-foreground 'mode-line				"CYAN" current-frame)
+    (set-face-foreground 'mode-line			"CYAN" current-frame)
     (set-face-foreground 'show-paren-match-face		"CYAN" current-frame)
-    (set-face-foreground 'show-paren-mismatch-face		"WHITE" current-frame)
+    (set-face-foreground 'show-paren-mismatch-face	"WHITE" current-frame)
     (set-face-background 'trailing-whitespace		"#900000" current-frame)
 
     ;; set up colors dependent on window-system
     (if current-window-system
-        (try-set-face-foreground 'region			"CYAN" current-frame)
-        (try-set-face-foreground 'region			"WHITE" current-frame))))
+        (try-set-face-foreground 'region		"CYAN" current-frame)
+        (try-set-face-foreground 'region		"WHITE" current-frame))))
 
 (defun my-font-lock-mode-hook ()
   (let* ((current-frame (selected-frame))
-         (current-window-system (frame-parameter current-frame 'window-system)))
-    (if current-window-system
-        (progn
-          (try-set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE" current-frame)
-          (try-set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE" current-frame)
-          (try-set-face-foreground 'font-lock-string-face		"LIGHTSALMON" current-frame)
-          (try-set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD" current-frame)
-          (try-set-face-foreground 'font-lock-builtin-face		"VIOLET" current-frame)
-          (try-set-face-foreground 'font-lock-warning-face		"RED" current-frame)
-          (try-set-face-foreground 'font-lock-comment-face		"ROSYBROWN2" current-frame)
-          (try-set-face-foreground 'font-lock-type-face			"PALEGREEN" current-frame)
-          (if (< emacs-version-num 20.02)
-              (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE" current-frame)
-            (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE" current-frame)))
-      (try-set-face-foreground 'font-lock-function-name-face		"LIGHTSKYBLUE" current-frame)
-      (try-set-face-foreground 'font-lock-keyword-face			"LIGHTSTEELBLUE" current-frame)
-      (try-set-face-foreground 'font-lock-string-face			"LIGHTSALMON" current-frame)
-      (try-set-face-foreground 'font-lock-variable-name-face		"LIGHTGOLDENROD" current-frame)
-      (try-set-face-foreground 'font-lock-builtin-face			"VIOLET" current-frame)
-      (try-set-face-foreground 'font-lock-warning-face			"RED" current-frame)
-      (if (< emacs-version-num 20.02)
-          (try-set-face-foreground 'font-lock-reference-face		"CADETBLUE" current-frame)
-        (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE" current-frame))
-      (try-set-face-foreground 'diff-context-face        		"WHITE" current-frame)
-      (try-set-face-foreground 'cscope-line-face			"LIGHTGOLDENROD" current-frame)
+         (current-window-system (frame-parameter current-frame 'window-system))
+         (my-font-lock-mode-hook-called (frame-parameter current-frame 'my-font-lock-mode-hook-called)))
+    (unless my-font-lock-mode-hook-called
+      (if current-window-system
+          (progn
+            (try-set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE" current-frame)
+            (try-set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE" current-frame)
+            (try-set-face-foreground 'font-lock-string-face		"LIGHTSALMON" current-frame)
+            (try-set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD" current-frame)
+            (try-set-face-foreground 'font-lock-builtin-face		"VIOLET" current-frame)
+            (try-set-face-foreground 'font-lock-warning-face		"RED" current-frame)
+            (try-set-face-foreground 'font-lock-comment-face		"ROSYBROWN2" current-frame)
+            (try-set-face-foreground 'font-lock-type-face		"PALEGREEN" current-frame)
+            (if (< emacs-version-num 20.02)
+                (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE" current-frame)
+              (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE" current-frame))
+            (try-set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE" current-frame)
+            (try-set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE" current-frame)
+            (try-set-face-foreground 'font-lock-string-face		"LIGHTSALMON" current-frame)
+            (try-set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD" current-frame)
+            (try-set-face-foreground 'font-lock-builtin-face		"VIOLET" current-frame)
+            (try-set-face-foreground 'font-lock-warning-face		"RED" current-frame)
+            (if (< emacs-version-num 20.02)
+                (try-set-face-foreground 'font-lock-reference-face	"CADETBLUE" current-frame)
+              (try-set-face-foreground 'font-lock-constant-face		"CADETBLUE" current-frame))
+            (try-set-face-foreground 'diff-context-face        		"WHITE" current-frame)
+            (try-set-face-foreground 'cscope-line-face			"LIGHTGOLDENROD" current-frame))
 
-      (try-set-face-background 'font-lock-comment-face			"unspecified-bg" current-frame)
-      (try-set-face-background 'font-lock-function-name-face		"unspecified-bg" current-frame)
-      (try-set-face-background 'font-lock-keyword-face			"unspecified-bg" current-frame)
-      (try-set-face-background 'font-lock-string-face			"unspecified-bg" current-frame)
-      (try-set-face-background 'font-lock-type-face			"unspecified-bg" current-frame)
-      (try-set-face-background 'font-lock-variable-name-face		"unspecified-bg" current-frame)
-      (try-set-face-foreground 'font-lock-comment-face			"RED" current-frame)
-      (try-set-face-foreground 'font-lock-type-face			"GREEN" current-frame)
-      (if (< emacs-version-num 20.02)
-          (try-set-face-background 'font-lock-reference-face		"unspecified-bg" current-frame)
-        (try-set-face-background 'font-lock-constant-face		"unspecified-bg" current-frame))
+        (try-set-face-background 'font-lock-comment-face		"unspecified-bg" current-frame)
+        (try-set-face-background 'font-lock-function-name-face		"unspecified-bg" current-frame)
+        (try-set-face-background 'font-lock-keyword-face		"unspecified-bg" current-frame)
+        (try-set-face-background 'font-lock-string-face			"unspecified-bg" current-frame)
+        (try-set-face-background 'font-lock-type-face			"unspecified-bg" current-frame)
+        (try-set-face-background 'font-lock-variable-name-face		"unspecified-bg" current-frame)
+        (try-set-face-foreground 'font-lock-comment-face		"RED" current-frame)
+        (try-set-face-foreground 'font-lock-type-face			"GREEN" current-frame)
+        (if (< emacs-version-num 20.02)
+            (try-set-face-background 'font-lock-reference-face		"unspecified-bg" current-frame)
+          (try-set-face-background 'font-lock-constant-face		"unspecified-bg" current-frame))
 
-      (try-set-face-foreground 'ediff-fine-diff-A			"BLUE" current-frame)
-      (try-set-face-foreground 'ediff-fine-diff-B			"BLUE" current-frame))))
+        (try-set-face-foreground 'ediff-fine-diff-A			"BLUE" current-frame)
+        (try-set-face-foreground 'ediff-fine-diff-B			"BLUE" current-frame))
+
+      (modify-frame-parameters current-frame '((my-font-lock-mode-hook-called . 't))))))
 
 (add-hook 'after-make-frame-functions 'setup-face-colors)
 (add-hook 'font-lock-mode-hook 'my-font-lock-mode-hook)
 
+;; call it anyway for the current frame in case we're not using --daemon.
 (setup-face-colors (selected-frame))
 
-(if (and window-system (eq system-type 'darwin))
-    (progn
-      (set-keyboard-coding-system 'mac-roman)
-
-      (create-fontset-from-fontset-spec
-       "-apple-monaco-medium-r-normal--10-*-*-*-*-*-fontset-mac,
+(defun setup-mac-options (new-frame)
+  (let* ((current-frame new-frame)
+         (current-window-system (frame-parameter current-frame 'window-system)))
+    (when current-window-system
+      (unless (fboundp 'setup-mac-options-once)
+        (create-fontset-from-fontset-spec
+         "-apple-monaco-medium-r-normal--10-*-*-*-*-*-fontset-mac,
   ascii:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
   latin-iso88510-1:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
   mule-unicode-0100-24ff:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman")
-      (set-frame-font "fontset-mac" 'keep)
-      (add-to-list 'default-frame-alist
-                   '(font . "fontset-mac"))
-      (setq mac-allow-anti-aliasing nil)
-      (when (eq window-system 'ns)
+        (setq mac-allow-anti-aliasing nil)
+
         ;; the ns window system by default maps option to meta and command to super.
         (setq ns-option-modifier 'none)
         (setq ns-command-modifier 'meta)
@@ -669,8 +670,17 @@ Return a list of one element based on major mode."
         (global-set-key "\M-`" 'ns-next-frame)
         (global-set-key "\M-~" 'ns-prev-frame)
 
-        (setq mac-allow-anti-aliasing nil)))
-  (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
+        (defvar setup-mac-options-once t
+          "Indicates that setup-mac-options has been called at least once"))
+
+      (set-keyboard-coding-system 'mac-roman current-frame)
+      (modify-frame-parameters current-frame
+                               '((font . "fontset-mac"))))))
+
+(if (not (eq system-type 'darwin))
+    (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*"))
+  (add-hook 'after-make-frame-functions 'setup-mac-options)
+  (setup-mac-options (selected-frame)))
 
 (defun maybe-delete-trailing-whitespace ()
   (when (or (string-match "facebook\\.com" system-name)
