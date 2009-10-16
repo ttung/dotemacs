@@ -354,7 +354,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (defun my-java-mode-hook ()
   (local-set-key "\C-d"			'my-delete)
-  (when (not (fboundp 'my-java-mode-hook-done))
+  (when (not (boundp 'my-java-mode-hook-done))
     (font-lock-add-keywords
      'java-mode
      '(("\\<\\(NOTE\\):"	1 font-lock-warning-face t)
@@ -372,7 +372,7 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq fill-column 100)
   (abbrev-mode -1)
   (local-set-key "\C-d"			'my-delete)
-  (when (not (fboundp 'my-javascript-mode-hook-done))
+  (when (not (boundp 'my-javascript-mode-hook-done))
     (font-lock-add-keywords
      'javascript-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -383,7 +383,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-hook 'javascript-mode-hook 'my-javascript-mode-hook)
 
 ;; set up the font-lock system
-(when (fboundp 'global-font-lock-mode)
+(when (boundp 'global-font-lock-mode)
        (global-font-lock-mode t)
        (setq font-lock-maximum-decoration t)
        (setq font-lock-maximum-size nil))
@@ -479,63 +479,84 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq next-line-add-newlines nil)
 (setq require-final-newline 'ask)
 
-(when (and window-system (>= emacs-version-num 21))
-  (blink-cursor-mode -1)
-  (when (want 'tabbar)
-    (tabbar-mode)
-    (global-set-key [M-S-left] 'tabbar-backward)
-    (global-set-key [M-S-right] 'tabbar-forward)
+(defvar after-new-frame-functions nil
+  "Functions to run after a frame is created within a window-system.
+The functions are run with two arguments, the newly created frame, and the window-system.")
 
-    (defun my-tabbar-buffer-groups ()
-      "Return the list of group names the current buffer belongs to.
+(defun after-new-frame-run-functions (new-frame)
+  (let* ((current-frame new-frame)
+         (current-window-system (window-system current-frame)))
+    (when current-window-system
+      (run-hook-with-args 'after-new-frame-functions new-frame current-window-system))))
+
+(add-hook 'after-make-frame-functions 'after-new-frame-run-functions)
+(add-hook 'after-init-hook (lambda ()
+                             (after-new-frame-run-functions (selected-frame))))
+
+(defun setup-tabbar (current-frame current-window-system)
+  (when (and current-window-system (want 'tabbar))
+    (unless (boundp 'setup-tabbar-once)
+      (tabbar-mode)
+
+      (global-set-key [M-S-left] 'tabbar-backward)
+      (global-set-key [M-S-right] 'tabbar-forward)
+
+      (defun my-tabbar-buffer-groups ()
+        "Return the list of group names the current buffer belongs to.
 Return a list of one element based on major mode."
-      (list
-       (cond
-        ((or (get-buffer-process (current-buffer))
-             ;; Check if the major mode derives from `comint-mode' or
-             ;; `compilation-mode'.
-             (tabbar-buffer-mode-derived-p
-              major-mode '(comint-mode compilation-mode)))
-         "process"
-         )
-        ((member (buffer-name)
-                 '("*scratch*" "*Messages*" "*Completions*" "*Buffer List*"))
-         "misc"
-         )
-        ((eq major-mode 'dired-mode)
-         "dired"
-         )
-        ((memq major-mode
-               '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
-         "misc"
-         )
-        ((memq major-mode
-               '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
-         "misc"
-         )
-        (t
-         "main"
-         )
-        )))
-    (setq tabbar-cycle-scope 'tabs)
-    (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
-    (set-face-attribute 'tabbar-default nil
-                        :inherit 'default
-                        :height 0.9
-                        :foreground "gray60"
-                        :background "gray72")
-    (set-face-attribute 'tabbar-selected nil
-                        :foreground "blue"
-                        :box '(:line-width 2 :color "white" :style pressed-button))
-    (set-face-attribute 'tabbar-unselected nil
-                        :foreground "midnightblue"
-                        :box '(:line-width 2 :color "white" :style released-button))
-    )
-)
+        (list
+         (cond
+          ((or (get-buffer-process (current-buffer))
+               ;; Check if the major mode derives from `comint-mode' or
+               ;; `compilation-mode'.
+               (tabbar-buffer-mode-derived-p
+                major-mode '(comint-mode compilation-mode)))
+           "process"
+           )
+          ((member (buffer-name)
+                   '("*scratch*" "*Messages*" "*Completions*" "*Buffer List*"))
+           "misc"
+           )
+          ((eq major-mode 'dired-mode)
+           "dired"
+           )
+          ((memq major-mode
+                 '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
+           "misc"
+           )
+          ((memq major-mode
+                 '(fundamental-mode help-mode apropos-mode Info-mode Man-mode gdb-breakpoints-mode))
+           "misc"
+           )
+          (t
+           "main"
+           )
+          )))
+      (setq tabbar-cycle-scope 'tabs)
+      (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
+      (set-face-attribute 'tabbar-default nil
+                          :inherit 'default
+                          :height 0.9
+                          :foreground "gray60"
+                          :background "gray72")
+      (set-face-attribute 'tabbar-selected nil
+                          :foreground "blue"
+                          :box '(:line-width 2 :color "white" :style pressed-button))
+      (set-face-attribute 'tabbar-unselected nil
+                          :foreground "midnightblue"
+                          :box '(:line-width 2 :color "white" :style released-button))
+
+      (defvar setup-tabbar-once t
+        "Indicates that setup-tabbar has been called at least once with a window system"))))
+(add-hook 'after-new-frame-functions 'setup-tabbar)
 
 ;; kill the menu bar when there's no window system
-(unless window-system
-  (menu-bar-mode 0))
+(add-hook 'after-new-frame-functions (lambda (current-frame current-window-system)
+                                       (if current-window-system
+                                         (modify-frame-parameters current-frame '((menu-bar-lines . 1)))
+                                         (modify-frame-parameters current-frame '((menu-bar-lines . 0))))))
+
+(tool-bar-mode 0)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -561,41 +582,38 @@ Return a list of one element based on major mode."
         (set-face-background face color))
     (error nil)))
 
-(defun setup-face-colors (new-frame)
-  (let* ((current-frame new-frame)
-         (current-window-system (window-system current-frame)))
+(defun setup-face-colors (current-frame current-window-system)
+  ;; setting default fore/background must go first.  it may otherwise clobber the later settings.
+  (if current-window-system
+      (try-set-face-background 'default			"BLACK" current-frame)
+    (try-set-face-background 'default			"unspecified-bg" current-frame))
+  (set-face-foreground 'default				"WHITE" current-frame)
 
-    ;; setting default fore/background must go first.  it may otherwise clobber the later settings.
-    (if current-window-system
-        (try-set-face-background 'default			"BLACK" current-frame)
-        (try-set-face-background 'default			"unspecified-bg" current-frame))
-    (set-face-foreground 'default				"WHITE" current-frame)
+  ;; modify stuff that's in the frame parameters.
+  (if current-window-system
+      (modify-frame-parameters current-frame '((cursor-color . "GREEN")
+                                               (background-color . "BLACK")))
+    (modify-frame-parameters current-frame '((background-color . "unspecified-bg"))))
 
-    ;; modify stuff that's in the frame parameters.
-    (if current-window-system
-          (modify-frame-parameters current-frame '((cursor-color . "GREEN")
-                                                   (background-color . "BLACK")))
-      (modify-frame-parameters current-frame '((background-color . "unspecified-bg"))))
+  ;; ;; set up colors not dependent on window system
+  (set-face-background 'highlight			"DARKSEAGREEN2" current-frame)
+  (set-face-background 'mode-line			"MIDNIGHTBLUE" current-frame)
+  (set-face-background 'region			"NAVY" current-frame)
+  (set-face-background 'show-paren-match-face		"NAVY" current-frame)
+  (set-face-background 'show-paren-mismatch-face	"PURPLE" current-frame)
+  (set-face-background 'fringe			"grey30" current-frame)
 
-    ;; ;; set up colors not dependent on window system
-    (set-face-background 'highlight			"DARKSEAGREEN2" current-frame)
-    (set-face-background 'mode-line			"MIDNIGHTBLUE" current-frame)
-    (set-face-background 'region			"NAVY" current-frame)
-    (set-face-background 'show-paren-match-face		"NAVY" current-frame)
-    (set-face-background 'show-paren-mismatch-face	"PURPLE" current-frame)
-    (set-face-background 'fringe			"grey30" current-frame)
+  (set-foreground-color 				"WHITE")
+  (set-face-foreground 'highlight			"WHITE" current-frame)
+  (set-face-foreground 'mode-line			"CYAN" current-frame)
+  (set-face-foreground 'show-paren-match-face		"CYAN" current-frame)
+  (set-face-foreground 'show-paren-mismatch-face	"WHITE" current-frame)
+  (set-face-background 'trailing-whitespace		"#900000" current-frame)
 
-    (set-foreground-color 				"WHITE")
-    (set-face-foreground 'highlight			"WHITE" current-frame)
-    (set-face-foreground 'mode-line			"CYAN" current-frame)
-    (set-face-foreground 'show-paren-match-face		"CYAN" current-frame)
-    (set-face-foreground 'show-paren-mismatch-face	"WHITE" current-frame)
-    (set-face-background 'trailing-whitespace		"#900000" current-frame)
-
-    ;; set up colors dependent on window-system
-    (if current-window-system
-        (try-set-face-foreground 'region		"CYAN" current-frame)
-        (try-set-face-foreground 'region		"WHITE" current-frame))))
+  ;; set up colors dependent on window-system
+  (if current-window-system
+      (try-set-face-foreground 'region		"CYAN" current-frame)
+    (try-set-face-foreground 'region		"WHITE" current-frame)))
 
 (defun my-font-lock-mode-hook ()
   (let* ((current-frame (selected-frame))
@@ -644,43 +662,37 @@ Return a list of one element based on major mode."
 
       (modify-frame-parameters current-frame '((my-font-lock-mode-hook-called . t))))))
 
-(add-hook 'after-make-frame-functions 'setup-face-colors)
+(add-hook 'after-new-frame-functions 'setup-face-colors)
 (add-hook 'font-lock-mode-hook 'my-font-lock-mode-hook)
 
-;; call it anyway for the current frame in case we're not using --daemon.
-(setup-face-colors (selected-frame))
-
-(defun setup-mac-options (new-frame)
-  (let* ((current-frame new-frame)
-         (current-window-system (window-system current-frame)))
-    (when current-window-system
-      (unless (fboundp 'setup-mac-options-once)
-        (create-fontset-from-fontset-spec
-         "-apple-monaco-medium-r-normal--10-*-*-*-*-*-fontset-mac,
+(defun setup-mac-options (current-frame current-window-system)
+  (when current-window-system
+    (unless (boundp 'setup-mac-options-once)
+      (create-fontset-from-fontset-spec
+       "-apple-monaco-medium-r-normal--10-*-*-*-*-*-fontset-mac,
   ascii:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
   latin-iso88510-1:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
   mule-unicode-0100-24ff:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman")
-        (setq mac-allow-anti-aliasing nil)
+      (setq mac-allow-anti-aliasing nil)
 
-        ;; the ns window system by default maps option to meta and command to super.
-        (setq ns-option-modifier 'none)
-        (setq ns-command-modifier 'meta)
+      ;; the ns window system by default maps option to meta and command to super.
+      (setq ns-option-modifier 'none)
+      (setq ns-command-modifier 'meta)
 
-        (global-set-key "\M-h" 'ns-do-hide-emacs)
-        (global-set-key "\M-`" 'ns-next-frame)
-        (global-set-key "\M-~" 'ns-prev-frame)
+      (global-set-key "\M-h" 'ns-do-hide-emacs)
+      (global-set-key "\M-`" 'ns-next-frame)
+      (global-set-key "\M-~" 'ns-prev-frame)
 
-        (defvar setup-mac-options-once t
-          "Indicates that setup-mac-options has been called at least once"))
+      (defvar setup-mac-options-once t
+        "Indicates that setup-mac-options has been called at least once with a window system"))
 
-      (set-keyboard-coding-system 'mac-roman current-frame)
-      (modify-frame-parameters current-frame
-                               '((font . "fontset-mac"))))))
+    (set-keyboard-coding-system 'mac-roman current-frame)
+    (modify-frame-parameters current-frame
+                             '((font . "fontset-mac")))))
 
-(if (not (eq system-type 'darwin))
-    (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*"))
-  (add-hook 'after-make-frame-functions 'setup-mac-options)
-  (setup-mac-options (selected-frame)))
+(if (eq system-type 'darwin)
+  (add-hook 'after-new-frame-functions 'setup-mac-options)
+  (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 (defun maybe-delete-trailing-whitespace ()
   (when (or (string-match "facebook\\.com" system-name)
@@ -699,7 +711,7 @@ Return a list of one element based on major mode."
 
 (unless (string-match "christinewu" user-login-name)
   (setq-default show-trailing-whitespace t))
-(when (fboundp 'delete-trailing-whitespace)
+(when (boundp 'delete-trailing-whitespace)
   (add-hook 'write-file-hooks 'maybe-delete-trailing-whitespace))
 
 
