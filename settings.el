@@ -563,7 +563,7 @@ Return a list of one element based on major mode."
 
 (defun setup-face-colors (new-frame)
   (let* ((current-frame new-frame)
-         (current-window-system (frame-parameter current-frame 'window-system)))
+         (current-window-system (window-system current-frame)))
 
     ;; setting default fore/background must go first.  it may otherwise clobber the later settings.
     (if current-window-system
@@ -599,7 +599,7 @@ Return a list of one element based on major mode."
 
 (defun my-font-lock-mode-hook ()
   (let* ((current-frame (selected-frame))
-         (current-window-system (frame-parameter current-frame 'window-system))
+         (current-window-system (window-system current-frame))
          (my-font-lock-mode-hook-called (frame-parameter current-frame 'my-font-lock-mode-hook-called)))
     (unless my-font-lock-mode-hook-called
       (if current-window-system
@@ -642,7 +642,7 @@ Return a list of one element based on major mode."
         (try-set-face-foreground 'ediff-fine-diff-A			"BLUE" current-frame)
         (try-set-face-foreground 'ediff-fine-diff-B			"BLUE" current-frame))
 
-      (modify-frame-parameters current-frame '((my-font-lock-mode-hook-called . 't))))))
+      (modify-frame-parameters current-frame '((my-font-lock-mode-hook-called . t))))))
 
 (add-hook 'after-make-frame-functions 'setup-face-colors)
 (add-hook 'font-lock-mode-hook 'my-font-lock-mode-hook)
@@ -652,7 +652,7 @@ Return a list of one element based on major mode."
 
 (defun setup-mac-options (new-frame)
   (let* ((current-frame new-frame)
-         (current-window-system (frame-parameter current-frame 'window-system)))
+         (current-window-system (window-system current-frame)))
     (when current-window-system
       (unless (fboundp 'setup-mac-options-once)
         (create-fontset-from-fontset-spec
