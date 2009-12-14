@@ -599,7 +599,9 @@ Return a list of one element based on major mode."
 
 (defun my-font-lock-mode-hook ()
   (let* ((current-frame (selected-frame))
-         (current-window-system (window-system current-frame))
+         (current-window-system (if (fboundp 'window-system)
+                                    (window-system current-frame)
+                                  window-system))
          (my-font-lock-mode-hook-called (frame-parameter current-frame 'my-font-lock-mode-hook-called)))
     (unless (and nil my-font-lock-mode-hook-called)
       (if current-window-system
