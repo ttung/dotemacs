@@ -424,6 +424,11 @@ See require. Return non-nil if FEATURE is or was loaded."
   (when (file-exists-p ssh-agent-sock)
     (setenv "SSH_AUTH_SOCK" ssh-agent-sock)))
 
+;; sort by filename
+(setq Buffer-menu-sort-column 5)
+
+(setq-default ispell-program-name "aspell")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UNIX tweaks
