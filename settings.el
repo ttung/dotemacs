@@ -32,6 +32,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq safe-local-variable-values '((save-buffer-coding-system . undecided-unix)
                                    (show-trailing-whitespace)))
+(setq-default line-move-visual nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global extras
@@ -93,6 +94,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'completion-ignored-extensions ".gz")
 (add-to-list 'completion-ignored-extensions ".pyc")
 
+(fset 'yes-or-no-original-p (symbol-function 'yes-or-no-p))
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -363,7 +365,10 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(FIXME\\):"	1 font-lock-warning-face t)))
     (defvar my-java-mode-hook-done t
       "Indicates that my-java-mode-hook has been called"))
-  (c-set-style "my-java-style"))
+  (cscope:hook)
+  (c-set-style "my-java-style")
+  (when (and buffer-file-name (string-match "/FBAndroid.*/" buffer-file-name))
+    (setq c-basic-offset 4)))
 (add-hook 'java-mode-hook 'my-java-mode-hook)
 
 ;; javascript-mode customizations
@@ -925,6 +930,19 @@ If ARG is negative, delete that many comment characters instead."
   (setq tab-width 5)
   (auto-fill-mode)
   (local-set-key "	" (quote self-insert-command)))
+
+(defun buffer-reducer (count buffer)
+  (+ count
+     (if (string-equal (substring (buffer-name buffer) 0 1) " ") 0 1)))
+
+(defun kill-check ()
+  (if (> (reduce 'buffer-reducer (buffer-list) :initial-value 0) 25)
+      (funcall (if (fboundp 'yes-or-no-original-p)
+                   'yes-or-no-original-p
+                 'yes-or-no-p)
+               "You have more than 25 buffers open.  Really exit Emacs? ")
+    t))
+(add-hook 'kill-emacs-query-functions 'kill-check)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
