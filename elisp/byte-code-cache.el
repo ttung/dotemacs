@@ -270,14 +270,23 @@ ORIGNAME. NOERROR and NOMESSAGE mean what they do for LOAD."
 
         (unwind-protect
             (let ((load-file-name origname)
+                  (set-auto-coding-for-load t)
                   (inhibit-file-name-operation nil))
 
               (with-current-buffer buffer
-                (let ((coding-system-for-read 'no-conversion)
-                      deactivate-mark
+                (let (deactivate-mark
                       buffer-undo-list)
+                  ;; So that we don't get completely screwed if the
+                  ;; file is encoded in some complicated character set,
+                  ;; read it with real decoding, as a multibyte buffer,
+                  ;; even if this is a --unibyte Emacs session.
+                  (set-buffer-multibyte t)
+
                   (insert-file-contents cachename)
-                  (set-buffer-multibyte nil)))
+                  (if (and enable-multibyte-characters
+                           (or (eq (coding-system-type last-coding-system-used)
+                                   'raw-text)))
+                      (set-buffer-multibyte nil))))
 
               (setq bcc-loaded (cons (cons origname cachename) bcc-loaded))
               (eval-buffer buffer nil origname nil t))

@@ -93,6 +93,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'completion-ignored-extensions ".pdf")
 (add-to-list 'completion-ignored-extensions ".gz")
 (add-to-list 'completion-ignored-extensions ".pyc")
+(add-to-list 'completion-ignored-extensions ".DS_Store")
 
 (fset 'yes-or-no-original-p (symbol-function 'yes-or-no-p))
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -284,11 +285,31 @@ See require. Return non-nil if FEATURE is or was loaded."
 (defvar my-java-style
   '("java"
     (c-basic-offset			. 2)
-    (c-offsets-alist			. ((substatement-open	.	0)))
+    (c-offsets-alist			. ((substatement-open	.	0)
+                                           (case-label          .       +)))
     (c-hanging-braces-alist             . ((brace-list-open)
                                            (brace-entry-open)))
      )
   "my java style")
+
+(defun facebook-java-lineup-java-throws (langelem)
+  (let ((c-basic-offset (* c-basic-offset 2)))
+    (c-lineup-java-throws langelem)))
+
+(defvar facebook-java-style
+  '("java"
+    (c-basic-offset	    . 2)
+    (c-offsets-alist	    .
+                            ((substatement-open	  . 0)
+                             (case-label            . +)
+                             (arglist-intro         . ++)
+                             (arglist-cont-nonempty . ++)
+                             (statement-cont        . ++)
+                             (func-decl-cont        . facebook-java-lineup-java-throws)))
+    (c-hanging-braces-alist . ((brace-list-open)
+                               (brace-entry-open)))
+     )
+  "facebook java style")
 
 
 ;; c-mode customizations that don't load c-mode nor font-lock mode
@@ -299,18 +320,14 @@ See require. Return non-nil if FEATURE is or was loaded."
   (abbrev-mode -1)
   (local-set-key "\C-c\C-x\C-w"		'c-wrap-conditional)
   (local-set-key "\C-d"			'my-delete)
-  (local-set-key "\C-c>" 		'search-for-matching-endif)
-  (local-set-key "\C-c<" 		'search-for-matching-ifdef)
   (when (not (boundp 'my-c-mode-common-hook-done))
     (when (and (> emacs-version-num 20.0) (want 'xcscope))
       (defvar xcscope-loaded 't "t if xcscope is loaded"))
-;;       (when (string-match "pasemi\\.com" system-name)
-;;         (load "xcscope")
-;;         (define-key cscope-list-entry-keymap (kbd "RET") 'cscope-select-entry-other-window)))
-    (c-add-style "my-java-style"	my-java-style)
     (c-add-style "my-c-style"		my-c-style)
     (c-add-style "facebook-c-style"	facebook-c-style)
     (c-add-style "facebook-php-style"	facebook-php-style)
+    (c-add-style "my-java-style"	my-java-style)
+    (c-add-style "facebook-java-style"	facebook-java-style)
     (font-lock-add-keywords
      'c-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -322,7 +339,13 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
     (defvar my-c-mode-common-hook-done t
-      "Indicates that my-c-mode-common-hook has been called"))
+      "Indicates that my-c-mode-common-hook has been called")))
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+;; c-mode customizations that don't load c-mode nor font-lock mode
+(defun my-c-mode-hook ()
+  (local-set-key "\C-c>" 		'search-for-matching-endif)
+  (local-set-key "\C-c<" 		'search-for-matching-ifdef)
   (cond ((and buffer-file-name (string-match "/elinks/src" buffer-file-name))
          (setq tab-width 2)
          (c-set-style "my-c-style"))
@@ -339,13 +362,12 @@ See require. Return non-nil if FEATURE is or was loaded."
          (when (and buffer-file-name (string-match "/mcproxy.*/" buffer-file-name))
            (setq c-basic-offset 8)
            (setq indent-tabs-mode t))
-         (when (string-match "/www.*/" buffer-file-name)
-           (whitespace-mode 't)))
+         (whitespace-mode 't))
         ('t
          (c-set-style "my-c-style")))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
     (my-xcscope-setup)))
-(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+(add-hook 'c-mode-hook 'my-c-mode-hook)
 
 (defun my-asm-mode-hook ()
   (setq comment-start "# ")
@@ -356,20 +378,48 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
 
 (defun my-java-mode-hook ()
-  (local-set-key "\C-d"			'my-delete)
+;;  (local-set-key "\C-d"			'my-delete)
   (when (not (boundp 'my-java-mode-hook-done))
     (font-lock-add-keywords
      'java-mode
      '(("\\<\\(NOTE\\):"	1 font-lock-warning-face t)
        ("\\<\\(TODO\\):"	1 font-lock-warning-face t)
        ("\\<\\(FIXME\\):"	1 font-lock-warning-face t)))
+    (when (want 'java-mode-indent-annotations)
+      (defvar java-mode-indent-annotations-available t
+        "java-mode-indent-annotations is available if defined"))
     (defvar my-java-mode-hook-done t
       "Indicates that my-java-mode-hook has been called"))
-  (cscope:hook)
-  (c-set-style "my-java-style")
+  (cond ((or (string-match "facebook\\.com" system-name)
+             (and buffer-file-name
+                  (string-match "neuron\\.local" system-name)
+                  (string-match "/tonytung/work/" buffer-file-name)))
+         (c-set-style "facebook-java-style")
+         (whitespace-mode 't))
+        ('t
+         (c-set-style "my-java-style")))
   (when (and buffer-file-name (string-match "/FBAndroid.*/" buffer-file-name))
-    (setq c-basic-offset 4)))
+    (setq c-basic-offset 4)
+    (setq fill-column 80))
+  (when (boundp 'java-mode-indent-annotations-available)
+    (java-mode-indent-annotations-setup))
+  (when (and (boundp 'xcscope-loaded) xcscope-loaded)
+    (my-xcscope-setup)
+    (cscope:hook)))
 (add-hook 'java-mode-hook 'my-java-mode-hook)
+
+(defun my-xml-mode-hook ()
+  (when (not (boundp 'my-xml-mode-hook-done))
+    (font-lock-add-keywords
+     'xml-mode
+     '(("\\<\\(NOTE\\):"	1 font-lock-warning-face t)
+       ("\\<\\(TODO\\):"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME\\):"	1 font-lock-warning-face t)))
+    (defvar my-xml-mode-hook-done t
+      "Indicates that my-xml-mode-hook has been called"))
+  (when (and buffer-file-name (string-match "/FBAndroid.*/" buffer-file-name))
+    (set (make-local-variable 'nxml-child-indent) 2)))
+(add-hook 'nxml-mode-hook 'my-xml-mode-hook)
 
 ;; javascript-mode customizations
 (defun my-javascript-mode-hook ()
@@ -691,19 +741,20 @@ Return a list of one element based on major mode."
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 (defun maybe-delete-trailing-whitespace ()
-  (when (or (string-match "facebook\\.com" system-name)
-            (string-match "Tony-Tung\\.local" system-name))
-    ;; facebook settings.  always nuke whitespaces except in diff mode.
-    (unless (eq 'diff-mode major-mode)
-      (delete-trailing-whitespace)))
-  (when (string-match "neuron\\.local" system-name)
-    (when (and
-           buffer-file-name
-           (string-match "/Users/tonytung/work/" buffer-file-name)
-           (not (or
-                 (string-match "/viewmtn/" buffer-file-name)
-                 (eq 'diff-mode major-mode))))
-      (delete-trailing-whitespace))))
+  (if (eq 'diff-mode major-mode)
+      nil
+    (when (or (string-match "facebook\\.com" system-name)
+              (string-match "Tony-Tung\\.local" system-name))
+      ;; facebook settings.  always nuke whitespaces except in diff mode.
+      (unless (eq 'diff-mode major-mode)
+        (delete-trailing-whitespace)))
+    (when (string-match "neuron\\.local" system-name)
+      (when (and
+             buffer-file-name
+             (string-match "/Users/tonytung/work/" buffer-file-name)
+             (not (or
+                   (string-match "/jackson/" buffer-file-name))))
+        (delete-trailing-whitespace)))))
 
 (unless (string-match "christinewu" user-login-name)
   (setq-default show-trailing-whitespace t))
@@ -945,19 +996,48 @@ If ARG is negative, delete that many comment characters instead."
 (add-hook 'kill-emacs-query-functions 'kill-check)
 
 
+(defun fba-i18n (&optional arg)
+  (interactive "p")
+
+  (let ((remaining (if (eq arg nil)
+                       1
+                     arg)))
+    (condition-case nil
+        (loop for i from remaining downto 1 do
+              (progn
+                (goto-char (point-min))
+                (while (re-search-forward "\\([ ]*\\.\\{3,\\}[ ]*\\|&#x2026;\\)" nil t)
+                  (replace-match "\x2026" nil nil))
+
+                (goto-char (point-min))
+                (while (re-search-forward "<string name=\"\\([^\"]*\\)\">\\(.*\\)<\\(.*\\)</string>" nil t)
+                  (replace-match "<string name=\"\\1\">\\2&lt;\\3</string>" nil nil))
+
+                (goto-char (point-min))
+                (while (re-search-forward "<string name=\"\\([^\"]*\\)\">\\(.*\\)>\\(.*\\)</string>" nil t)
+                  (replace-match "<string name=\"\\1\">\\2&gt;\\3</string>" nil nil))
+
+                (goto-char (point-min))
+                (while (search-forward "\xff1b" nil t)
+                  (replace-match ";" nil nil))
+
+                (save-buffer)
+                (kill-buffer)))
+      (message "Not all iterations completed"))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "Borrowed" functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Go to matching parentheses
-(defun match-paren (arg)
-  "Go to the matching parenthesis if on parenthesis otherwise insert %."
-  (interactive "p")
+(defun match-paren ()
+  "Go to the matching parenthesis if on parenthesis."
+  (interactive)
   (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
         ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
         ((looking-at "\\s\{") (forward-list 1) (backward-char 1))
-        ((looking-at "\\s\}") (forward-char 1) (backward-list 1))
-        (t (self-insert-command (or arg 1)))))
+        ((looking-at "\\s\}") (forward-char 1) (backward-list 1))))
 
 ;;; move cursor to the matching `#ifdef' or `#if'
 ;;;
