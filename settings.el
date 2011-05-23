@@ -388,6 +388,31 @@ See require. Return non-nil if FEATURE is or was loaded."
     (when (want 'java-mode-indent-annotations)
       (defvar java-mode-indent-annotations-available t
         "java-mode-indent-annotations is available if defined"))
+
+    (defconst javadoc-font-lock-doc-comments
+      `(("{@[a-z]+[^}\n\r]*}"		; "{@foo…}" markup.
+         0 ,c-doc-markup-face-name prepend nil)
+        ("^\\(/\\*\\)?\\(\\s \\|\\*\\)*\\(@[a-z]+\\)" ; "@foo…" markup.
+         3 ,c-doc-markup-face-name prepend nil)
+        (,(concat "</?\\sw"			; HTML tags.
+                  "\\("
+                  (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
+                          "\"[^\"]*\"\\|'[^']*'")
+                  "\\)*>")
+         0 ,c-doc-markup-face-name prepend nil)
+        ("&\\(\\sw\\|[.:]\\)+;"		; HTML entities.
+         0 ,c-doc-markup-face-name prepend nil)
+        ("&\\(\\sw\\|[.:]\\)+;"		; HTML entities.
+         0 ,c-doc-markup-face-name prepend nil)
+        ("\\<\\(\\(?:NOTE\\|TODO\\|FIXME\\)\\):"		; NOTE/TODO/FIXME
+         1 ,font-lock-warning-face prepend nil)
+        ;; Fontify remaining markup characters as invalid.  Note
+        ;; that the Javadoc spec is hazy about when "@" is
+        ;; allowed in non-markup use.
+        (,(lambda (limit)
+            (c-find-invalid-doc-markup "[<>&]\\|{@" limit))
+         0 'font-lock-warning-face prepend nil)))
+
     (defvar my-java-mode-hook-done t
       "Indicates that my-java-mode-hook has been called"))
   (cond ((or (string-match "facebook\\.com" system-name)
@@ -525,10 +550,11 @@ See require. Return non-nil if FEATURE is or was loaded."
     (show-paren-mode 1))
 
 ;; set the scroll bar to the right side
-(when (= emacs-version-num 20.02)
-  (set-scroll-bar-mode 'right 'right))
-(when (> emacs-version-num 20.02)
-  (set-scroll-bar-mode 'right))
+(when (fboundp 'set-scroll-bar-mode)
+  (when (= emacs-version-num 20.02)
+    (set-scroll-bar-mode 'right 'right))
+  (when (> emacs-version-num 20.02)
+    (set-scroll-bar-mode 'right)))
 
 ;; show marked area
 (transient-mark-mode t)
@@ -612,7 +638,8 @@ Return a list of one element based on major mode."
         "Indicates that setup-tabbar has been called at least once with a window system"))))
 (add-hook 'after-new-frame-functions 'setup-tabbar)
 
-(tool-bar-mode 0)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode 0))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1006,8 +1033,16 @@ If ARG is negative, delete that many comment characters instead."
         (loop for i from remaining downto 1 do
               (progn
                 (goto-char (point-min))
-                (while (re-search-forward "\\([ ]*\\.\\{3,\\}[ ]*\\|&#x2026;\\)" nil t)
+                (while (re-search-forward "\\(\\.\\{3,\\}\\|\\&amp;#x2026;\\|\\&#x2026;\\)" nil t)
                   (replace-match "\x2026" nil nil))
+
+                (goto-char (point-min))
+                (while (re-search-forward "\xb7" nil t)
+                  (replace-match "\x00b7" nil nil))
+
+                ;; (goto-char (point-min))
+                ;; (while (re-search-forward "\\(\\.\\{3,\\}\\|…\\)" nil t)
+                ;;   (replace-match "\x2026" nil nil))
 
                 (goto-char (point-min))
                 (while (re-search-forward "<string name=\"\\([^\"]*\\)\">\\(.*\\)<\\(.*\\)</string>" nil t)
@@ -1024,6 +1059,21 @@ If ARG is negative, delete that many comment characters instead."
                 (save-buffer)
                 (kill-buffer)))
       (message "Not all iterations completed"))))
+
+
+(defun my-git-grep (regexp dir)
+  "Run git grep, searching for REGEXP in the current git repository."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (if (fboundp 'vc-git-root)
+         (let* ((regexp (grep-read-regexp))
+                (dir (vc-git-root default-directory)))
+           (list regexp dir))
+       (list nil nil))))
+  (if dir
+      (vc-git-grep regexp "*" dir)
+    (message "Not in a git repository")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1197,7 +1247,7 @@ it is put to the start of the list."
       (setq auto-save-file-name-transforms '(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/tmp/\\2" t)
                                              ("\\`\\([^/]*/\\)*\\([^/]*\\)\\'" "~/.emacs.d/auto-saves/\\2" t))))))
 
-;; keybindings...
+;; keybindings…
 (if (eq window-system nil)
     (progn
       (global-set-key [delete] 'my-delete)
@@ -1244,6 +1294,7 @@ it is put to the start of the list."
     (global-set-key "\C-c\C-r"	'uncomment-region)
   (global-set-key "\C-c\C-r"	'region-remove-comment))
 (global-set-key "\C-c\C-l"	'comment-line)
+(global-set-key "\C-cr"	        'my-git-grep)
 (global-set-key "\C-d"		'my-delete)
 
 (global-set-key [M-up]		'scroll-down-line)
