@@ -37,4 +37,6 @@
     (load (reduce 'path-join '("emacs" "settings.el") :initial-value nep-base))
 
     (when fail-code
-      (display-warning 'byte-code-cache fail-code :warning))))
+      (if (fboundp 'display-warning)
+          (display-warning 'byte-code-cache fail-code :warning)
+        (message fail-code)))))

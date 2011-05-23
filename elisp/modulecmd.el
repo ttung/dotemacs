@@ -39,7 +39,8 @@
   (let* ((args (append (list "-s" "elisp") pre-cmd-args (list cmd) post-cmd-args))
          (stdout-buffer (generate-new-buffer "*module stdout*"))
          (stderr-file (make-temp-file "module-stderr"))
-         (apply-args (append (list "/Users/tonytung/software/pyenv/modulecmd"
+         (modulecmd-fullpath (reduce 'path-join (list "software" "pyenv" "modulecmd") :initial-value home-directory))
+         (apply-args (append (list modulecmd-fullpath
                                    nil (list stdout-buffer stderr-file)
                                    't) args)))
     (unwind-protect
@@ -139,7 +140,7 @@
 ;;            ;; all of the strings have the same prefix
 ;;            )))
 ;;         ((= mode nil)
-;;          (memq 
+;;          (memq
 
 (defun module-avail ()
   (interactive)

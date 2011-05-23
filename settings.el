@@ -276,6 +276,12 @@ See require. Return non-nil if FEATURE is or was loaded."
     (comment-start			. "// ")
     (fill-column                        . 80)))
 
+(defvar facebook-javascript-style
+  '("linux"
+    (c-basic-offset                     . 2)
+    (c-offsets-alist			. ((statement-block-intro   	. c-lineup-arglist-intro-after-paren)))))
+
+
 (defvar my-c-style
   '("linux"
     (c-basic-offset			. 2)
@@ -459,8 +465,12 @@ See require. Return non-nil if FEATURE is or was loaded."
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
        ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t)))
+    (c-add-style "facebook-javascript-style" facebook-javascript-style)
     (defvar my-javascript-mode-hook-done t
-      "Indicates that my-javascript-mode-hook has been called")))
+      "Indicates that my-javascript-mode-hook has been called"))
+;;   (cond ((string-match "facebook\\.com" system-name)
+;;          (c-set-style "facebook-javascript-style")))
+)
 (add-hook 'javascript-mode-hook 'my-javascript-mode-hook)
 
 ;; set up the font-lock system
@@ -558,6 +568,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; show marked area
 (transient-mark-mode t)
+
+;; turn off blinking cursor.
+(blink-cursor-mode 0)
 
 ;; scroll
 (setq scroll-step 1)
@@ -668,14 +681,23 @@ Return a list of one element based on major mode."
   (set-face-background 'highlight			"DARKSEAGREEN2")
   (set-face-background 'mode-line			"MIDNIGHTBLUE")
   (set-face-background 'region				"NAVY")
-  (set-face-background 'show-paren-match		"NAVY")
-  (set-face-background 'show-paren-mismatch		"PURPLE")
+  (if (< emacs-version-num 22)
+      (progn
+        (set-face-background 'show-paren-match-face	"NAVY")
+        (set-face-background 'show-paren-mismatch-face	"PURPLE"))
+    (set-face-background 'show-paren-match		"NAVY")
+    (set-face-background 'show-paren-mismatch		"PURPLE"))
   (set-face-background 'fringe				"grey30")
 
   (set-face-foreground 'highlight			"WHITE")
   (set-face-foreground 'mode-line			"CYAN")
-  (set-face-foreground 'show-paren-match		"CYAN")
-  (set-face-foreground 'show-paren-mismatch		"WHITE")
+  (if (< emacs-version-num 22)
+      (progn
+        (set-face-foreground 'show-paren-match-face	"CYAN")
+        (set-face-foreground 'show-paren-mismatch-face	"WHITE"))
+    (set-face-foreground 'show-paren-match		"CYAN")
+    (set-face-foreground 'show-paren-mismatch		"WHITE"))
+
   (set-face-background 'trailing-whitespace		"#900000")
 
   ;; set up colors dependent on window-system
