@@ -1,7 +1,7 @@
 ;;; javascript-mode.el --- major mode for editing JavaScript code
 
 ;; Copyright (C) 1997-2001 Steven Champeon
-;;               2002-2004 Ville Skyttä
+;;               2002-2006 Ville Skyttä
 
 ;; Author:     1997 Steven Champeon <schampeo@hesketh.com>
 ;; Maintainer: Ville Skyttä <scop@xemacs.org>
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with XEmacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; Synched up with: not in GNU Emacs.
 
@@ -37,6 +37,7 @@
 ;;   Sebastian Delmont (fix for prototype function indentation problems)
 ;;   Stefan Schlee     (GNU Emacs compatibility fixes)
 ;;   Igor Rayak        (ditto)
+;;   Tsirkin Evgeny    (regexp improvement ideas)
 
 ;; TODO:
 ;; - Multiple font-lock/highlight levels.
@@ -56,7 +57,7 @@
 
 ;; ------------------------------------------------------------------------ ;;
 
-(defconst javascript-mode-version "1.9" "Version of `javascript-mode'.")
+(defconst javascript-mode-version "1.10" "Version of `javascript-mode'.")
 
 ;; ------------------------------------------------------------------------ ;;
 
@@ -181,8 +182,8 @@ Set arguments for this command in `javascript-shell-command-args'."
        ) t))
   "Expression for matching reserved words in `javascript-mode' buffers.
 
-From Core JavaScript Reference 1.5, Appendix A (Reserved Words):
-<http://developer.netscape.com/docs/manuals/js/core/jsref15/keywords.html>")
+From Core JavaScript Reference 1.5, Reserved Words:
+<http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference:Reserved_Words>")
 
 
 ;; JavaScript identifiers
@@ -191,22 +192,53 @@ From Core JavaScript Reference 1.5, Appendix A (Reserved Words):
   "[a-zA-Z_\\$][a-zA-Z0-9_\\$]*"
   "Expression for matching identifiers in `javascript-mode' buffers.
 
-From Core JavaScript Guide 1.5, Chapter 2 (Values, Variables and Literals):
-<http://developer.netscape.com/docs/manuals/js/core/jsguide15/ident.html>")
+From Core JavaScript Guide 1.5, Core Language Features:
+<http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Guide:About:Core_Language_Features>")
 
 ;; ------------------------------------------------------------------------ ;;
 
-;; Font lock keywords
+;; Font lock keywords etc
 
+;; eg. function foo(bar, quux)
 (defconst javascript-function-re
-  (concat "\\(^\\|[ \t;{]\\)function[ \t]+\\("
+  (concat "\\(^\\|[ \t;{]\\)"
+          "function[ \t]+"
+          "\\("
+          "\\(" javascript-identifier "\\.\\)*"
           javascript-identifier
-          "\\)"))
+          "\\)")
+  "Regular expression for matching \"normal\" function declarations.")
+
+;; eg. foo: function(bar, quux)
+(defconst javascript-property-function-re
+  (concat "\\(^\\|[ \t;{]+\\)"
+          "\\("
+          "\\(" javascript-identifier "\\.\\)*"
+          javascript-identifier
+          "\\)"
+          "[ \t]*:[ \t]*"
+          "\\(new[ \t]+Function\\|function\\)"
+          "[ \t]*(")
+  "Regular expression for matching property style function declarations.")
+
+;; eg. foo.bar.quux = function(baz)
+(defconst javascript-prototype-function-re
+  (concat "\\(^\\|[ \t;{]+\\)"
+          "\\("
+          "\\(" javascript-identifier "\\.\\)*"
+          javascript-identifier
+          "\\)"
+          "[ \t]*=[ \t]*"
+          "\\(new[ \t]+Function\\|function\\)"
+          "[ \t]*(")
+  "Regular expression for matching prototype style function declarations.")
 
 (defconst javascript-variable-re
-  (concat "\\(^\\|[ \t;{(]\\)\\(const\\|var\\)[ \t]+\\("
+  (concat "\\(^\\|[ \t;{(]\\)\\(const\\|var\\)[ \t]+"
+          "\\("
           javascript-identifier
-          "\\)"))
+          "\\)")
+  "Regular expression for matching variables.")
 
 (defconst javascript-font-lock-keywords
   (list
@@ -220,6 +252,8 @@ From Core JavaScript Guide 1.5, Chapter 2 (Values, Variables and Literals):
 
    ;; Function declarations.
    (cons javascript-function-re '(2 'font-lock-function-name-face))
+   (cons javascript-property-function-re '(2 'font-lock-function-name-face))
+   (cons javascript-prototype-function-re '(2 'font-lock-function-name-face))
    ;; This would catch both declarations and calls.
    ;(cons (concat
    ;       "\\(^\\|[ \t.;{(]\\)\\("
@@ -243,6 +277,8 @@ From Core JavaScript Guide 1.5, Chapter 2 (Values, Variables and Literals):
 
 (defvar javascript-imenu-generic-expression
   `((nil ,javascript-function-re 2)
+    (nil ,javascript-property-function-re 2)
+    (nil ,javascript-prototype-function-re 2)
     ;; ("Variables" ,javascript-variable-re 3)
     )
   "Imenu generic expression for JavaScript mode.
