@@ -22,6 +22,8 @@
 ;;; Change Log:
 ;; Fri Nov 16 00:33:28 EST 2007 - Made more robust against
 ;; pathological recursive invocations.
+;; Thu Jul 08 15:52:00 PST 2010 - Made work even with complex
+;; advise definitions.
 
 ;;; Code:
 
@@ -66,11 +68,6 @@ BCC-LOAD-SOURCE-FILE should load the original file.")
 (defvar bcc-loaded nil
   "List of files loaded with bcc-load-source-file. List of conses.
 car is origname, cdr is cachename.")
-
-(defcustom bcc-quiet t
-  "Whether to suppress detailed messages when loading"
-  :type 'boolean
-  :group 'byte-code-cache)
 
 (defconst bcc-compiled-doc-string 4
   "From lisp.h")
@@ -168,7 +165,6 @@ loads ORIGNAME."
   (let ((byte-compile-verbose nil)
         (font-lock-verbose nil)
         (byte-compile-warnings '())
-        (byte-optimize-log nil)
         (temp-file
          (make-temp-file (expand-file-name
                           "fake-cache-"
@@ -201,7 +197,6 @@ thing it does for LOAD."
   (let ((byte-compile-verbose nil)
         (font-lock-verbose nil)
         (byte-compile-warnings '())
-        (byte-optimize-log nil)
         (kill-buffer-query-functions '())
 
         ;; byte-comp (for some reason) sets the mode in its input
@@ -246,63 +241,38 @@ ORIGNAME. NOERROR and NOMESSAGE mean what they do for LOAD."
       (and (null noerror)
 	   (signal 'file-error (list "Cannot open load file" cachename)))
 
-    (let ((reset-major-mode nil))
-      (let* ((default-major-mode 'fundamental-mode)
-             (default-enable-multibyte-characters nil)
-             (buffer (get-buffer-create (generate-new-buffer-name " *load*")))
-             (load-in-progress t)
+    (let* ((default-major-mode 'fundamental-mode)
+           (default-enable-multibyte-characters nil)
+           (buffer (get-buffer-create (generate-new-buffer-name " *load*")))
+           (load-in-progress t)
+           (byte-compile-warnings
+            (if (boundp 'byte-compile-warnings) byte-compile-warnings nil))
+           (byte-compile-verbose
+            (if (boundp 'byte-compile-verbose) byte-compile-verbose nil)))
 
-             ;; BYTE-COMPILER-WARNINGS is sometimes unbound even though
-             ;; (featurep 'bytecomp) is true. This happens when we're
-             ;; loading custom files, since BYTE-COMPILER-WARNINGS is a
-             ;; customization variable. Advice notices that bytecomp is
-             ;; loaded and tries to compile advised functions, which
-             ;; fails because we're in some strange customize-induced
-             ;; twilight zone.
-             (ad-default-compilation-action
-              (if (and (featurep 'bytecomp)
-                       (not (boundp 'byte-compiler-warnings)))
-                  'never
-                ad-default-compilation-action)))
+      (unless nomessage
+        (message "Loading %S as %S..." cachename origname))
 
-        (unless (or nomessage bcc-quiet)
-          (message "Loading %S as %S..." cachename origname))
+      (unwind-protect
+          (let ((load-file-name origname)
+                (inhibit-file-name-operation nil))
 
-        (unwind-protect
-            (let ((load-file-name origname)
-                  (set-auto-coding-for-load t)
-                  (inhibit-file-name-operation nil))
+            (with-current-buffer buffer
+              (let ((coding-system-for-read 'no-conversion)
+                    deactivate-mark
+                    buffer-undo-list)
+                (insert-file-contents cachename)
+                (set-buffer-multibyte nil)))
 
-              (with-current-buffer buffer
-                (let (deactivate-mark
-                      buffer-undo-list)
-                  ;; So that we don't get completely screwed if the
-                  ;; file is encoded in some complicated character set,
-                  ;; read it with real decoding, as a multibyte buffer,
-                  ;; even if this is a --unibyte Emacs session.
-                  (set-buffer-multibyte t)
+            (setq bcc-loaded (cons (cons origname cachename) bcc-loaded))
+            (eval-buffer buffer nil origname nil t))
 
-                  (insert-file-contents cachename)
-                  (if (and enable-multibyte-characters
-                           (or (eq (coding-system-type last-coding-system-used)
-                                   'raw-text)))
-                      (set-buffer-multibyte nil))))
+        (bcc-unconditionally-kill-buffer buffer))
 
-              (setq bcc-loaded (cons (cons origname cachename) bcc-loaded))
-              (eval-buffer buffer nil origname nil t))
+      (do-after-load-evaluation origname)
 
-          (bcc-unconditionally-kill-buffer buffer))
-
-        (unless (eq default-major-mode 'fundamental-mode)
-          (setq reset-major-mode default-major-mode))
-
-        (do-after-load-evaluation origname)
-
-        (unless (or nomessage bcc-quiet)
-          (message "Loading %S as %S...done" cachename origname)))
-
-      (when reset-major-mode
-        (setq default-major-mode reset-major-mode))
+      (unless nomessage
+        (message "Loading %S as %S...done" cachename origname))
 
       t)))
 
@@ -315,7 +285,7 @@ it."
 
   (let (cachename
         hist-ent loaded-from-bcc-cache
-        bcc-loaded-fake-cache-entry retval)
+        bcc-loaded-fake-cache-entry)
 
     (when (and bcc-enabled
                (not (save-match-data
@@ -330,16 +300,14 @@ it."
         (bcc-regenerate-cache fullname cachename nomessage))
 
       (when (file-readable-p cachename)
-        (setq retval (bcc-load-cached-file cachename fullname noerror nomessage))
+        (bcc-load-cached-file cachename fullname noerror nomessage)
 
         (unless bcc-loaded-fake-cache-entry
           (setq loaded-from-bcc-cache t))))
 
     (unless loaded-from-bcc-cache
       (funcall bcc-old-load-source-file-function
-               fullname file noerror nomessage))
-
-    retval))
+               fullname file noerror nomessage))))
 
 (defadvice documentation-property (before bcc-documentation-property-fix activate)
   "Work around Emacs bug"
