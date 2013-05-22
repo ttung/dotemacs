@@ -32,6 +32,8 @@
 
     (unless fail-code
       (setq bcc-cache-directory temp-byte-code-cache-directory)
+      (unless (string= system-type "darwin")
+        (setq bcc-blacklist '("/dvc-")))
       (load (reduce 'path-join '("emacs" "elisp" "byte-code-cache") :initial-value nep-base)))
 
     (load (reduce 'path-join '("emacs" "settings.el") :initial-value nep-base))
