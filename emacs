@@ -19,24 +19,11 @@
 
   (setq debug-on-error 't)
 
-  (let* ((temp-byte-code-cache-directory
-          (reduce 'path-join (list ".emacs.d" "byte-cache" (format "%s" emacs-version-num)) :initial-value home-directory))
-         (fail-code
-          (cond
-           ((<= emacs-version-num 22.0)
-            "Emacs version must be > 22.0 to use byte-code-cache.  Falling back on elisp sources.")
-           ((not (and (file-directory-p temp-byte-code-cache-directory)
-                      (file-writable-p temp-byte-code-cache-directory)))
-            (format "byte-code-cache directory (%s) does not exist or cannot be written to.  Falling back on elisp sources." temp-byte-code-cache-directory))
-           nil)))
+  (add-to-list 'load-path
+    (reduce 'path-join '("emacs" "elisp") :initial-value nep-base))
 
-    (unless fail-code
-      (setq bcc-cache-directory temp-byte-code-cache-directory)
-      (load (reduce 'path-join '("emacs" "elisp" "byte-code-cache") :initial-value nep-base)))
-
-    (load (reduce 'path-join '("emacs" "settings.el") :initial-value nep-base))
-
-    (when fail-code
-      (if (fboundp 'display-warning)
-          (display-warning 'byte-code-cache fail-code :warning)
-        (message fail-code)))))
+  (setq load-prefer-newer t)
+  (require 'auto-compile)
+  (auto-compile-on-load-mode 1)
+  (auto-compile-on-save-mode 1)
+  (load (reduce 'path-join '("emacs" "settings.el") :initial-value nep-base)))

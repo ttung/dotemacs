@@ -76,8 +76,6 @@ See require. Return non-nil if FEATURE is or was loaded."
                 (reduce 'path-join '("opt" "local" "bin") :initial-value "/")
                 path-separator
                 (getenv "PATH")))
-(add-to-list 'load-path
-             (reduce 'path-join '("emacs" "elisp") :initial-value nep-base))
 
 (add-to-list 'auto-mode-alist '("\\.c\\'"		. c++-mode))
 (add-to-list 'auto-mode-alist '("\\.h\\'"		. c++-mode))
@@ -124,12 +122,16 @@ See require. Return non-nil if FEATURE is or was loaded."
   (add-to-list 'auto-mode-alist '("\\.html\\'" . html-mode))
   (setq psgml-html-htmldtd-version "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"))
 
+(when (locate-library "web-mode")
+  (autoload 'web-mode "web-mode" "Major mode to edit HTML files." t)
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)))
+
 ;; set up html-ize
 (when (> emacs-version-num 19.28)
   (want 'htmlize))
 
 (when (want 'iswitchb)
-  (iswitchb-default-keybindings)
+  (iswitchb-mode 1)
   (setq iswitchb-default-method 'samewindow) ;always go to the same window
   (setq iswitchb-case t))
 
@@ -359,7 +361,7 @@ See require. Return non-nil if FEATURE is or was loaded."
          (c-set-style "my-c-style")
          (setq c-basic-offset 4))
         ((or (string-match "facebook\\.com" system-name)
-             (and (string-match "neuron\\.local" system-name)
+             (and (string-match "andromeda\\.local" system-name)
                   (string-match "/tonytung/work/" buffer-file-name)))
          (cond ((and buffer-file-name (string-match "\.php$" buffer-file-name))
                 (c-set-style "facebook-php-style"))
@@ -423,15 +425,18 @@ See require. Return non-nil if FEATURE is or was loaded."
       "Indicates that my-java-mode-hook has been called"))
   (cond ((or (string-match "facebook\\.com" system-name)
              (and buffer-file-name
-                  (string-match "neuron\\.local" system-name)
+                  (string-match "andromeda\\.local" system-name)
                   (string-match "/tonytung/work/" buffer-file-name)))
          (c-set-style "facebook-java-style")
          (whitespace-mode 't))
         ('t
          (c-set-style "my-java-style")))
-  (when (and buffer-file-name (string-match "/FBAndroid.*/" buffer-file-name))
-    (setq c-basic-offset 4)
-    (setq fill-column 80))
+  (when (and buffer-file-name
+             (or (string-match "/FBAndroid.*/" buffer-file-name)
+                 (string-match "/constellation.*/" buffer-file-name)))
+    (setq c-basic-offset 2)
+    (setq fill-column 100)
+    (setq whitespace-line-column 100))
   (when (boundp 'java-mode-indent-annotations-available)
     (java-mode-indent-annotations-setup))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
@@ -451,6 +456,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   (when (and buffer-file-name (string-match "/FBAndroid.*/" buffer-file-name))
     (set (make-local-variable 'nxml-child-indent) 2)))
 (add-hook 'nxml-mode-hook 'my-xml-mode-hook)
+(when (fboundp 'nxml-mode)
+  (add-to-list 'auto-mode-alist '("\\.xml\\'" . nxml-mode)))
 
 ;; javascript-mode customizations
 (defun my-javascript-mode-hook ()
@@ -506,6 +513,7 @@ See require. Return non-nil if FEATURE is or was loaded."
        ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
        ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t))))
 
+  (add-to-list 'auto-mode-alist '("BUCK" . python-mode))
   (add-hook 'python-mode-hook 'my-python-mode-hook))
 
 ;; support for cvs over ssh
@@ -637,7 +645,7 @@ Return a list of one element based on major mode."
       (setq tabbar-buffer-groups-function 'my-tabbar-buffer-groups)
       (set-face-attribute 'tabbar-default nil
                           :inherit 'default
-                          :height 0.9
+                          :height 1.1
                           :foreground "gray60"
                           :background "gray72")
       (set-face-attribute 'tabbar-selected nil
@@ -667,9 +675,10 @@ Return a list of one element based on major mode."
 (defun setup-face-colors (current-frame current-window-system)
   ;; setting default fore/background must go first.  it may otherwise clobber the later settings.
   (if current-window-system
-      (set-face-background 'default			"BLACK" current-frame)
-    (set-face-background 'default			"unspecified-bg" current-frame))
+      (set-face-background 'default			"BLACK")
+    (set-face-background 'default			"unspecified-bg"))
   (set-face-foreground 'default				"WHITE")
+  (set-face-background 'cursor                          "GREEN")
 
   ;; modify stuff that's in the frame parameters.
   (if current-window-system
@@ -702,54 +711,58 @@ Return a list of one element based on major mode."
 
   ;; set up colors dependent on window-system
   (if current-window-system
-      (set-face-foreground 'region			"CYAN" current-frame)
-    (set-face-foreground 'region			"WHITE" current-frame))
+      (set-face-foreground 'region			"CYAN")
+    (set-face-foreground 'region			"WHITE"))
 )
 
 (defun my-font-lock-mode-hook ()
   (let* ((current-frame (selected-frame))
          (current-window-system (if (fboundp 'window-system)
-                                    (window-system current-frame)
+                                    (window-system)
                                   window-system))
          (my-font-lock-mode-hook-called (frame-parameter current-frame 'my-font-lock-mode-hook-called)))
     (unless (and nil my-font-lock-mode-hook-called)
       (if current-window-system
           (progn
-            (set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE" current-frame)
-            (set-face-foreground 'font-lock-keyword-face	"LIGHTSTEELBLUE" current-frame)
-            (set-face-foreground 'font-lock-string-face		"LIGHTSALMON" current-frame)
-            (set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD" current-frame)
-            (set-face-foreground 'font-lock-builtin-face	"VIOLET" current-frame)
-            (set-face-foreground 'font-lock-warning-face	"RED" current-frame)
-            (set-face-foreground 'font-lock-comment-face	"ROSYBROWN2" current-frame)
-            (set-face-foreground 'font-lock-type-face		"PALEGREEN" current-frame)
+            (set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE")
+            (set-face-foreground 'font-lock-keyword-face	"LIGHTSTEELBLUE")
+            (set-face-foreground 'font-lock-string-face		"LIGHTSALMON")
+            (set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD")
+            (set-face-foreground 'font-lock-builtin-face	"VIOLET")
+            (set-face-foreground 'font-lock-warning-face	"RED")
+            (set-face-foreground 'font-lock-comment-face	"ROSYBROWN2")
+            (set-face-foreground 'font-lock-type-face		"PALEGREEN")
             (if (< emacs-version-num 20.02)
-                (set-face-foreground 'font-lock-reference-face	"CADETBLUE" current-frame)
-              (set-face-foreground 'font-lock-constant-face	"CADETBLUE" current-frame)))
+                (set-face-foreground 'font-lock-reference-face	"CADETBLUE")
+              (set-face-foreground 'font-lock-constant-face	"CADETBLUE")))
 
-        (set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE" current-frame)
-        (set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE" current-frame)
-        (set-face-foreground 'font-lock-string-face		"LIGHTSALMON" current-frame)
-        (set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD" current-frame)
-        (set-face-foreground 'font-lock-builtin-face		"VIOLET" current-frame)
-        (set-face-foreground 'font-lock-warning-face		"RED" current-frame)
+        (set-face-foreground 'font-lock-function-name-face	"LIGHTSKYBLUE")
+        (set-face-foreground 'font-lock-keyword-face		"LIGHTSTEELBLUE")
+        (set-face-foreground 'font-lock-string-face		"LIGHTSALMON")
+        (set-face-foreground 'font-lock-variable-name-face	"LIGHTGOLDENROD")
+        (set-face-foreground 'font-lock-builtin-face		"VIOLET")
+        (set-face-foreground 'font-lock-warning-face		"RED")
         (if (< emacs-version-num 20.02)
-            (set-face-foreground 'font-lock-reference-face	"CADETBLUE" current-frame)
-          (set-face-foreground 'font-lock-constant-face		"CADETBLUE" current-frame))
-        (set-face-foreground 'diff-context-face        		"WHITE" current-frame)
+            (set-face-foreground 'font-lock-reference-face	"CADETBLUE")
+          (set-face-foreground 'font-lock-constant-face		"CADETBLUE"))
+        (set-face-foreground 'diff-context        		"WHITE" current-frame)
+        (set-face-background 'diff-header        		"GREY20" current-frame)
+        (set-face-background 'diff-file-header			"GREY20" current-frame)
+        (set-face-background 'diff-removed			"#200000" current-frame)
+        (set-face-background 'diff-added			"#002000" current-frame)
         (set-face-foreground 'cscope-line-face			"LIGHTGOLDENROD" current-frame)
 
-        (set-face-background 'font-lock-comment-face		"unspecified-bg" current-frame)
-        (set-face-background 'font-lock-function-name-face	"unspecified-bg" current-frame)
-        (set-face-background 'font-lock-keyword-face		"unspecified-bg" current-frame)
-        (set-face-background 'font-lock-string-face		"unspecified-bg" current-frame)
-        (set-face-background 'font-lock-type-face		"unspecified-bg" current-frame)
-        (set-face-background 'font-lock-variable-name-face	"unspecified-bg" current-frame)
-        (set-face-foreground 'font-lock-comment-face		"RED" current-frame)
-        (set-face-foreground 'font-lock-type-face		"GREEN" current-frame)
+        (set-face-background 'font-lock-comment-face		"unspecified-bg")
+        (set-face-background 'font-lock-function-name-face	"unspecified-bg")
+        (set-face-background 'font-lock-keyword-face		"unspecified-bg")
+        (set-face-background 'font-lock-string-face		"unspecified-bg")
+        (set-face-background 'font-lock-type-face		"unspecified-bg")
+        (set-face-background 'font-lock-variable-name-face	"unspecified-bg")
+        (set-face-foreground 'font-lock-comment-face		"RED")
+        (set-face-foreground 'font-lock-type-face		"GREEN")
         (if (< emacs-version-num 20.02)
-            (set-face-background 'font-lock-reference-face	"unspecified-bg" current-frame)
-          (set-face-background 'font-lock-constant-face		"unspecified-bg" current-frame))
+            (set-face-background 'font-lock-reference-face	"unspecified-bg")
+          (set-face-background 'font-lock-constant-face		"unspecified-bg"))
 
         (set-face-foreground 'ediff-fine-diff-A			"BLUE" current-frame)
         (set-face-foreground 'ediff-fine-diff-B			"BLUE" current-frame))
@@ -763,11 +776,11 @@ Return a list of one element based on major mode."
   (when current-window-system
     (unless (boundp 'setup-mac-options-once)
       (create-fontset-from-fontset-spec
-       "-apple-monaco-medium-r-normal--10-*-*-*-*-*-fontset-mac,
-  ascii:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
-  latin-iso88510-1:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman,
-  mule-unicode-0100-24ff:-apple-monaco-medium-r-normal--10-*-*-*-m-*-mac-roman")
-      (setq mac-allow-anti-aliasing nil)
+       "-apple-menlo-medium-r-normal--10-*-*-*-*-*-fontset-mac,
+  ascii:-apple-menlo-medium-r-normal--10-*-*-*-m-*-mac-roman,
+  latin-iso88510-1:-apple-menlo-medium-r-normal--10-*-*-*-m-*-mac-roman,
+  mule-unicode-0100-24ff:-apple-menlo-medium-r-normal--10-*-*-*-m-*-mac-roman")
+      ;; (setq mac-allow-anti-aliasing nil)
 
       ;; the ns window system by default maps option to meta and command to super.
       (setq ns-option-modifier 'none)
@@ -797,7 +810,7 @@ Return a list of one element based on major mode."
       ;; facebook settings.  always nuke whitespaces except in diff mode.
       (unless (eq 'diff-mode major-mode)
         (delete-trailing-whitespace)))
-    (when (string-match "neuron\\.local" system-name)
+    (when (string-match "andromeda\\.local" system-name)
       (when (and
              buffer-file-name
              (string-match "/Users/tonytung/work/" buffer-file-name)
@@ -1094,8 +1107,67 @@ If ARG is negative, delete that many comment characters instead."
            (list regexp dir))
        (list nil nil))))
   (if dir
-      (vc-git-grep regexp "*" dir)
+      (my-vc-git-grep regexp "*" dir)
     (message "Not in a git repository")))
+
+
+;; stolen from vc-git.el.  git grep should be executed with --no-color
+;; to ensure that the highlighting happens correctly.
+(if (>= emacs-version-num 23.03)
+  ;; Derived from `lgrep'.
+  (defun my-vc-git-grep (regexp &optional files dir)
+    "Run git grep, searching for REGEXP in FILES in directory DIR.
+The search is limited to file names matching shell pattern FILES.
+FILES may use abbreviations defined in `grep-files-aliases', e.g.
+entering `ch' is equivalent to `*.[ch]'.
+
+With \\[universal-argument] prefix, you can edit the constructed shell command line
+before it is executed.
+With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
+
+Collect output in a buffer.  While git grep runs asynchronously, you
+can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
+in the grep output buffer,
+to go to the lines where grep found matches.
+
+This command shares argument histories with \\[rgrep] and \\[grep]."
+    (interactive
+     (progn
+       (grep-compute-defaults)
+       (cond
+        ((equal current-prefix-arg '(16))
+         (list (read-from-minibuffer "Run: " "git grep"
+                                     nil nil 'grep-history)
+               nil))
+        (t (let* ((regexp (grep-read-regexp))
+                  (files (grep-read-files regexp))
+                  (dir (read-directory-name "In directory: "
+                                            nil default-directory t)))
+             (list regexp files dir))))))
+    (require 'grep)
+    (when (and (stringp regexp) (> (length regexp) 0))
+      (let ((command regexp))
+        (if (null files)
+            (if (string= command "git grep")
+                (setq command nil))
+          (setq dir (file-name-as-directory (expand-file-name dir)))
+          (setq command
+                (grep-expand-template "git grep --no-color -n -e <R> -- <F>" regexp files))
+          (when command
+            (if (equal current-prefix-arg '(4))
+                (setq command
+                      (read-from-minibuffer "Confirm: "
+                                            command nil nil 'grep-history))
+              (add-to-history 'grep-history command))))
+        (when command
+          (let ((default-directory dir)
+                (compilation-environment '("PAGER=")))
+            ;; Setting process-setup-function makes exit-message-function work
+            ;; even when async processes aren't supported.
+            (compilation-start command 'grep-mode))
+          (if (eq next-error-last-buffer (current-buffer))
+              (setq default-directory dir))))))
+  (defalias 'my-vc-git-grep (symbol-function vc-git-grep)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
