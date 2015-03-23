@@ -226,9 +226,6 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
 
-;; initialize DVC
-(load-file (reduce 'path-join '("emacs" "elisp" "dvc-load.el") :initial-value nep-base))
-
 ;; initialize whitespace
 (when (locate-library "whitespace")
   (setq whitespace-style '(lines-tail))
