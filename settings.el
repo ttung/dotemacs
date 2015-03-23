@@ -242,6 +242,12 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 (want 'modulecmd)
 
+(let ((admin-master-emacs "/home/engshare/admin/scripts/emacs-packages"))
+  (when (and (string-match "facebook\\.com" system-name)
+	     (file-exists-p admin-master-emacs))
+    (add-to-list 'load-path admin-master-emacs)
+    (autoload 'tbgs "tbgX" nil t nil)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initializing existing modes
@@ -1056,45 +1062,6 @@ If ARG is negative, delete that many comment characters instead."
                "You have more than 25 buffers open.  Really exit Emacs? ")
     t))
 (add-hook 'kill-emacs-query-functions 'kill-check)
-
-
-(defun fba-i18n (&optional arg)
-  (interactive "p")
-
-  (let ((remaining (if (eq arg nil)
-                       1
-                     arg)))
-    (condition-case nil
-        (loop for i from remaining downto 1 do
-              (progn
-                (goto-char (point-min))
-                (while (re-search-forward "\\(\\.\\{3,\\}\\|\\&amp;#x2026;\\|\\&#x2026;\\)" nil t)
-                  (replace-match "\x2026" nil nil))
-
-                (goto-char (point-min))
-                (while (re-search-forward "\xb7" nil t)
-                  (replace-match "\x00b7" nil nil))
-
-                ;; (goto-char (point-min))
-                ;; (while (re-search-forward "\\(\\.\\{3,\\}\\|…\\)" nil t)
-                ;;   (replace-match "\x2026" nil nil))
-
-                (goto-char (point-min))
-                (while (re-search-forward "<string name=\"\\([^\"]*\\)\">\\(.*\\)<\\(.*\\)</string>" nil t)
-                  (replace-match "<string name=\"\\1\">\\2&lt;\\3</string>" nil nil))
-
-                (goto-char (point-min))
-                (while (re-search-forward "<string name=\"\\([^\"]*\\)\">\\(.*\\)>\\(.*\\)</string>" nil t)
-                  (replace-match "<string name=\"\\1\">\\2&gt;\\3</string>" nil nil))
-
-                (goto-char (point-min))
-                (while (search-forward "\xff1b" nil t)
-                  (replace-match ";" nil nil))
-
-                (save-buffer)
-                (kill-buffer)))
-      (message "Not all iterations completed"))))
-
 
 (defun my-git-grep (regexp dir)
   "Run git grep, searching for REGEXP in the current git repository."
