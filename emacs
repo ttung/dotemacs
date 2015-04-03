@@ -26,4 +26,4 @@
   (require 'auto-compile)
   (auto-compile-on-load-mode 1)
   (auto-compile-on-save-mode 1)
-  (load (reduce 'path-join '("emacs" "settings.el") :initial-value nep-base)))
+  (load (reduce 'path-join '("emacs" "settings") :initial-value nep-base)))

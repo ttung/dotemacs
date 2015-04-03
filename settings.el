@@ -130,10 +130,24 @@ See require. Return non-nil if FEATURE is or was loaded."
 (when (> emacs-version-num 19.28)
   (want 'htmlize))
 
-(when (want 'iswitchb)
-  (iswitchb-mode 1)
-  (setq iswitchb-default-method 'samewindow) ;always go to the same window
-  (setq iswitchb-case t))
+(cond ((want 'ido)
+       (message "enabling ido")
+       (ido-mode 'buffers)
+       (setq ido-default-buffer-method 'selected-window) ;always go to the same window
+       (setq ido-case-fold t)
+       (set-face-attribute 'ido-first-match nil
+                           :inherit font-lock-comment-face
+                           :weight 'unspecified)
+       (set-face-attribute 'ido-only-match nil
+                           :inherit font-lock-function-name-face
+                           :foreground 'unspecified
+                           :slant 'unspecified))
+
+      ((want 'iswitchb)
+       (message "enabling iswitch")
+       (iswitchb-mode 1)
+       (setq iswitchb-default-method 'samewindow) ;always go to the same window
+       (setq iswitchb-case t)))
 
 (when (>= emacs-version-num 20.0)
   (setq cscope-bind-default-keys nil) ;make sure cscope doesn't bind the default keys
@@ -184,48 +198,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'javascript-mode "javascript-mode" "Mode for editing Javascript files" t)
   (add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode)))
 
-
-;; mmm mode
-;; set up the paths for multiple major modes
-;; (add-to-list 'load-path (expand-file-name "~/emacs/elisp/mmm-mode") t)
-;; (when (want 'mmm-auto)
-;;   (setq mmm-global-mode 'maybe)
-;;   (setq mmm-submode-decoration-level 1)
-;;   (set-face-background 'mmm-default-submode-face "BLACK")
-
-;;   ;; set up an mmm group for fancy html editing
-;;   (mmm-add-group
-;;    'fancy-html
-;;    '(
-;;      (html-javascript-embedded
-;;       :submode java-mode
-;;       :face mmm-code-submode-face
-;;       :front "<script\[^>\]*>"
-;;       :back "</script>")
-;;      (html-css-embedded
-;;       :submode css-mode
-;;       :face mmm-code-submode-face
-;;       :front "<style\[^>\]*>"
-;;       :back "</style>")
-;;      (html-php-tagged
-;;       :submode php-mode
-;;       :face mmm-code-submode-face
-;;       :front "<[?]\\(php\\|=\\)?"
-;;       :back "[?]>")
-;;      (html-css-attribute
-;;       :submode css-mode
-;;       :face mmm-declaration-submode-face
-;;       :front "style=\""
-;;       :back "\"")
-;;      (html-javascript-attribute
-;;       :submode java-mode
-;;       :face mmm-code-submode-face
-;;       :front "\\bon\\w+=\\s-*\""
-;;       :back "\"")
-;;      ))
-
-;;   (add-to-list 'mmm-mode-ext-classes-alist '(html-mode "\\.php[34]?\\'" fancy-html)))
-
 ;; initialize whitespace
 (when (locate-library "whitespace")
   (setq whitespace-style '(lines-tail))
@@ -236,9 +208,27 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'actionscript-mode "actionscript-mode" "Mode for editing Actionscript files" t)
   (add-to-list 'auto-mode-alist '("\\.as$" . actionscript-mode)))
 
-
+;; load pyenv support for elisp
 (want 'modulecmd)
 
+;; D-mode
+;; set up the paths for D-mode
+(add-to-list 'load-path
+             (reduce 'path-join '("emacs" "elisp" "d-mode") :initial-value nep-base))
+(when (locate-library "d-mode")
+  (autoload 'd-mode "d-mode" "Major mode for editing D code." t)
+  (add-to-list 'auto-mode-alist '("\\.d[i]?\\'" . d-mode))
+
+  (defun my-d-mode-hook ()
+    (local-set-key "\C-c>" 		'search-for-matching-endif)
+    (local-set-key "\C-c<" 		'search-for-matching-ifdef)
+    (whitespace-mode 't)
+    (set-fill-column 80)
+    (setq whitespace-line-column 80)
+    (c-set-style "facebook-d-style"))
+  (add-hook 'd-mode-hook 'my-d-mode-hook))
+
+;; tbgs
 (let ((admin-master-emacs "/home/engshare/admin/scripts/emacs-packages"))
   (when (and (string-match "facebook\\.com" system-name)
 	     (file-exists-p admin-master-emacs))
@@ -286,7 +276,6 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-basic-offset                     . 2)
     (c-offsets-alist			. ((statement-block-intro   	. c-lineup-arglist-intro-after-paren)))))
 
-
 (defvar my-c-style
   '("linux"
     (c-basic-offset			. 2)
@@ -322,6 +311,14 @@ See require. Return non-nil if FEATURE is or was loaded."
      )
   "facebook java style")
 
+(defvar facebook-d-style
+  '("linux"
+    (c-basic-offset	. 4)
+    (c-offsets-alist	. ((case-label   	. +)
+                           (arglist-intro         . +)
+                           (statement-cont        . +))))
+  "facebook d style")
+
 
 ;; c-mode customizations that don't load c-mode nor font-lock mode
 (defun my-c-mode-common-hook ()
@@ -339,6 +336,7 @@ See require. Return non-nil if FEATURE is or was loaded."
     (c-add-style "facebook-php-style"	facebook-php-style)
     (c-add-style "my-java-style"	my-java-style)
     (c-add-style "facebook-java-style"	facebook-java-style)
+    (c-add-style "facebook-d-style"	facebook-d-style)
     (font-lock-add-keywords
      'c-mode
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -987,6 +985,9 @@ If ARG is negative, delete that many comment characters instead."
   (interactive)
   (kill-buffer (buffer-name)))
 
+(when (>= emacs-version-num 24.04)
+  (setq uniquify-buffer-name-style 'forward))
+
 ;; Put a nice version of every visited file's file-name into the
 ;; variable `nice-buffer-file-name'
 ;; Original code by Miles Bader <miles@gnu.org>
@@ -1012,20 +1013,29 @@ If ARG is negative, delete that many comment characters instead."
         (if (or (string-match "<[0-9]+>\\'" bn)
                 (not (compare-strings bn 0 nil (file-name-nondirectory bfn) 0 nil 't)))
             (substring bn (match-beginning 0))))
-      (defun get-unique-tag (bfn bn)
-        (cond ((string-match "<[0-9]+>\\'" bn)
-               (substring bn (match-beginning 0)))
-              ((not (string= bn (file-name-nondirectory bfn)))
-               (format "<%s>" bn))
-              ('t
-               nil))))
+    (defun get-unique-tag (bfn bn)
+      (cond ((string-match "<[0-9]+>\\'" bn)
+             (substring bn (match-beginning 0)))
+            ((not (string= bn (file-name-nondirectory bfn)))
+             (format "<%s>" bn))
+            ('t
+             nil))))
 
-  (let ((shortened-file-name
-         (limit-tree (abbreviate-file-name buffer-file-name) 1))
-        (buffer-num
-         (get-unique-tag buffer-file-name (buffer-name))))
-    (set (make-local-variable 'nice-buffer-file-name)
-         (concat shortened-file-name buffer-num)))
+  (set (make-local-variable 'nice-buffer-file-name)
+       (let ((buffer-name (buffer-name)))
+         (cond (buffer-file-name
+                (let ((shortened-file-name
+                       (limit-tree (abbreviate-file-name buffer-file-name) 1))
+                      (buffer-num
+                       (get-unique-tag buffer-file-name buffer-name)))
+
+                  (cond ((< emacs-version-num 24.04)
+                         (concat shortened-file-name buffer-num))
+                        ((find ?/ buffer-name)
+                         buffer-name)
+                        (t shortened-file-name))))
+               (t buffer-name))))
+
   nil)
 
 ;; Make the mode-line identify buffers using their `nice-buffer-file-name'
@@ -1034,6 +1044,7 @@ If ARG is negative, delete that many comment characters instead."
 (when (>= emacs-version-num 20)
   (add-hook 'find-file-hooks 'record-nice-file-name)
   (add-hook 'write-file-hooks 'record-nice-file-name)
+  (add-hook 'buffer-list-update-hook 'record-nice-file-name)
   (setq-default mode-line-buffer-identification
                 '(nice-buffer-file-name nice-buffer-file-name
                                         (buffer-file-name "%f" "%b"))))
@@ -1059,6 +1070,90 @@ If ARG is negative, delete that many comment characters instead."
                "You have more than 25 buffers open.  Really exit Emacs? ")
     t))
 (add-hook 'kill-emacs-query-functions 'kill-check)
+
+(defun my-magic-vc-grep ()
+  "Magically dispatch to `my-hg-grep` or `my-git-grep`, depending on
+which vc the current buffer is under."
+  (interactive)
+
+  (cond ((and (fboundp 'vc-hg-root)
+              (vc-hg-root default-directory))
+         (call-interactively 'my-hg-grep))
+
+        ((and (fboundp 'vc-hg-root)
+              (vc-hg-root default-directory))
+         (call-interactively 'my-hg-grep))
+
+        (t
+         (message "Not in a version-control system I know"))))
+
+(defun my-hg-grep (regexp dir)
+  "Run git grep, searching for REGEXP in the current git repository."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (if (fboundp 'vc-hg-root)
+         (let* ((regexp (grep-read-regexp))
+                (dir (vc-hg-root default-directory)))
+           (list regexp dir))
+       (list nil nil))))
+  (if dir
+      (my-vc-hg-grep regexp "*" dir)
+    (message "Not in a hg repository")))
+
+(defun my-vc-hg-grep (regexp &optional files dir)
+  "Run hg grep, searching for REGEXP in FILES in directory DIR.
+The search is limited to file names matching shell pattern FILES.
+FILES may use abbreviations defined in `grep-files-aliases', e.g.
+entering `ch' is equivalent to `*.[ch]'.
+
+With \\[universal-argument] prefix, you can edit the constructed shell command line
+before it is executed.
+With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
+
+Collect output in a buffer.  While hg grep runs asynchronously, you
+can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
+in the grep output buffer,
+to go to the lines where grep found matches.
+
+This command shares argument histories with \\[rgrep] and \\[grep]."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (cond
+      ((equal current-prefix-arg '(16))
+       (list (read-from-minibuffer "Run: " "hg grep"
+				   nil nil 'grep-history)
+	     nil))
+      (t (let* ((regexp (grep-read-regexp))
+		(files (grep-read-files regexp))
+		(dir (read-directory-name "In directory: "
+					  nil default-directory t)))
+	   (list regexp files dir))))))
+  (require 'grep)
+  (when (and (stringp regexp) (> (length regexp) 0))
+    (let ((command regexp))
+      (if (null files)
+	  (if (string= command "hg grep")
+	      (setq command nil))
+	(setq dir (file-name-as-directory (expand-file-name dir)))
+	(setq command
+	      (grep-expand-template "hg --pager none grep -n <R> -- <F>"
+                                    regexp files))
+	(when command
+	  (if (equal current-prefix-arg '(4))
+	      (setq command
+		    (read-from-minibuffer "Confirm: "
+					  command nil nil 'grep-history))
+	    (add-to-history 'grep-history command))))
+      (when command
+	(let ((default-directory dir)
+	      (compilation-environment (cons "PAGER=" compilation-environment)))
+	  ;; Setting process-setup-function makes exit-message-function work
+	  ;; even when async processes aren't supported.
+	  (compilation-start command 'grep-mode))
+	(if (eq next-error-last-buffer (current-buffer))
+	    (setq default-directory dir))))))
 
 (defun my-git-grep (regexp dir)
   "Run git grep, searching for REGEXP in the current git repository."
@@ -1225,6 +1320,12 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
       (enlarge-window arg side)))
 
 ;; if the scratch buffer is not in the buflist, then manually add it in.
+(defun my-ido-make-buflist-hook ()
+  (unless (member "*scratch*" ido-temp-list)
+    (setq ido-temp-list (append ido-temp-list (list "*scratch*")))))
+(add-hook 'ido-make-buffer-list-hook 'my-ido-make-buflist-hook)
+
+;; if the scratch buffer is not in the buflist, then manually add it in.
 (defun my-iswitchb-make-buflist-hook ()
   (unless (member "*scratch*" iswitchb-temp-buflist)
     (setq iswitchb-temp-buflist (append iswitchb-temp-buflist (list "*scratch*")))))
@@ -1352,7 +1453,7 @@ it is put to the start of the list."
     (global-set-key "\C-c\C-r"	'uncomment-region)
   (global-set-key "\C-c\C-r"	'region-remove-comment))
 (global-set-key "\C-c\C-l"	'comment-line)
-(global-set-key "\C-cr"	        'my-git-grep)
+(global-set-key "\C-cr"	        'my-magic-vc-grep)
 (global-set-key "\C-d"		'my-delete)
 
 (global-set-key [M-up]		'scroll-down-line)

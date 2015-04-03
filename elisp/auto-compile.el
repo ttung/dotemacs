@@ -749,8 +749,8 @@ file would get loaded."
       (condition-case nil
           (when (setq el (packed-locate-library file nosuffix))
             (setq elc (byte-compile-dest-file el))
-            (when (and (file-exists-p elc)
-                       (file-newer-than-file-p el elc))
+            (unless (and (file-exists-p elc)
+                         (file-newer-than-file-p elc el))
               (message "Recompiling %s..." el)
               (packed-byte-compile-file el)
               (message "Recompiling %s...done" el))
