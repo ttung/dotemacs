@@ -83,6 +83,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-to-list 'auto-mode-alist '("\\.sched"		. text-tab5))
 (add-to-list 'auto-mode-alist '("\\.crontab\\'"		. text-tab5))
 (add-to-list 'auto-mode-alist '("\\.procmailrc\\'"	. text-tab5))
+(add-to-list 'auto-mode-alist '("\\..*bashrc"		. shell-script-mode))
 (add-to-list 'auto-mode-alist '("\\..*cshrc"		. shell-script-mode))
 (add-to-list 'auto-mode-alist '("\\.t?csh\\'"		. shell-script-mode))
 (add-to-list 'auto-mode-alist '("emacs/emacs"		. emacs-lisp-mode))
@@ -209,7 +210,11 @@ See require. Return non-nil if FEATURE is or was loaded."
   (add-to-list 'auto-mode-alist '("\\.as$" . actionscript-mode)))
 
 ;; load pyenv support for elisp
-(want 'modulecmd)
+(when (want 'modulecmd)
+  (let ((merly-init-module "org.merly.init.paths"))
+    (when (and (member merly-init-module (module-avail-list))
+               (not (member merly-init-module (module-loaded-list))))
+      (module-load-noninteractive merly-init-module))))
 
 ;; D-mode
 ;; set up the paths for D-mode
@@ -224,9 +229,19 @@ See require. Return non-nil if FEATURE is or was loaded."
     (local-set-key "\C-c<" 		'search-for-matching-ifdef)
     (whitespace-mode 't)
     (set-fill-column 80)
-    (setq whitespace-line-column 80)
-    (c-set-style "facebook-d-style"))
+    (set (make-local-variable 'whitespace-line-column) 80)
+    (c-set-style "facebook-d-style")
+    (font-lock-add-keywords
+     'd-mode
+     '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(TODO:\\)"	1 font-lock-warning-face t)
+       ("\\<\\(FIXME:\\)"	1 font-lock-warning-face t))))
   (add-hook 'd-mode-hook 'my-d-mode-hook))
+
+;; set up rust-mode.
+(when (locate-library "rust-mode")
+  (autoload 'rust-mode "rust-mode" "Major mode for editing Rust code." t)
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
 
 ;; tbgs
 (let ((admin-master-emacs "/home/engshare/admin/scripts/emacs-packages"))
@@ -315,7 +330,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   '("linux"
     (c-basic-offset	. 4)
     (c-offsets-alist	. ((case-label   	. +)
-                           (arglist-intro         . +)
+                           (arglist-intro         . ++)
+                           (arglist-cont-nonempty . ++)
                            (statement-cont        . +))))
   "facebook d style")
 
@@ -437,7 +453,7 @@ See require. Return non-nil if FEATURE is or was loaded."
                  (string-match "/constellation.*/" buffer-file-name)))
     (setq c-basic-offset 2)
     (setq fill-column 100)
-    (setq whitespace-line-column 100))
+    (set (make-local-variable 'whitespace-line-column) 100))
   (when (boundp 'java-mode-indent-annotations-available)
     (java-mode-indent-annotations-setup))
   (when (and (boundp 'xcscope-loaded) xcscope-loaded)
@@ -500,14 +516,20 @@ See require. Return non-nil if FEATURE is or was loaded."
 (add-hook 'comint-output-filter-functions
          'comint-postoutput-scroll-to-bottom)
 
+;; vc-mode
 (setq vc-follow-symlinks t)
-(setq vc-handled-backends (remove* 'Mtn vc-handled-backends))
+;; mercurial mode is buggy, especially when emacs is used as a merge
+;; tool (deadlock), so we disable it.  we manually define vc-hg-root
+;; because we need it for hg-grep.
+(delete 'Hg vc-handled-backends)
+(defun vc-hg-root (file)
+  (vc-find-root file ".hg"))
 
 ;; python mode stuff
 (when (locate-library "python")
   (defun my-python-mode-hook ()
     (auto-fill-mode 't)
-    (setq fill-column 90)
+    (setq fill-column 80)
     (font-lock-add-keywords
      nil
      '(("\\<\\(NOTE:\\)"	1 font-lock-warning-face t)
@@ -816,7 +838,8 @@ Return a list of one element based on major mode."
              buffer-file-name
              (string-match "/Users/tonytung/work/" buffer-file-name)
              (not (or
-                   (string-match "/jackson/" buffer-file-name))))
+                   (string-match "/jackson/" buffer-file-name)
+                   (string-match "/mercurial/.*/tests/[^/]*.t$" buffer-file-name))))
         (delete-trailing-whitespace)))))
 
 (unless (string-match "christinewu" user-login-name)
@@ -1076,16 +1099,17 @@ If ARG is negative, delete that many comment characters instead."
 which vc the current buffer is under."
   (interactive)
 
-  (cond ((and (fboundp 'vc-hg-root)
-              (vc-hg-root default-directory))
-         (call-interactively 'my-hg-grep))
+  (let ((actual-directory (file-truename default-directory)))
+    (cond ((and (fboundp 'vc-hg-root)
+                (vc-hg-root actual-directory))
+           (call-interactively 'my-hg-grep))
 
-        ((and (fboundp 'vc-hg-root)
-              (vc-hg-root default-directory))
-         (call-interactively 'my-hg-grep))
+          ((and (fboundp 'vc-git-root)
+                (vc-git-root actual-directory))
+           (call-interactively 'my-git-grep))
 
-        (t
-         (message "Not in a version-control system I know"))))
+          (t
+           (message "Not in a version-control system I know")))))
 
 (defun my-hg-grep (regexp dir)
   "Run git grep, searching for REGEXP in the current git repository."
@@ -1094,7 +1118,7 @@ which vc the current buffer is under."
      (grep-compute-defaults)
      (if (fboundp 'vc-hg-root)
          (let* ((regexp (grep-read-regexp))
-                (dir (vc-hg-root default-directory)))
+                (dir (vc-hg-root (file-truename default-directory))))
            (list regexp dir))
        (list nil nil))))
   (if dir

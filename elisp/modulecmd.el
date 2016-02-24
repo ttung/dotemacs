@@ -165,10 +165,14 @@
 
   (setq module-completer-cache nil)
   (setq module-completer-cache (module-avail-list))
-  (let* ((module-name (completing-read
-                       "Module to load: "
-                       module-completer-cache))
-         (cmd-buffer (modulecmd "load" '() (list module-name))))
+  (let ((module-name (completing-read
+                      "Module to load: "
+                      module-completer-cache)))
+    (module-load-noninteractive module-name)))
+
+
+(defun module-load-noninteractive (module-name)
+  (let ((cmd-buffer (modulecmd "load" '() (list module-name))))
     (when cmd-buffer
       (eval-buffer cmd-buffer)
       (kill-buffer cmd-buffer))))
