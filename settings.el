@@ -244,7 +244,9 @@ See require. Return non-nil if FEATURE is or was loaded."
 (setq truncate-partial-width-windows nil)
 
 (defun my-text-mode-hook ()
-  (auto-fill-mode)
+  (unless (and buffer-file-name
+               (string-match "COMMIT_EDITMSG$" buffer-file-name))
+    (auto-fill-mode))
   (setq fill-column 74))
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
