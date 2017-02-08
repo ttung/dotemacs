@@ -807,20 +807,26 @@ Return a list of one element based on major mode."
   (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
 
 (defun maybe-delete-trailing-whitespace ()
-  (if (eq 'diff-mode major-mode)
-      nil
-    (when (or (string-match "facebook\\.com" system-name)
-              (string-match "Tony-Tung\\.local" system-name))
-      ;; facebook settings.  always nuke whitespaces except in diff mode.
-      (unless (eq 'diff-mode major-mode)
-        (delete-trailing-whitespace)))
-    (when (string-match "andromeda\\.local" system-name)
-      (when (and
-             buffer-file-name
-             (string-match "/Users/tonytung/work/" buffer-file-name)
-             (not (or
-                   (string-match "/jackson/" buffer-file-name))))
-        (delete-trailing-whitespace)))))
+  (when (eq 'yes
+            (cond
+             ((and
+               (local-variable-if-set-p 'inhibit-delete-trailing-whitespace)
+               inhibit-delete-trailing-whitespace)
+              'no)
+             ((eq 'diff-mode major-mode) 'no)
+             ((and buffer-file-name
+                   (string-match "fb-hgext/tests/test-.*\\.t$" buffer-file-name))
+              'no)
+             ((or (string-match "facebook\\.com" system-name)
+                  (string-match "Tony-Tung\\.local" system-name))
+              ;; facebook settings.  always nuke whitespaces except in diff mode.
+              'yes)
+             ((and (string-match "andromeda\\.local" system-name)
+                   buffer-file-name
+                   (string-match "/Users/tonytung/work/" buffer-file-name))
+              'yes)
+             'no))
+    (delete-trailing-whitespace)))
 
 (unless (string-match "christinewu" user-login-name)
   (setq-default show-trailing-whitespace t))
