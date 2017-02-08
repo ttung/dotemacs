@@ -317,7 +317,8 @@ See require. Return non-nil if FEATURE is or was loaded."
   '("linux"
     (c-basic-offset	. 4)
     (c-offsets-alist	. ((case-label   	. +)
-                           (arglist-intro         . +)
+                           (arglist-intro         . ++)
+                           (arglist-cont-nonempty . ++)
                            (statement-cont        . +))))
   "facebook d style")
 
