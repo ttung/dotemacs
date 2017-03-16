@@ -817,11 +817,12 @@ Return a list of one element based on major mode."
 
     (set-keyboard-coding-system 'mac-roman current-frame)
     (modify-frame-parameters current-frame
-                             '((font . "fontset-mac")))))
+                             '((font . "Menlo 11")))
+    ))
 
 (if (eq system-type 'darwin)
   (add-hook 'after-new-frame-functions 'setup-mac-options)
-  (add-to-list 'default-frame-alist '(font . "-schumacher-clean-medium-r-normal--12-*")))
+  (add-to-list 'default-frame-alist '(font . "Menlo 11")))
 
 (defun maybe-delete-trailing-whitespace ()
   (if (eq 'diff-mode major-mode)
