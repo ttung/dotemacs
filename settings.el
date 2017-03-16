@@ -132,7 +132,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (want 'htmlize))
 
 (cond ((want 'ido)
-       (message "enabling ido")
        (ido-mode 'buffers)
        (setq ido-default-buffer-method 'selected-window) ;always go to the same window
        (setq ido-case-fold t)
@@ -145,7 +144,6 @@ See require. Return non-nil if FEATURE is or was loaded."
                            :slant 'unspecified))
 
       ((want 'iswitchb)
-       (message "enabling iswitch")
        (iswitchb-mode 1)
        (setq iswitchb-default-method 'samewindow) ;always go to the same window
        (setq iswitchb-case t)))
