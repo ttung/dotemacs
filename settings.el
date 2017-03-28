@@ -1010,10 +1010,6 @@ If ARG is negative, delete that many comment characters instead."
 (when (>= emacs-version-num 24.04)
   (setq uniquify-buffer-name-style 'forward))
 
-;; Put a nice version of every visited file's file-name into the
-;; variable `nice-buffer-file-name'
-;; Original code by Miles Bader <miles@gnu.org>
-(defun record-nice-file-name ()
   (defun limit-tree (bn count)
     (let ((splitted (split-string bn "/"))
           (retval "")
@@ -1043,6 +1039,9 @@ If ARG is negative, delete that many comment characters instead."
             ('t
              nil))))
 
+;; Original code by Miles Bader <miles@gnu.org>
+(defun record-nice-file-name ()
+  "Records a nice version of every visited file's file-name into the variable `nice-buffer-file-name'"
   (set (make-local-variable 'nice-buffer-file-name)
        (let ((buffer-name (buffer-name)))
          (cond (buffer-file-name
