@@ -1,13 +1,12 @@
-;;;; psgml-dtd.el --- DTD parser for SGML-editing mode with parsing support
-;; $Id: psgml-dtd.el,v 2.29 2002/04/25 20:50:27 lenst Exp $
+;;; psgml-dtd.el --- DTD parser for SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994 Lennart Staflin
+;; Copyright (C) 1994, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -16,21 +15,18 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-;;;; Commentary:
+;;; Commentary:
 
 ;; Part of major mode for editing the SGML document-markup language.
 
 
-;;;; Code:
+;;; Code:
 
-(provide 'psgml-dtd)
 (require 'psgml)
 (require 'psgml-parse)
-(eval-when-compile (require 'cl))
 
 ;;;; Variables
 
@@ -93,12 +89,12 @@
 (defmacro sgml-for-all-final-states (s dfa &rest forms)
   "For all final states S in DFA do FORMS.
 Syntax: var dfa-expr &body forms"
-  (` (let ((L-states (sgml-some-states-of (, dfa)))
-	   (, s))
-       (while L-states
-	 (when (sgml-state-final-p (setq (, s) (car L-states)))
-	   (,@ forms))
-	 (setq L-states (cdr L-states))))))
+  `(let ((L-states (sgml-some-states-of ,dfa))
+         ,s)
+     (while L-states
+       (when (sgml-state-final-p (setq ,s (car L-states)))
+         ,@forms)
+       (setq L-states (cdr L-states)))))
 
 (put 'sgml-for-all-final-states 'lisp-indent-hook 2)
 (put 'sgml-for-all-final-states 'edebug-form-hook '(symbolp &rest form))
@@ -120,7 +116,7 @@ Syntax: var dfa-expr &body forms"
 	      (length (sgml-state-opts s)))
   (let ((final nil)
 	dest)
-    (loop for m in (append (sgml-state-reqs s)
+    (cl-loop for m in (append (sgml-state-reqs s)
 			   (sgml-state-opts s))
 	  do
 	  (setq dest (sgml-move-dest m))
@@ -135,12 +131,12 @@ Syntax: var dfa-expr &body forms"
 	  (length (sgml-state-opts s2)))
        (= (length (sgml-state-reqs s1))
 	  (length (sgml-state-reqs s2)))
-       (loop for m in (sgml-state-opts s1)
+       (cl-loop for m in (sgml-state-opts s1)
 	     always
 	     (eq (sgml-move-dest m)
 		 (sgml-move-dest (sgml-moves-lookup (sgml-move-token m)
 						    (sgml-state-opts s2)))))
-       (loop for m in (sgml-state-reqs s1)
+       (cl-loop for m in (sgml-state-reqs s1)
 	     always
 	     (eq (sgml-move-dest m)
 		 (sgml-move-dest (sgml-moves-lookup (sgml-move-token m)
@@ -203,9 +199,9 @@ Syntax: var dfa-expr &body forms"
   (let ((moves (append (sgml-state-reqs s1) (sgml-state-opts s1))))
     (cond
      (;; optimize the case where all moves from s1 goes to empty states
-      (loop for m in moves
+      (cl-loop for m in moves
 	    always (sgml-empty-state-p (sgml-move-dest m)))
-      (loop for m in moves do (setf (sgml-move-dest m) s2))
+      (cl-loop for m in moves do (setf (sgml-move-dest m) s2))
       (when (sgml-state-final-p s1)
 	(sgml-copy-moves s2 s1)))
      (t					; general case
@@ -217,7 +213,7 @@ Syntax: var dfa-expr &body forms"
 (defun sgml-make-pcdata ()
   (sgml-make-* (sgml-make-primitive-content-token sgml-pcdata-token)))
 
-(defun sgml-reduce-, (l)
+(defun sgml-reduce-\, (l)
   (while (cdr l)
     (setcar (cdr l)
 	    (sgml-make-conc (car l) (cadr l)))
@@ -242,10 +238,10 @@ Syntax: var dfa-expr &body forms"
 	(l dfas))
     (while l				; For each si:
       ;; For m in opts(si): add optional move from s to &n on token(m).
-      (loop for m in (sgml-state-opts (car l))
+      (cl-loop for m in (sgml-state-opts (car l))
 	    do (sgml-add-opt-move s (sgml-move-token m) &n))
       ;; For m in reqs(si): add required move from s to &n on token(m).
-      (loop for m in (sgml-state-reqs (car l))
+      (cl-loop for m in (sgml-state-reqs (car l))
 	    do (sgml-add-req-move s (sgml-move-token m) &n))
       (setq l (cdr l)))
     ;; Return s.
@@ -279,7 +275,7 @@ Syntax: var dfa-expr &body forms"
 	  (sgml-parse-delim "CRO" (digit nmstart))
 	(sgml-parse-delim "CRO" (digit)))
       (prog1 (if (sgml-is-delim "NULL" digit)
-		 (string-to-int (sgml-check-nametoken))
+		 (string-to-number (sgml-check-nametoken))
 	       (let ((spec (sgml-check-name)))
 		 (or (cdr (assoc spec '(("RE" . 10)
 					("RS" . 1)
@@ -309,9 +305,14 @@ Syntax: var dfa-expr &body forms"
 		   (sgml-error "Parameter literal unterminated")))
 	      ((sgml-parse-parameter-entity-ref))
 	      ((setq temp (sgml-parse-character-reference dofunchar))
-	       (setq value (concat value (if (< temp 256)
-					     (format "%c" temp)
-					   (format "&#%d;" temp)))))
+	       (setq value
+                     (concat value
+                             (cond ((< temp 256)
+                                    (if enable-multibyte-characters
+                                        (setq temp (unibyte-char-to-multibyte temp)))
+                                    (format "%c" temp))
+                                   (t
+                                    (format "&#%d;" temp))))))
 	      (t
 	       (setq value
 		     (concat value
@@ -331,7 +332,7 @@ Syntax: var dfa-expr &body forms"
 (defsubst sgml-parse-connector ()
   (sgml-skip-ps)
   (cond ((sgml-parse-delim "SEQ")
-	 (function sgml-reduce-,))
+	 (function sgml-reduce-\,))
 	((sgml-parse-delim "OR")
 	 (function sgml-reduce-|))
 	((sgml-parse-delim "AND")
@@ -396,7 +397,7 @@ Case transformed for general names."
       (sgml-skip-ps)
       (if (sgml-is-delim "NULL" digit)
 	(let ((suffix (sgml-parse-nametoken)))
-	  (loop for n in names
+	  (cl-loop for n in names
 		collect (concat n suffix)))
 	names)))
    (t					; gi/ranked element
@@ -573,8 +574,9 @@ Case transformed for general names."
 	      (sgml-eltype-excludes et) exclusions
 	      (sgml-eltype-includes et) inclusions))
       (setq names (cdr names)))
+    (cl-incf sgml-no-elements)
     (sgml-lazy-message "Parsing doctype (%s elements)..."
-		       (incf sgml-no-elements))))
+		       sgml-no-elements)))
 
 ;;;; Parse doctype: Entity
 
@@ -686,7 +688,7 @@ Case transformed for general names."
     (setq attlist (nreverse attlist))
     (unless assnot
       (sgml-before-eltype-modification)
-      (loop for elname in assel do
+      (cl-loop for elname in assel do
 	    (setf (sgml-eltype-attlist (sgml-lookup-eltype elname))
 		  (sgml-merge-attlists
 		   (sgml-eltype-attlist
@@ -695,7 +697,7 @@ Case transformed for general names."
 
 (defun sgml-merge-attlists (old new)
   (setq old (nreverse (copy-sequence old)))
-  (loop for att in new do
+  (cl-loop for att in new do
 	(unless (assoc (car att) old)
 	  (setq old (cons att old))))
   (nreverse old))
@@ -793,7 +795,7 @@ Case transformed for general names."
 (defun sgml-do-usemap-element (mapname)
   ;; This is called from sgml-do-usemap with the mapname
   (sgml-before-eltype-modification)
-  (loop for e in (sgml-parse-name-group) do
+  (cl-loop for e in (sgml-parse-name-group) do
 	(setf (sgml-eltype-shortmap (sgml-lookup-eltype e sgml-dtd-info))
 	      (if (null mapname)
 		  'empty
@@ -821,7 +823,7 @@ Case transformed for general names."
 (defvar sgml-translate-table nil)
 
 (defun sgml-translate-node (node)
-  (assert (not (numberp node)))
+  (cl-assert (not (numberp node)))
   (let ((tp (assq node sgml-translate-table)))
     (unless tp
       (setq tp (cons node (length sgml-translate-table)))
@@ -851,7 +853,7 @@ Case transformed for general names."
 (defvar sgml-code-xlate nil)
 
 (defsubst sgml-code-xlate (node)
-  ;;(let ((x (cdr (assq node sgml-code-xlate)))) (assert x) x)
+  ;;(let ((x (cdr (assq node sgml-code-xlate)))) (cl-assert x) x)
   (cdr (assq node sgml-code-xlate)))
 
 (defun sgml-code-number (num)
@@ -879,10 +881,10 @@ Syntax: (var seq) &body forms
 FORMS should produce the binary coding of element in VAR."
   (let ((var (car loop-c))
 	(seq (cadr loop-c)))
-    (` (let ((seq (, seq)))
+    `(let ((seq ,seq))
 	 (sgml-code-number (length seq))
-	 (loop for (, var) in seq
-	       do (,@ body))))))
+	 (cl-loop for ,var in seq
+	       do ,@body))))
 
 (put 'sgml-code-sequence 'lisp-indent-hook 1)
 (put 'sgml-code-sequence 'edbug-forms-hook '(sexp &rest form))
@@ -906,7 +908,7 @@ FORMS should produce the binary coding of element in VAR."
       (setq s (car s))			; s is node
       (cond
        ((sgml-normal-state-p s)
-	(assert (and (< (length (sgml-state-opts s)) 255)
+	(cl-assert (and (< (length (sgml-state-opts s)) 255)
 		     (< (length (sgml-state-reqs s)) 256)))
 	(sgml-code-sequence (x (sgml-state-opts s))
 	  (sgml-code-move x))
@@ -932,7 +934,7 @@ FORMS should produce the binary coding of element in VAR."
 	    ((eq c sgml-any) (insert 3))
 	    ((null c) (insert 4))
 	    (t
-	     (assert (sgml-model-group-p c))
+	     (cl-assert (sgml-model-group-p c))
 	     (insert 128)
 	     (sgml-code-model c))))
     (sgml-code-tokens (sgml-eltype-includes et))
@@ -1006,4 +1008,5 @@ Construct the binary coded DTD (bdtd) in the current buffer."
     (write-region (point-min) (point-max) file)))
 
 
+(provide 'psgml-dtd)
 ;;; psgml-dtd.el ends here

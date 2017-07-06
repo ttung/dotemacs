@@ -1,14 +1,12 @@
-;;;; psgml-info.el
-;;; Last edited: 2000-11-09 19:23:50 lenst
-;;; $Id: psgml-info.el,v 2.15 2002/04/25 20:50:27 lenst Exp $
+;;; psgml-info.el --- ???  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995 Lennart Staflin
+;; Copyright (C) 1994, 1995, 2016  Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -17,11 +15,11 @@
 ;; GNU General Public License for more details.
 ;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 
-;;;; Commentary:
+;;; Commentary:
 
 ;; This file is an addon to the PSGML package.  
 
@@ -44,15 +42,14 @@
 ;;    Will list all element types and the element types that can occur
 ;;    in its content.
 
-;;;; Code:
+;;; Code:
 
-(provide 'psgml-info)
 (require 'psgml)
 (require 'psgml-parse)
 
 (defconst sgml-attr-col 18)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; Utility functions
 
@@ -116,15 +113,15 @@
        (while agenda
 	 (cond
 	  ((sgml-normal-state-p (car agenda))
-	   (loop for m in (append (sgml-state-opts (car agenda))
+	   (cl-loop for m in (append (sgml-state-opts (car agenda))
 				  (sgml-state-reqs (car agenda)))
 		 do
-		 (add-to-list 'res (sgml-move-token m))
+		 (cl-pushnew (sgml-move-token m) res :test #'equal)
 		 (sgml-add-last-unique (sgml-move-dest m) states)))
        
 	  (t				; &-node
 	   (sgml-add-last-unique (sgml-and-node-next (car agenda)) states)
-	   (loop for dfa in (sgml-and-node-dfas (car agenda)) do
+	   (cl-loop for dfa in (sgml-and-node-dfas (car agenda)) do
 		 (sgml-add-last-unique dfa states))))
 	 (setq agenda (cdr agenda)))
        (setq res
@@ -149,7 +146,11 @@
        (cons (sgml-eltype-name eltype)
 	     (mapcar (function sgml-attdecl-name)
 		     (sgml-eltype-attlist eltype))))))
-   "Elements" "Element" "Attribute"))
+   "Elements" "Element" "Attribute"
+   nil nil
+   'sgml-list-attributes
+   'sgml-describe-element-type))
+
 
 
 ;;;; List attributes
@@ -162,13 +163,14 @@
     (sgml-map-element-types
      (function
       (lambda (eltype)
-	(loop for a in (sgml-eltype-attlist eltype) do
+	(cl-loop for a in (sgml-eltype-attlist eltype) do
 	      (setq attributes
 		    (sgml-add-to-table (sgml-attdecl-name a)
 				       (sgml-eltype-name eltype)
 				       attributes))))))
     (sgml-display-table attributes
-			"Attributes" "Attribute" "Element")))
+			"Attributes" "Attribute" "Element"
+                        nil nil 'sgml-list-elements)))
 
 
 
@@ -209,7 +211,10 @@
 	     (mapcar (function sgml-eltype-name)
 		     (sgml-eltype-refrenced-elements eltype))))))
    "Elements referenced by elements"
-   "Element" "Content"))
+   "Element" "Content"
+   nil nil
+   'sgml-list-occur-in-elements
+   'sgml-describe-element-type   ))
 
 (defun sgml-list-occur-in-elements ()
   "List all element types and where it can occur."
@@ -219,51 +224,73 @@
     (sgml-map-element-types
      (function
       (lambda (eltype)
-	(loop for ref in (sgml-eltype-refrenced-elements eltype)
+	(cl-loop for ref in (sgml-eltype-refrenced-elements eltype)
 	      do (setq cross (sgml-add-to-table ref
 						(sgml-eltype-name eltype)
 						cross))))))
     (sgml-display-table
      cross
-     "Cross referenced element types" "Element" "Can occur in")))
+     "Cross referenced element types" "Element" "Can occur in"
+     nil nil
+   'sgml-list-content-elements
+   'sgml-describe-element-type )))
 
 
 ;;;; Display table
 
-(defun sgml-display-table (table title col-title1 col-title2
-				 &optional width nosort)
+(defun sgml-display-table (table _title col-title1 col-title2
+                           &optional width nosort dual-table
+                           col1-describe)
   (or width
       (setq width sgml-attr-col))
-  (let ((buf (get-buffer-create (format "*%s*" title))))
-    (message "Preparing display...")
-    (set-buffer buf)
-    (erase-buffer)
-    (insert col-title1)
-    (indent-to width)
-    (insert col-title2 "\n")
-    (insert-char ?= (length col-title1))
-    (indent-to width)
-    (insert-char ?= (length col-title2))
-    (insert "\n")
-    (unless nosort
-      (setq table (sort table (function (lambda (a b)
-					  (string< (car a) (car b)))))))
-    (loop for e in table do
-	  (insert (format "%s " (car e)))
-	  (loop for name in (if nosort
-				(cdr e)
-			      (sort (cdr e) (function string-lessp)))
-		do
-		(when (> (+ (length name) (current-column))
-			 fill-column)
-		  (insert "\n"))
-		(when (< (current-column) sgml-attr-col)
-		  (indent-to width))
-		(insert  name " "))
-	  (insert "\n"))
-    (goto-char (point-min))
-    (display-buffer buf)
-    (message nil)))
+  (with-output-to-temp-buffer "*Help*"
+    (let ((cb  (current-buffer)))
+      (message "Preparing display...")
+      (set-buffer standard-output)
+      (insert col-title1)
+      (indent-to width)
+      (if dual-table
+          (insert-text-button col-title2
+                              'action (lambda (button)
+                                        (let ((func (button-get button 'dual-table)))
+                                          (with-current-buffer (button-get button 'buffer)
+                                            (funcall func))))
+                              'buffer cb
+                              'dual-table dual-table)
+          (insert col-title2))
+      (insert "\n")
+      (insert-char ?= (length col-title1))
+      (indent-to width)
+      (insert-char ?= (length col-title2))
+      (insert "\n")
+      (unless nosort
+        (setq table (sort table (function (lambda (a b)
+                                  (string< (car a) (car b)))))))
+      (dolist (e table)
+        (let ((name (format "%s" (car e))))
+          (if col1-describe
+              (insert-button name
+                             'action (lambda (button)
+                                       (let ((name (button-get button 'name))
+                                             (func (button-get button 'func)))
+                                         (with-current-buffer
+                                             (button-get button 'buffer)
+                                           (funcall func name))))
+                             'buffer cb 'func col1-describe 'name name
+                             'follow-link t)
+            (insert name)))
+        (insert " ")
+        (dolist (name (if nosort (cdr e)
+                        (sort (cdr e) (function string-lessp))))
+          (when (> (+ (length name) (current-column))
+                   fill-column)
+            (insert "\n"))
+          (when (< (current-column) sgml-attr-col)
+            (indent-to width))
+          (insert  name " "))
+        (insert "\n"))
+
+      (message nil))))
 
 
 ;;;; Describe entity
@@ -321,17 +348,45 @@
 
 (defun sgml-princ-names (names &optional first sep)
   (setq sep (or sep " "))
-  (loop with col = 0
+  (cl-loop with col = 0
 	for name in names
         for this-sep = (if first (prog1 first (setq first nil)) sep)
 	do
         (princ this-sep)
-	(incf col (length this-sep))
+	(cl-incf col (length this-sep))
 	(when (and (> col 0) (> (+ col (length name)) fill-column))
 	  (princ "\n ")
 	  (setq col 1))
         (princ name)
-	(incf col (length name))))
+	(cl-incf col (length name))))
+
+(define-button-type 'sgml-eltype
+  'action (lambda (button)
+            (let ((name (button-get button 'name)))
+              (with-current-buffer (button-get button 'buffer)
+                (sgml-describe-element-type name)))))
+
+(defun sgml-print-eltypes (eltypes &optional first sep)
+  (let ((orig-buffer (current-buffer)))
+    (with-current-buffer standard-output
+      (setq sep (or sep " "))
+      (cl-loop with col = 0
+            for et in eltypes
+            for name = (sgml-eltype-name et)
+            for this-sep = (if first (prog1 first (setq first nil)) sep)
+            do
+            (insert this-sep)
+            (cl-incf col (length this-sep))
+            (when (and (> col 0) (> (+ col (length name)) fill-column))
+              (insert "\n ")
+              (setq col 1))
+            (if (eq et sgml-pcdata-token)
+                (insert name)
+                (insert-text-button name :type 'sgml-eltype
+                                    'name name 'buffer orig-buffer
+                                    'follow-link t))
+            (cl-incf col (length name))))))
+
 
 (defun sgml-describe-element-type (et-name)
   "Describe the properties of an element type as declared in the current DTD."
@@ -358,7 +413,7 @@
 
   (sgml-need-dtd)
   (let ((et (sgml-lookup-eltype et-name)))
-    (with-output-to-temp-buffer "*Help*"
+    (with-output-to-temp-buffer (help-buffer)
       (princ (format "ELEMENT: %s\n\n" (sgml-eltype-name et)))
       (princ (format " Start-tag is %s.\n End-tag is %s.\n"
 		     (if (sgml-eltype-stag-optional et)
@@ -366,16 +421,16 @@
 		     (if (sgml-eltype-etag-optional et)
 			 "optional" "required")))
       (princ "\nATTRIBUTES:\n")
-      (loop for attdecl in (sgml-eltype-attlist et) do
+      (cl-loop for attdecl in (sgml-eltype-attlist et) do
 	    (let ((name (sgml-attdecl-name attdecl))
 		  (dval (sgml-attdecl-declared-value attdecl))
 		  (defl (sgml-attdecl-default-value attdecl)))
 	      (when (listp dval)
-		(setq dval (concat (if (eq (first dval)
+		(setq dval (concat (if (eq (car dval)
 					   'NOTATION)
 				       "#NOTATION (" "(")
 				   (mapconcat (function identity)
-					      (second dval)
+					      (cadr dval)
 					      "|")
 				   ")")))
 	      (cond ((sgml-default-value-type-p 'FIXED defl)
@@ -397,18 +452,17 @@
 	    (t
 	     (princ (if (sgml-eltype-mixed et) "mixed\n\n"
                       "element\n\n"))
-	     (sgml-princ-names
-	      (mapcar #'symbol-name (sgml-eltype-refrenced-elements et)))))
+	     (sgml-print-eltypes (sgml-eltype-refrenced-elements et))))
       (let ((incl (sgml-eltype-includes et))
             (excl (sgml-eltype-excludes et)))
         (when (or incl excl)
           (princ "\n\nEXCEPTIONS:"))
         (when incl
           (princ "\n + ")
-          (sgml-princ-names (mapcar #'symbol-name incl)))
+          (sgml-print-eltypes incl))
         (when excl
           (princ "\n - ")
-          (sgml-princ-names (mapcar #'symbol-name excl))))
+          (sgml-print-eltypes excl)))
       ;; ----
       (princ "\n\nOCCURS IN:\n\n")
       (let ((occurs-in ()))
@@ -417,13 +471,18 @@
 		     (when (memq et (sgml-eltype-refrenced-elements cand))
 		       (push cand occurs-in))))
 	 (sgml-pstate-dtd sgml-buffer-parse-state))
-        (sgml-princ-names (mapcar 'sgml-eltype-name
-                                  (sort occurs-in (function string-lessp))))))))
+        (sgml-print-eltypes (sort occurs-in (function string-lessp)))))))
 
 
 ;;;; Print general info about the DTD.
 
-(defun sgml-general-dtd-info ()
+
+(defun sgml-insert-button (label &rest properties)
+  (with-current-buffer standard-output
+    (apply #'insert-text-button label properties)))
+
+
+(defun sgml-describe-dtd ()
   "Display information about the current DTD."
   (interactive)
   (sgml-need-dtd)
@@ -433,27 +492,32 @@
 	(fmt "%20s %s\n")
 	(hdr ""))
 
-    (sgml-map-eltypes (function (lambda (e) (incf elements)))
+    (sgml-map-eltypes (function (lambda (_e) (cl-incf elements)))
 		      sgml-dtd-info)
-    (sgml-map-entities (function (lambda (e) (incf entities)))
+    (sgml-map-entities (function (lambda (_e) (cl-incf entities)))
 		       (sgml-dtd-entities sgml-dtd-info))
-    (sgml-map-entities (function (lambda (e) (incf parameters)))
+    (sgml-map-entities (function (lambda (_e) (cl-incf parameters)))
 		       (sgml-dtd-parameters sgml-dtd-info))
 
-    (with-output-to-temp-buffer "*Help*"
+    (with-output-to-temp-buffer (help-buffer)
       (princ (format fmt "Doctype:" (sgml-dtd-doctype sgml-dtd-info)))
       (when (sgml-dtd-merged sgml-dtd-info)
 	(princ (format fmt "Compiled DTD:"
 		       (car (sgml-dtd-merged sgml-dtd-info)))))
-      (princ (format fmt "Element types:" (format "%d" elements)))
+      (sgml-insert-button
+       (format fmt "Element types:" (format "%d" elements))
+       'action (lambda (button)
+                 (with-current-buffer (button-get button 'buffer)
+                   (sgml-list-elements)))
+       'buffer (current-buffer) 'follow-link t)
       (princ (format fmt "Entities:" (format "%d" entities)))
       (princ (format fmt "Parameter entities:" (format "%d" parameters)))
 
       (setq hdr "Files used:")
-      (loop for x in (sgml-dtd-dependencies sgml-dtd-info)
-	    if (stringp x)
-	    do (princ (format fmt hdr x))
-	    (setq hdr ""))
+      (dolist (x (sgml-dtd-dependencies sgml-dtd-info))
+        (when (stringp x)
+          (princ (format fmt hdr x))
+          (setq hdr "")))
 
       (setq hdr "Undef parameters:")
       (sgml-map-entities
@@ -461,6 +525,12 @@
 		   (when (sgml-entity-marked-undefined-p entity)
 		     (princ (format fmt hdr (sgml-entity-name entity)))
 		     (setq hdr ""))))
-       (sgml-dtd-parameters sgml-dtd-info)))))
+       (sgml-dtd-parameters sgml-dtd-info))
+      (print-help-return-message))))
+
+
+(defalias 'sgml-general-dtd-info 'sgml-describe-dtd)
+
 
+(provide 'psgml-info)
 ;;; psgml-info.el ends here

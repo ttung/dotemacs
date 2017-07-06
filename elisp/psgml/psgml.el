@@ -1,28 +1,25 @@
-;;; psgml.el --- SGML-editing mode with parsing support
-;; $Id: psgml.el,v 2.66 2002/08/13 10:51:25 lenst Exp $
+;;; psgml.el --- SGML-editing mode with parsing support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-2002 Lennart Staflin
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2002, 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Lennart Staflin <lenst@lysator.liu.se>
 ;; 	James Clark <jjc@clark.com>
-;; Maintainer: Lennart Staflin <lenst@lysator.liu.se>
+;; Maintainer: Lennart Staflin <lstaflin@gmail.com>
 ;; Keywords: languages
+;; Version: 1.3.4
 
-;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 2
+;; as published by the Free Software Foundation; either version 3
 ;; of the License, or (at your option) any later version.
-;;
+;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -52,28 +49,24 @@
 
 ;;; Code:
 
-(defconst psgml-version "1.3.1"
-  "Version of psgml package.")
+(defconst psgml-maintainer-address "emacs-devel@gnu.org")
 
-(defconst psgml-maintainer-address "lenst@lysator.liu.se")
-
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'easymenu)
 
 (defvar sgml-debug nil)
 
 (defmacro sgml-debug (&rest x)
-  (list 'if 'sgml-debug (cons 'sgml-log-message x)))
+  (list 'if 'sgml-debug (cons 'message x)))
 
+(require 'psgml-vars)
 
 ;;;; Variables
 
-(defvar sgml-mode-abbrev-table nil
+(define-abbrev-table 'sgml-mode-abbrev-table ()
   "Abbrev table in use in SGML mode.")
-(define-abbrev-table 'sgml-mode-abbrev-table ())
 
 (eval-and-compile
-  (defconst sgml-running-lucid (string-match "Lucid" emacs-version))
   (defconst sgml-have-re-char-clases (string-match "[[:alpha:]]" "x")
     "Non-nil if this Emacs supports regexp character classes.
 E.g. `[-.[:alnum:]]'."))
@@ -87,287 +80,55 @@ Otherwise put explicit properties.")
   "Is this an XML document?")
 (make-variable-buffer-local 'sgml-xml-p)
 
-;;; User settable options:
 
-(defvar sgml-insert-defaulted-attributes nil
-  "*Controls whether defaulted attributes (not #FIXED) are inserted explicitly
-or not. nil means don't insert, t means insert.")
-
-(defvar sgml-insert-missing-element-comment t
-  "*If true, and sgml-auto-insert-required-elements also true,
-`sgml-insert-element' will insert a comment if there is an element required
-but there is more than one to choose from." )
-
-(defvar sgml-insert-end-tag-on-new-line nil
-  "*If true, `sgml-insert-element' will put the end-tag on a new line
-after the start-tag. Useful on slow terminals if you find the end-tag after
-the cursor irritating." )
-
-(defvar sgml-doctype nil
-  "*If non-nil the name of a file that contains the doctype declaration to use.
-declaration to use.
-Setting this variable automatically makes it local to the current buffer.")
-(put 'sgml-doctype 'sgml-type 'string)
-(make-variable-buffer-local 'sgml-doctype)
-
-(defvar sgml-system-identifiers-are-preferred nil
-  "*Controls lookup of external entities.
-nil means look up external entities by searching the catalogs
-in `sgml-local-catalogs' and `sgml-catalog-files' and only if the
-entity is not found in the catalogs use a given system identifier.
-Non-nil means use a system identifier for the entity if one is given.
-If no system identifier is given the catalogs will searched.")
-
-(defvar sgml-range-indicator-max-length 9
-  "*Control of menu indicators.
-Maximum number of characters used from the first and last entry
-of a submenu to indicate the range of that menu.")
-
-(defvar sgml-default-doctype-name nil
-  "*If non-nil, document type name to use if no DTD is present.")
-(put 'sgml-default-doctype-name 'sgml-type 'string-or-nil)
-
-(defvar sgml-markup-faces
-  ;; Fixme: are the font-lock correspondences here the most appopriate
-  ;; ones?  I don't recall whence this set came.  -- fx
-  `((start-tag . ,(if (facep 'font-lock-function-name-face)
-		      'font-lock-function-name-face
-		    'bold))
-    (end-tag . ,(if (facep 'font-lock-function-name-face)
-		    'font-lock-function-name-face
-		  'bold))
-    (comment . ,(if (facep 'font-lock-comment-face)
-		    'font-lock-comment-face
-		  'bold))
-    (pi . ,(if (facep 'font-lock-type-face)
-	       'font-lock-type-face
-	     'bold))
-    (sgml . ,(if (facep 'font-lock-type-face)
-		 'font-lock-type-face
-	       'bold))
-    (doctype . ,(if (facep 'font-lock-keyword-face)
-		    'font-lock-keyword-face
-		  'bold))
-    (entity . ,(if (facep 'font-lock-string-face)
-		   'font-lock-string-face
-		 'bold))
-    (shortref . ,(if (facep 'font-lock-string-face)
-		     'font-lock-string-face
-		   'bold))
-    (ignored . ,(if (facep 'font-lock-constant-face)
-		    'font-lock-constant-face
-		  'default))
-    (ms-start . ,(if (facep 'font-lock-constant-face)
-		    'font-lock-constant-face
-		  'default))
-    (ms-end . ,(if (facep 'font-lock-constant-face)
-		    'font-lock-constant-face
-		  'default)))
-  "*Alist of markup to face mappings.
-Element are of the form (MARKUP-TYPE . FACE).
-Possible values for MARKUP-TYPE are:
-comment	- comment declaration
-doctype	- doctype declaration
-end-tag
-ignored	- ignored marked section
-ms-end	- marked section start, if not ignored
-ms-start- marked section end, if not ignored
-pi	- processing instruction
-sgml	- SGML declaration
-start-tag
-entity  - general entity reference
-shortref- short reference")
-
-(defvar sgml-buggy-subst-char-in-region
+(defvar sgml-buggy-subst-char-in-region 
   (or (not (boundp 'emacs-minor-version))
       (not (natnump emacs-minor-version))
       (and (eq emacs-major-version 19)
            (< emacs-minor-version 23)))
-  "*If non-nil, work around a bug in subst-char-in-region.
+  "*If non-nil, work around a bug in `subst-char-in-region'.
 The bug sets the buffer modified.  If this is set, folding commands
 will be slower.")
 
-(defvar sgml-set-face nil
-  "*If non-nil, psgml will set the face of parsed markup.")
-(put 'sgml-set-face 'sgml-desc "Set face of parsed markup")
 
 (defvar sgml-live-element-indicator nil
-  "*If non-nil, indicate current element in mode line.
+  "OBSOLETE
+If non-nil, indicate current element in mode line.
 This may be slow.")
-
-(defvar sgml-auto-activate-dtd nil
-  "*If non-nil, loading a sgml-file will automatically try to activate its DTD.
-Activation means either to parse the document type declaration or to
-load a previously saved parsed DTD.  The name of the activated DTD
-will be shown in the mode line.")
-(put 'sgml-auto-activate-dtd 'sgml-desc "Auto Activate DTD")
-
-(defvar sgml-offer-save t
-  "*If non-nil, ask about saving modified buffers before \\[sgml-validate] is run.")
-
-(defvar sgml-parent-document nil
-  "*How to handle the current file as part of a bigger document.
-
-The variable describes how the current file's content fit into the element
-hierarchy.  The value should have the form
-
-  (PARENT-FILE CONTEXT-ELEMENT* TOP-ELEMENT (HAS-SEEN-ELEMENT*)?)
-
-PARENT-FILE	is a string, the name of the file containing the
-		document entity.
-CONTEXT-ELEMENT is a string, that is the name of an element type.
-		It can occur 0 or more times and is used to set up
-		exceptions and short reference map.  Good candidates
-		for these elements are the elements open when the
-		entity pointing to the current file is used.
-TOP-ELEMENT	is a string that is the name of the element type
-		of the top level element in the current file.  The file
-		should contain one instance of this element, unless
-		the last \(Lisp) element of `sgml-parent-document' is a
-		list.  If it is a list, the top level of the file
-		should follow the content model of top-element.
-HAS-SEEN-ELEMENT is a string that is the name of an element type.  This
-	        element is satisfied in the content model of top-element.
-
-Setting this variable automatically makes it local to the current buffer.")
-(make-variable-buffer-local 'sgml-parent-document)
-(put 'sgml-parent-document 'sgml-type 'list)
-
-(defvar sgml-tag-region-if-active nil
-  "*If non-nil, the Tags menu will tag a region if the region is
-considered active by emacs.  If nil, region must be active and
-transient-mark-mode must be on for the region to be tagged.")
-
-(defvar sgml-normalize-trims t
-  "*If non-nil, sgml-normalize will trim off white space from end of element
-when adding end tag.")
-
-(defvar sgml-omittag t
-  "*Non-nil means use OMITTAG YES.
-
-Setting this variable automatically makes it local to the current buffer.")
-
-(make-variable-buffer-local 'sgml-omittag)
-(put 'sgml-omittag 'sgml-desc "OMITTAG")
-
-(defvar sgml-shorttag t
-  "*Non-nil means use SHORTTAG YES.
-
-Setting this variable automatically makes it local to the current buffer.")
-
-(make-variable-buffer-local 'sgml-shorttag)
-(put 'sgml-shorttag 'sgml-desc "SHORTTAG")
-
-(defvar sgml-namecase-general t
-  "*Non-nil means use NAMECASE GENERAL YES.
-
-Setting this variable automatically makes it local to the current buffer.")
-
-(make-variable-buffer-local 'sgml-namecase-general)
-(put 'sgml-namecase-general 'sgml-desc "NAMECASE GENERAL")
 
 
 
 ;;[lenst/1998-03-09 19:51:55]
+;; sgml-namecase-entity would reflect the NAMECASE ENTITY setting
+;; in the SGML Declaration used. Currently only "NO" (encoded as nil)
+;; is supported.
 (defconst sgml-namecase-entity nil)
 
-(defvar sgml-general-insert-case 'lower
-  "*The case that will be used for general names in inserted markup.
-This can be the symbol `lower' or `upper'.  Only effective if
-`sgml-namecase-general' is true.")
-(put 'sgml-general-insert-case 'sgml-type '(lower upper))
-
+;; What letter case to use when inserting entity names when
+;; sgml-namecase-entity is non-nil. It's never non-nil so this is kind
+;; of useless.
 (defvar sgml-entity-insert-case nil)
 
 
-(defvar sgml-minimize-attributes nil
-  "*Determines minimization of attributes inserted by edit-attributes.
-Actually two things are done
-1. If non-nil, omit attribute name, if attribute value is from a token group.
-2. If `max', omit attributes with default value.
-
-Setting this variable automatically makes it local to the current buffer.")
-
-(make-variable-buffer-local 'sgml-minimize-attributes)
-(put 'sgml-minimize-attributes 'sgml-type
-     '(("No" . nil) ("Yes" . t) ("Max" . max)))
-
-(defvar sgml-always-quote-attributes t
-  "*Non-nil means quote all attribute values inserted after editing attributes.
-Setting this variable automatically makes it local to the current buffer.")
-
-(make-variable-buffer-local 'sgml-always-quote-attributes)
-
-(defvar sgml-auto-insert-required-elements t
-  "*If non-nil, automatically insert required elements in the content
-of an inserted element.")
-
-(defvar sgml-balanced-tag-edit t
-  "*If non-nil, context menu inserts start-end tag pairs.")
-
-(defvar sgml-omittag-transparent (not sgml-balanced-tag-edit)
-  "*If non-nil, will show legal tags inside elements with omitable start tags
-and legal tags beyond omitable end tags.")
-
-(defvar sgml-leave-point-after-insert nil
-  "*If non-nil, the point will remain after inserted tag(s).
-If nil, the point will be placed before the inserted tag(s).")
-
-(defvar sgml-warn-about-undefined-elements t
-  "*If non-nil, print a warning when a tag for an undefined element is found.")
-
-(defvar sgml-warn-about-undefined-entities t
-  "*If non-nil, print a warning when an undefined entity is found.")
-
-(defvar sgml-ignore-undefined-elements nil
-  "*If non-nil, recover from an undefined element by ignoring the tag.
-If nil, recover from an undefined element by assuming it can occur any
-where and has content model ANY.")
-
-(defvar sgml-recompile-out-of-date-cdtd 'ask
-  "*If non-nil, out of date compiled DTDs will be automatically recompiled.
-If the value is `ask', PSGML will ask before recompiling. A `nil'
-value will cause PSGML to silently load an out of date compiled DTD.
-A DTD that refers to undefined external entities is always out of
-date, thus in such case it can be useful to set this variable to
-`nil'.")
-(put 'sgml-recompile-out-of-date-cdtd 'sgml-type '(("No" . nil)
-						   ("Yes" . t)
-						   ("Ask" . ask)))
-
-(defvar sgml-trace-entity-lookup nil
-  "*If non-nil, log messages about catalog files used to look for
-external entities.")
-
-(defvar sgml-indent-step 2
-  "*How much to increment indent for every element level.
-If nil, no indentation.
-Setting this variable automatically makes it local to the current buffer.")
-(make-variable-buffer-local 'sgml-indent-step)
-(put 'sgml-indent-step 'sgml-type '(("None" . nil) 0 1 2 3 4 5 6 7 8))
-
-(defvar sgml-indent-data nil
-  "*If non-nil, indent in data/mixed context also.
-Setting this variable automatically makes it local to the current buffer.")
-(make-variable-buffer-local 'sgml-indent-data)
+;;; User settable options:
 
 
-(defun sgml-parse-colon-path (cd-path)
-  "Explode a colon-separated list of paths into a string list."
-  (if (null cd-path)
+(defun sgml-parse-colon-path (path)
+  "Explode a colon-separated list of directories PATH into a string list."
+  (if (null path)
       nil
     (let ((cd-sep ":")
           cd-list (cd-start 0) cd-colon)
       (if (boundp 'path-separator)
           (setq cd-sep path-separator))
-      (setq cd-path (concat cd-path cd-sep))
-      (while (setq cd-colon (string-match cd-sep cd-path cd-start))
+      (setq path (concat path cd-sep))
+      (while (setq cd-colon (string-match cd-sep path cd-start))
         (setq cd-list
               (nconc cd-list
                      (list (if (= cd-start cd-colon)
                                nil
                              (substitute-in-file-name
-                              (substring cd-path cd-start cd-colon))))))
+                              (substring path cd-start cd-colon))))))
         (setq cd-start (+ cd-colon 1)))
       cd-list)))
 
@@ -404,17 +165,13 @@ This variable is automatically local to the buffer.")
 (defvar sgml-catalog-files (or (delete nil
 				       (sgml-parse-colon-path
 					(getenv "SGML_CATALOG_FILES")))
-			       '("catalog" "/etc/sgml/catalog"
-				 "/usr/lib/sgml/catalog"
-				 "/usr/local/share/sgml/catalog"
-				 "/usr/local/lib/sgml/catalog"))
+			       '("catalog" "/usr/local/lib/sgml/catalog"))
   "*List of catalog entry files.
 The files are in the format defined in the SGML Open Draft Technical
 Resolution on Entity Management.")
 (put 'sgml-catalog-files 'sgml-type 'file-list)
 
-(defvar sgml-ecat-files '("ECAT" "~/sgml/ECAT" "/usr/lib/sgml/ECAT"
-			  "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT" )
+(defvar sgml-ecat-files '("ECAT" "~/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
   "*List of catalog files for PSGML.")
 (put 'sgml-ecat-files 'sgml-type 'file-list)
 
@@ -438,55 +195,6 @@ Can be changed in the Local variables section of the file.")
 (put 'sgml-default-dtd-file 'sgml-type 'string)
 (put 'sgml-default-dtd-file 'sgml-desc "Default (saved) DTD File")
 
-(defvar sgml-exposed-tags '()
-  "*The list of tag names that remain visible, despite \\[sgml-hide-tags].
-Each name is a lowercase string, and start-tags and end-tags must be
-listed individually.
-
-`sgml-exposed-tags' is local to each buffer in which it has been set;
-use `setq-default' to set it to a value that is shared among buffers.")
-(make-variable-buffer-local 'sgml-exposed-tags)
-(put 'sgml-exposed-tags 'sgml-type 'list)
-
-
-(defvar sgml-custom-markup nil
-  "*Menu entries to be added to the Markup menu.
-The value should be a list of lists of two strings.  The first
-string is the menu line and the second string is the text inserted
-when the menu item is chosen.  The second string can contain a \\r
-where the cursor should be left.  Also if a selection is made
-according the same rules as for the Tags menu, the selection is
-replaced with the second string and \\r is replaced with the
-selection.
-
-Example:
-
-  ((\"Version1\" \"<![%Version1[\\r]]>\")
-   (\"New page\"  \"<?NewPage>\"))
-")
-
-(defvar sgml-custom-dtd nil
-  "Menu entries to be added to the DTD menu.
-The value should be a list of entries to be added to the DTD menu.
-Every entry should be a list.  The first element of the entry is a string
-used as the menu entry.  The second element is a string containing a
-doctype declaration (this can be nil if no doctype).  The rest of the
-list should be a list of variables and values.  For backward
-compatibility a single string instead of a variable is assigned to
-`sgml-default-dtd-file'.  All variables are made buffer local and are also
-added to the buffers local variables list.
-
-Example:
-   ((\"HTML\" nil
-     sgml-default-dtd-file \"~/sgml/html.ced\"
-     sgml-omittag nil sgml-shorttag nil)
-    (\"HTML+\" \"<!doctype htmlplus system 'htmlplus.dtd'>\"
-     \"~/sgml/htmlplus.ced\"
-     sgml-omittag t sgml-shorttag nil)
-    (\"DOCBOOK\" \"<!doctype docbook system 'docbook.dtd'>\"
-     \"~/sgml/docbook.ced\"
-     sgml-omittag nil sgml-shorttag t)))
-")
 
 
 ;;; Faces used in edit attribute buffer:
@@ -494,10 +202,10 @@ Example:
 (put 'sgml-fixed 'face 'underline)	; Face of #FIXED "..."
 
 
-;;; nsgmls is a free SGML parser in the SP suite available from
-;;; ftp.jclark.com:pub/sp
-;;; Its error messages can be parsed by next-error.
-;;; The -s option suppresses output.
+;; nsgmls is a free SGML parser in the SP suite available from
+;; ftp.jclark.com:pub/sp
+;; Its error messages can be parsed by next-error.
+;; The -s option suppresses output.
 
 (defvar sgml-validate-command   "nsgmls -s %s %s"
   "*The shell command to validate an SGML document.
@@ -551,8 +259,10 @@ See `compilation-error-regexp-alist'.")
 (defvar sgml-mode-hook nil
   "A hook or list of hooks to be run when entering sgml-mode")
 
-(defvar sgml-mode-map nil
-  "Keymap for SGML mode")
+(defvar sgml-show-context-function
+  #'sgml-show-context-standard
+  "*Function to called to show context of and element.
+Should return a string suitable form printing in the echo area.")
 
 (defconst sgml-file-options
   '(
@@ -577,7 +287,6 @@ See `compilation-error-regexp-alist'.")
 (defconst sgml-user-options
   '(
     sgml-set-face
-    sgml-live-element-indicator
     sgml-auto-activate-dtd
     sgml-offer-save
     sgml-tag-region-if-active
@@ -621,9 +330,7 @@ See `compilation-error-regexp-alist'.")
   (or (get var 'sgml-desc)
       (let ((desc (symbol-name var)))
 	(if (string= "sgml-" (substring desc 0 5))
-	    (setq desc (substring desc 5)))
-	(loop for c across-ref desc
-	      do (if (eq c ?-) (setf c ? )))
+	    (setq desc (replace-regexp-in-string "-" " " (substring desc 5))))
 	(capitalize desc))))
 
 (defun sgml-variable-type (var)
@@ -687,42 +394,18 @@ See `compilation-error-regexp-alist'.")
 (defun sgml-save-options ()
   "Save user options for SGML mode that have buffer local values."
   (interactive)
-  (loop for var in sgml-file-options do
-	(when (sgml-valid-option var)
-	  (sgml-set-local-variable var (symbol-value var)))))
-
-
-;;;; Run hook with args
-
-(unless (fboundp 'run-hook-with-args)
-  (defun run-hook-with-args (hook &rest args)
-    "Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.  If it is a list
-of functions, those functions are called, in order,
-with the given arguments ARGS.
-It is best not to depend on the value return by `run-hook-with-args',
-as that may change."
-    (and (boundp hook)
-	 (symbol-value hook)
-	 (let ((value (symbol-value hook)))
-	   (if (and (listp value) (not (eq (car value) 'lambda)))
-	       (mapcar '(lambda (foo) (apply foo args))
-		       value)
-	     (apply value args))))))
-
-
+  (dolist (var sgml-file-options)
+    (when (sgml-valid-option var)
+      (sgml-set-local-variable var (symbol-value var)))))
 
 
 ;;;; SGML mode: template functions
 
 (defun sgml-markup (entry text)
   (cons entry
-	(` (lambda ()
-	     (interactive)
-	     (sgml-insert-markup (, text))))))
+	`(lambda ()
+           (interactive)
+           (sgml-insert-markup ,text))))
 
 (defun sgml-insert-markup (text)
   (let ((end (sgml-mouse-region))
@@ -744,7 +427,7 @@ as that may change."
 (defun sgml-mouse-region ()
   (let (start end)
     (cond
-     (sgml-running-lucid
+     ((featurep 'xemacs)
       (cond
        ((null (mark-marker)) nil)
        (t (setq start (region-beginning)
@@ -784,7 +467,7 @@ as that may change."
   (and (y-or-n-p "Do you really want to submit a report on PSGML? ")
        (reporter-submit-bug-report
 	psgml-maintainer-address
-	(concat "psgml.el " psgml-version)
+	(concat "psgml.el <ELPA>")
 	(list
 	 'major-mode
 	 'sgml-always-quote-attributes
@@ -798,7 +481,6 @@ as that may change."
 	 'sgml-indent-data
 	 'sgml-indent-step
 	 'sgml-leave-point-after-insert
-	 'sgml-live-element-indicator
 	 'sgml-local-catalogs
 	 'sgml-local-ecat-files
 	 'sgml-markup-faces
@@ -826,142 +508,136 @@ as that may change."
 
 ;;;; SGML mode: keys and menus
 
-(if sgml-mode-map
-    ()
-  (setq sgml-mode-map (make-sparse-keymap)))
+(defvar sgml-mode-map
+  (let ((map (make-sparse-keymap))
 
-(defvar sgml-prefix-f-map (make-sparse-keymap))
-(defvar sgml-prefix-u-map (make-sparse-keymap))
+        ;; FIXME: Are these two explicit prefix map settings really needed?
+        (f-map (make-sparse-keymap))
+        (u-map (make-sparse-keymap)))
+    (define-key map "\C-c\C-f" f-map)
+    (define-key map "\C-c\C-u" u-map)
 
-(define-key sgml-mode-map "\C-c\C-f" sgml-prefix-f-map)
-(define-key sgml-mode-map "\C-c\C-u" sgml-prefix-u-map)
+    ;; Key commands
+    (define-key map "\t"    'sgml-indent-or-tab)
+    ;; (define-key map "<" 	  'sgml-insert-tag)
+    (define-key map ">"     'sgml-close-angle)
+    (define-key map "/"     'sgml-slash)
+    (define-key map "\C-c#"    'sgml-make-character-reference)
+    (define-key map "\C-c-"    'sgml-untag-element)
+    (define-key map "\C-c+"    'sgml-insert-attribute)
+    (define-key map "\C-c/"    'sgml-insert-end-tag)
+    (define-key map "\C-c<"    'sgml-insert-tag)
+    (define-key map "\C-c="    'sgml-change-element-name)
+    (define-key map "\C-c\C-a" 'sgml-edit-attributes)
+    (define-key map "\C-c\C-c" 'sgml-show-context)
+    (define-key map "\C-c\C-d" 'sgml-next-data-field)
+    (define-key map "\C-c\C-e" 'sgml-insert-element)
+    (define-key map "\C-c\C-f\C-e" 'sgml-fold-element)
+    (define-key map "\C-c\C-f\C-r" 'sgml-fold-region)
+    (define-key map "\C-c\C-f\C-s" 'sgml-fold-subelement)
+    (define-key map "\C-c\C-f\C-x" 'sgml-expand-element)
+    (define-key map "\C-c\C-i" 'sgml-add-element-to-element)
+    (define-key map "\C-c\C-k" 'sgml-kill-markup)
+    (define-key map "\C-c\r"   'sgml-split-element)
+    (define-key map "\C-c\C-n" 'sgml-up-element)
+    (define-key map "\C-c\C-o" 'sgml-next-trouble-spot)
+    (define-key map "\C-c\C-p" 'sgml-load-doctype)
+    (define-key map "\C-c\C-q" 'sgml-fill-element)
+    (define-key map "\C-c\C-r" 'sgml-tag-region)
+    (define-key map "\C-c\C-s" 'sgml-show-structure)
+    ;;(define-key map "\C-c\C-t" 'sgml-list-valid-tags)
+    (define-key map "\C-c\C-t" 'sgml-show-current-element-type)
+    (define-key map "\C-c\C-u\C-a" 'sgml-unfold-all)
+    (define-key map "\C-c\C-u\C-d" 'sgml-custom-dtd)
+    (define-key map "\C-c\C-u\C-e" 'sgml-unfold-element)
+    (define-key map "\C-c\C-u\C-l" 'sgml-unfold-line)
+    (define-key map "\C-c\C-u\C-m" 'sgml-custom-markup)
+    (define-key map "\C-c\C-v" 'sgml-validate)
+    (define-key map "\C-c\C-w" 'sgml-what-element)
+    (define-key map "\C-c\C-z" 'sgml-trim-and-leave-element)
 
-;;; Key commands
+    (define-key map "\e\C-a"   'sgml-beginning-of-element)
+    (define-key map "\e\C-e"   'sgml-end-of-element)
+    (define-key map "\e\C-f"   'sgml-forward-element)
+    (define-key map "\e\C-b"   'sgml-backward-element)
+    (define-key map "\e\C-d"   'sgml-down-element)
+    (define-key map "\e\C-u"   'sgml-backward-up-element)
+    (define-key map "\e\C-k"   'sgml-kill-element)
+    (define-key map "\e\C-@"   'sgml-mark-element)
+    ;;(define-key map [?\M-\C-\ ] 'sgml-mark-element)
+    (define-key map [(meta control h)] 'sgml-mark-current-element)
+    (define-key map "\e\C-t"   'sgml-transpose-element)
+    (define-key map "\M-\t"    'sgml-complete)
 
-(define-key sgml-mode-map "\t"    'sgml-indent-or-tab)
-;(define-key sgml-mode-map "<" 	  'sgml-insert-tag)
-(define-key sgml-mode-map ">"     'sgml-close-angle)
-(define-key sgml-mode-map "/"     'sgml-slash)
-(define-key sgml-mode-map "\C-c#"    'sgml-make-character-reference)
-(define-key sgml-mode-map "\C-c-"    'sgml-untag-element)
-(define-key sgml-mode-map "\C-c+"    'sgml-insert-attribute)
-(define-key sgml-mode-map "\C-c/"    'sgml-insert-end-tag)
-(define-key sgml-mode-map "\C-c<"    'sgml-insert-tag)
-(define-key sgml-mode-map "\C-c="    'sgml-change-element-name)
-(define-key sgml-mode-map "\C-c\C-a" 'sgml-edit-attributes)
-(define-key sgml-mode-map "\C-c\C-c" 'sgml-show-context)
-(define-key sgml-mode-map "\C-c\C-d" 'sgml-next-data-field)
-(define-key sgml-mode-map "\C-c\C-e" 'sgml-insert-element)
-(define-key sgml-mode-map "\C-c\C-f\C-e" 'sgml-fold-element)
-(define-key sgml-mode-map "\C-c\C-f\C-r" 'sgml-fold-region)
-(define-key sgml-mode-map "\C-c\C-f\C-s" 'sgml-fold-subelement)
-(define-key sgml-mode-map "\C-c\C-f\C-x" 'sgml-expand-element)
-(define-key sgml-mode-map "\C-c\C-i" 'sgml-add-element-to-element)
-(define-key sgml-mode-map "\C-c\C-k" 'sgml-kill-markup)
-(define-key sgml-mode-map "\C-c\C-l" 'sgml-show-or-clear-log)
-(define-key sgml-mode-map "\C-c\r"   'sgml-split-element)
-(define-key sgml-mode-map "\C-c\C-n" 'sgml-up-element)
-(define-key sgml-mode-map "\C-c\C-o" 'sgml-next-trouble-spot)
-(define-key sgml-mode-map "\C-c\C-p" 'sgml-parse-prolog)
-(define-key sgml-mode-map "\C-c\C-q" 'sgml-fill-element)
-(define-key sgml-mode-map "\C-c\C-r" 'sgml-tag-region)
-(define-key sgml-mode-map "\C-c\C-s" 'sgml-unfold-line)
-(define-key sgml-mode-map "\C-c\C-t" 'sgml-list-valid-tags)
-(define-key sgml-mode-map "\C-c\C-u\C-a" 'sgml-unfold-all)
-(define-key sgml-mode-map "\C-c\C-u\C-d" 'sgml-custom-dtd)
-(define-key sgml-mode-map "\C-c\C-u\C-e" 'sgml-unfold-element)
-(define-key sgml-mode-map "\C-c\C-u\C-l" 'sgml-unfold-line)
-(define-key sgml-mode-map "\C-c\C-u\C-m" 'sgml-custom-markup)
-(define-key sgml-mode-map "\C-c\C-v" 'sgml-validate)
-(define-key sgml-mode-map "\C-c\C-w" 'sgml-what-element)
-(define-key sgml-mode-map "\C-c\C-z" 'sgml-trim-and-leave-element)
+    (if (featurep 'xemacs)
+        (define-key map [button3] 'sgml-tags-menu)
+      (define-key map [?\M-\C-\ ] 'sgml-mark-element)
 
-(define-key sgml-mode-map "\e\C-a"   'sgml-beginning-of-element)
-(define-key sgml-mode-map "\e\C-e"   'sgml-end-of-element)
-(define-key sgml-mode-map "\e\C-f"   'sgml-forward-element)
-(define-key sgml-mode-map "\e\C-b"   'sgml-backward-element)
-(define-key sgml-mode-map "\e\C-d"   'sgml-down-element)
-(define-key sgml-mode-map "\e\C-u"   'sgml-backward-up-element)
-(define-key sgml-mode-map "\e\C-k"   'sgml-kill-element)
-(define-key sgml-mode-map "\e\C-@"   'sgml-mark-element)
-;;(define-key sgml-mode-map [?\M-\C-\ ] 'sgml-mark-element)
-(define-key sgml-mode-map [(meta control h)] 'sgml-mark-current-element)
-(define-key sgml-mode-map "\e\C-t"   'sgml-transpose-element)
-(define-key sgml-mode-map "\M-\t"    'sgml-complete)
+      ;;(define-key map [S-mouse-3] 'sgml-tags-menu)
+      (define-key map [S-mouse-3] 'sgml-right-menu))
+
+    map)
+  "Main keymap for PSGML mode.")
 
 ;;;; Menu bar
 
 (easy-menu-define
- sgml-dtd-menu sgml-mode-map "DTD menu"
- '("DTD"
-    ["Parse DTD"  sgml-parse-prolog t]
-    ("Insert DTD")
-    ("Info"
-     ["General DTD info"	sgml-general-dtd-info           t]
-     ["Describe element type"	sgml-describe-element-type	t]
-     ["Describe entity"		sgml-describe-entity		t]
-     ["List elements" 		sgml-list-elements 		t]
-     ["List attributes" 	sgml-list-attributes 		t]
-     ["List terminals" 		sgml-list-terminals 		t]
-     ["List content elements" 	sgml-list-content-elements 	t]
-     ["List occur in elements" 	sgml-list-occur-in-elements 	t]
-     )
-    "--"
-    ["Load Parsed DTD"  sgml-load-dtd t]
-    ["Save Parsed DTD"  sgml-save-dtd t]
-   ))
-
-(easy-menu-define
- sgml-view-menu sgml-mode-map "View menu"
- '("View"
-   ["Fold Element"	sgml-fold-element	t]
-   ["Fold Subelement"	sgml-fold-subelement	t]
-   ["Unfold Line"	sgml-unfold-line	t]
-   ["Unfold Element"	sgml-unfold-element	t]
-   ["Expand"		sgml-expand-element	t]
-   ["Fold Region"	sgml-fold-region	t]
-   ["Unfold All"	sgml-unfold-all		t]
-   ["Hide Tags"		sgml-hide-tags		t]
-   ["Hide Attributes"	sgml-hide-attributes	t]
-   ["Show All Tags"	sgml-show-tags		t]
-   ))
-
-
-(easy-menu-define
- sgml-markup-menu sgml-mode-map "Markup menu"
- '("Markup"
-   ["Insert Element"	sgml-element-menu	t]
-   ["Insert Start-Tag" sgml-start-tag-menu	t]
-   ["Insert End-Tag"	sgml-end-tag-menu	t]
-   ["End Current Element"	sgml-insert-end-tag t]
-   ["Tag Region"	sgml-tag-region-menu	t]
-   ["Insert Attribute"  sgml-attrib-menu	t]
-   ["Insert Entity"	sgml-entities-menu	t]
-   ["Add Element to Element"	sgml-add-element-menu	t]
-   ("Custom markup"   "---")
-   ))
-
-(easy-menu-define
- sgml-move-menu sgml-mode-map "Menu of move commands"
- '("Move"
-   ["Next trouble spot" sgml-next-trouble-spot t]
-   ["Next data field"   sgml-next-data-field   t]
-   ["Forward element"	sgml-forward-element t]
-   ["Backward element"  sgml-backward-element t]
-   ["Up element"	sgml-up-element t]
-   ["Down element"	sgml-down-element t]
-   ["Backward up element" sgml-backward-up-element t]
-   ["Beginning of element" sgml-beginning-of-element t]
-   ["End of element"	sgml-end-of-element t]
-   ))
-
-(easy-menu-define
- sgml-modify-menu sgml-mode-map "Menu of modification commands"
- '("Modify"
-   ["Normalize"			sgml-normalize	t]
-   ["Expand All Short References"	sgml-expand-all-shortrefs t]
-   ["Expand Entity Reference"	sgml-expand-entity-reference t]
+ sgml-main-menu sgml-mode-map "Main menu"
+ '("SGML"
+   ["Load Doctype"              sgml-load-doctype               t]
+   ("DTD Info"
+    ["Describe DTD"             sgml-describe-dtd               t]
+    ["Describe element type"	sgml-describe-element-type	t]
+    ["Describe entity"		sgml-describe-entity		t]
+    ["List elements" 		sgml-list-elements 		t]
+    ["List attributes"          sgml-list-attributes 		t]
+    ["List terminals" 		sgml-list-terminals 		t]
+    ["List content elements" 	sgml-list-content-elements 	t]
+    ["List occur in elements" 	sgml-list-occur-in-elements 	t])
+   ("Insert DTD" :filter sgml-compute-insert-dtd-items)
+   ("Insert Markup"
+    ["Insert Element"           sgml-element-menu	t]
+    ["Insert Start-Tag"         sgml-start-tag-menu	t]
+    ["Insert End-Tag"           sgml-end-tag-menu	t]
+    ["End Current Element"	sgml-insert-end-tag     t]
+    ["Tag Region"               sgml-tag-region-menu	t]
+    ["Insert Attribute"         sgml-attrib-menu	t]
+    ["Insert Entity"            sgml-entities-menu	t]
+    ["Add Element to Element"	sgml-add-element-menu	t])
+   ("Custom markup" :filter sgml-compute-custom-markup-items)
+   "--"
+   ["Show Context"              sgml-show-context       t]
+   ["What Element"              sgml-what-element       t]
+   ["List Valid Tags"           sgml-list-valid-tags    t]
+   ["Validate"                  sgml-validate           t]
+   ["Show Structure"            sgml-show-structure     t]
+   "--"
+   ("Move"
+    ["Next trouble spot"        sgml-next-trouble-spot  t]
+    ["Next data field"          sgml-next-data-field    t]
+    ["Forward element"          sgml-forward-element    t]
+    ["Backward element"         sgml-backward-element   t]
+    ["Up element"               sgml-up-element         t]
+    ["Down element"             sgml-down-element       t]
+    ["Backward up element"      sgml-backward-up-element        t]
+    ["Beginning of element"     sgml-beginning-of-element       t]
+    ["End of element"           sgml-end-of-element     t])
+   ("View"
+    ["Fold Element"             sgml-fold-element       t]
+    ["Fold Subelement"          sgml-fold-subelement    t]
+    ["Unfold Line"              sgml-unfold-line        t]
+    ["Unfold Element"           sgml-unfold-element     t]
+    ["Expand"                   sgml-expand-element     t]
+    ["Fold Region"              sgml-fold-region        t]
+    ["Unfold All"               sgml-unfold-all         t]
+    ["Hide Tags"		sgml-hide-tags		t]
+    ["Hide Attributes"          sgml-hide-attributes    t]
+    ["Show All Tags"            sgml-show-tags  t])
+   "--"
+   ["Normalize Document"        sgml-normalize	t]
    ["Normalize Element"		sgml-normalize-element t]
+   ["Expand All Short References" sgml-expand-all-shortrefs (not sgml-xml-p)]
+   ["Expand Entity Reference"	sgml-expand-entity-reference t]
    ["Make Character Reference"	sgml-make-character-reference t]
    ["Unmake Character Reference"	(sgml-make-character-reference t) t]
    ["Fill Element"		sgml-fill-element t]
@@ -971,22 +647,16 @@ as that may change."
    ["Kill Element"		sgml-kill-element t]
    ["Untag Element"		sgml-untag-element t]
    ["Trim and leave element"	sgml-trim-and-leave-element t]
-   ["Decode Character Entities"  sgml-charent-to-display-char t]
-   ["Encode Characters"		sgml-display-char-to-charent t]
-   )
- )
-
-(easy-menu-define
- sgml-main-menu sgml-mode-map "Main menu"
- '("SGML"
-   ["Reset Buffer"	normal-mode t]
-   ["Show Context"	sgml-show-context t]
-   ["What Element"	sgml-what-element t]
-   ["List Valid Tags"	sgml-list-valid-tags t]
-   ["Show/Hide Warning Log"  sgml-show-or-clear-log t]
-   ["Validate"		sgml-validate t]
+   ;; FIXME: These 2 commands used to be in psgml-charent, but I wasn't able to
+   ;; get their author's paperwork (Steinar Bang and Falch Hurtigtrykk).
+   ;; We should rewrite them, but I can't understand DTD enough to know how
+   ;; it's really supposed to work.  --Stef
+   ;;["Decode Character Entities"  sgml-charent-to-display-char t]
+   ;;["Encode Characters"		sgml-display-char-to-charent t]
+   "--"
    ("File Options"   "---")
    ("User Options"   "---")
+   ["Reset Buffer"	normal-mode t]
    ["Submit Bug Report"  sgml-submit-bug-report t]
    ))
 
@@ -1030,16 +700,17 @@ as that may change."
 (defvar sgml-last-options-menu-values ())
 
 (defun sgml-any-option-changed (oldvalues vars)
-  (not (loop for val in oldvalues
-             for var in vars
-             always (eq val (symbol-value var)))))
+  (not (cl-loop for val in oldvalues
+                for var in vars
+                always (eq val (symbol-value var)))))
 
+;; FIXME: Use a keymap filter!
 (defun sgml-update-options-menu (menuname option-vars &optional save-func)
   (let ((last-values (assoc menuname sgml-last-options-menu-values)))
     (when (or (null last-values)
               (sgml-any-option-changed (cdr last-values)
                                        option-vars))
-      (condition-case err
+      (condition-case-unless-debug err
           (easy-menu-change '("SGML") menuname
                       (nconc (sgml-options-menu-items option-vars)
                              (if save-func
@@ -1060,31 +731,23 @@ as that may change."
   (sgml-update-options-menu "User Options" sgml-user-options)
   nil)
 
-(defun sgml-compute-insert-dtd-items ()
-  (loop for e in sgml-custom-dtd collect
-        (vector (first e)
-                (` (sgml-doctype-insert (, (cadr e)) '(, (cddr e))))
-                t)))
+(defun sgml-compute-insert-dtd-items (&optional _menu)
+  (if (null sgml-custom-dtd)
+      '(["-- No custom entries --" nil :enable nil])
+    (mapcar (lambda (e)
+              (vector (car e)
+                      `(sgml-doctype-insert ,(cadr e) ',(cddr e))
+                      t))
+            sgml-custom-dtd)))
 
-(defun sgml-compute-custom-markup-items ()
-  (loop for e in sgml-custom-markup collect
-        (vector (first e)
-                (` (sgml-insert-markup  (, (cadr e))))
-                t)))
-
-(defun sgml-build-custom-menus ()
-  "Build custom parts of Markup and DTD menus."
-  (let ((button3 (lookup-key (current-local-map) [button3])))
-    (unless (or (null button3)
-		(numberp button3))
-      (local-set-key [button3] button3))
-    (when sgml-custom-dtd
-      (easy-menu-change '("DTD") "Insert DTD"
-			(sgml-compute-insert-dtd-items)))
-    (when sgml-custom-markup
-      (easy-menu-change '("Markup") "Custom markup"
-			(sgml-compute-custom-markup-items))))
-  nil)
+(defun sgml-compute-custom-markup-items (&optional _menu)
+  (if (null sgml-custom-markup)
+      '(["-- No custom entries --" nil :enable nil])
+    (mapcar (lambda (e)
+              (vector (car e)
+                      `(sgml-insert-markup  ,(cadr e))
+                      t))
+             sgml-custom-markup)))
 
 
 ;;;; Post command hook
@@ -1100,11 +763,11 @@ actually only the state that persists between commands.")
 (make-variable-buffer-local 'sgml-buffer-parse-state)
 
 (eval-and-compile			; Interface to psgml-parse
-  (loop for fun in '(sgml-need-dtd sgml-update-display
-				   sgml-fontify-buffer
-				   sgml-subst-expand
-				   sgml-declaration)
-	do (autoload fun "psgml-parse")))
+  (dolist (fun '(sgml-need-dtd sgml-update-display
+                 sgml-fontify-buffer
+                 sgml-subst-expand
+                 sgml-declaration))
+    (autoload fun "psgml-parse")))
 
 
 (defun sgml-command-post ()
@@ -1114,9 +777,9 @@ actually only the state that persists between commands.")
 	     (not (zerop (buffer-size)))
 	     (looking-at ".*<"))
     (setq sgml-auto-activate-dtd-tried t)
-    (ignore-errors
-     (sgml-need-dtd)
-     (sgml-fontify-buffer 0)))
+    (with-demoted-errors "PSGML post command: %S"
+      (sgml-need-dtd)
+      (sgml-fontify-buffer 0)))
   (when sgml-buffer-parse-state
     (sgml-update-display)))
 
@@ -1126,7 +789,7 @@ actually only the state that persists between commands.")
 ;;; This section is mostly from sgml-mode by James Clark.
 
 ;;;###autoload
-(defun sgml-mode ()
+(define-derived-mode sgml-mode nil "PSGML"
   "Major mode for editing SGML.
 \\<sgml-mode-map>Makes > display the matching <.  Makes / display matching /.
 Use \\[sgml-validate] to validate your document with an SGML parser.
@@ -1194,13 +857,7 @@ sgml-offer-save  If non-nil, ask about saving modified buffers before
 
 All bindings:
 \\{sgml-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (setq sgml-xml-p nil)
-  (setq local-abbrev-table sgml-mode-abbrev-table)
-  (use-local-map sgml-mode-map)
-  (setq mode-name "SGML")
-  (setq major-mode 'sgml-mode)
 
   ;; A start or end tag by itself on a line separates a paragraph.
   ;; This is desirable because SGML discards a newline that appears
@@ -1218,56 +875,31 @@ All bindings:
        paragraph-separate)
 
   (set-syntax-table sgml-mode-syntax-table)
-  (make-local-variable 'comment-start)
-  (setq comment-start "<!-- ")
-  (make-local-variable 'comment-end)
-  (setq comment-end " -->")
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'sgml-comment-indent)
-  (make-local-variable 'comment-start-skip)
+  (set (make-local-variable 'comment-start) "<!-- ")
+  (set (make-local-variable 'comment-end) " -->")
+  (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
   ;; This will allow existing comments within declarations to be
   ;; recognized.  [Does not work well with auto-fill, Lst/940205]
   ;;(setq comment-start-skip "--[ \t]*")
-  (setq comment-start-skip "<!--[ \t]*")
+  (set (make-local-variable 'comment-start-skip) "<!--[ \t]*")
   ;; Added for psgml:
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'sgml-indent-line)
-  (make-local-variable 'mode-line-format)
-  (if (featurep 'xemacs)
-      ;; Modify mode-line-format with susbt (sugested by wing)
-      ;; Apart from requiring CL at runtime, this doesn't work in Emacs
-      ;; 21.  It's the sort of thing which-func is supposed to do...
-      (setq mode-line-format
-	    (subst '("" mode-name sgml-active-dtd-indicator) 'mode-name
-		   mode-line-format))
-    (set (make-local-variable 'which-func-format) 'sgml-active-dtd-indicator))
-  (make-local-variable 'sgml-default-dtd-file)
-  (when (setq sgml-default-dtd-file (sgml-default-dtd-file))
+  (set (make-local-variable 'indent-line-function) 'sgml-indent-line)
+  (when (set (make-local-variable 'sgml-default-dtd-file)
+             (sgml-default-dtd-file))
     (unless (file-exists-p sgml-default-dtd-file)
       (setq sgml-default-dtd-file nil)))
-;;; This doesn't DTRT with Emacs 21.1 newcomment -- intermediate lines
-;;; are prefixed by `!--'.  -- fx
-;;;   (set (make-local-variable 'comment-style) 'multi-line)
+  ;; This doesn't DTRT with Emacs 21.1 newcomment -- intermediate lines
+  ;; are prefixed by `!--'.  -- fx
+  ;;(set (make-local-variable 'comment-style) 'multi-line)
   (when sgml-default-nonsticky
     (make-local-variable 'text-property-default-nonsticky)
     ;; see `sgml-set-face-for':
     (add-to-list 'text-property-default-nonsticky '(face . t)))
-  (make-local-hook 'post-command-hook)
-  (add-hook 'post-command-hook 'sgml-command-post 'append 'local)
-  (unless sgml-running-lucid
-    ;; XEmacs 20.4 doesn't handle local activate-menubar-hook
-    ;; it tries to call the function `t' when using the menubar
-    (make-local-hook 'activate-menubar-hook))
-  (add-hook 'activate-menubar-hook 'sgml-update-all-options-menus
+  (add-hook 'post-command-hook #'sgml-command-post 'append 'local)
+  (add-hook 'activate-menubar-hook #'sgml-update-all-options-menus
 	    nil 'local)
-  (run-hooks 'text-mode-hook 'sgml-mode-hook)
-  (easy-menu-add sgml-main-menu)
-  (easy-menu-add sgml-modify-menu)
-  (easy-menu-add sgml-move-menu)
-  (easy-menu-add sgml-markup-menu)
-  (easy-menu-add sgml-view-menu)
-  (easy-menu-add sgml-dtd-menu)
-  (sgml-build-custom-menus))
+  (add-hook 'which-func-functions #'sgml-current-element-name nil t)
+  (easy-menu-add sgml-main-menu))
 
 ;; It would be nice to generalize the `auto-mode-interpreter-regexp'
 ;; machinery so that we could select xml-mode on the basis of the
@@ -1293,20 +925,19 @@ Note that without a DTD, indenting lines will only work if
   (setq sgml-namecase-general nil)
   (setq sgml-minimize-attributes nil)
   (setq sgml-always-quote-attributes t)
-  (make-local-variable 'sgml-declaration)
-  (setq sgml-declaration sgml-xml-declaration)
   (setq sgml-validate-command sgml-xml-validate-command)
-  )
+  (set (make-local-variable 'sgml-declaration) sgml-xml-declaration))
+
 
 (defun sgml-default-dtd-file ()
   (and (buffer-file-name)
        (let ((base (file-name-nondirectory (buffer-file-name))))
-         (concat
-          (cond ((string-match "\\.[^.]+$" base)
-                 (substring base 0 (match-beginning 0)))
-                (t
-                 base))
-          ".ced"))))
+	 (concat
+	  (cond ((string-match "\\.[^.]+$" base)
+		 (substring base 0 (match-beginning 0)))
+		(t
+		 base))
+	  ".ced"))))
 
 (defun sgml-comment-indent ()
   (if (and (looking-at "--")
@@ -1324,16 +955,14 @@ Note that without a DTD, indenting lines will only work if
   "Regular expression that matches a non-empty start tag.
 Any terminating > or / is not matched.")
 
-(defvar sgml-mode-markup-syntax-table nil
+(defvar sgml-mode-markup-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?< "(>" st)
+    (modify-syntax-entry ?> ")<" st)
+    (modify-syntax-entry ?- "_ 1234" st)
+    (modify-syntax-entry ?\' "\"" st)
+    st)
   "Syntax table used for scanning SGML markup.")
-
-(if sgml-mode-markup-syntax-table
-    ()
-  (setq sgml-mode-markup-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?< "(>" sgml-mode-markup-syntax-table)
-  (modify-syntax-entry ?> ")<" sgml-mode-markup-syntax-table)
-  (modify-syntax-entry ?- "_ 1234" sgml-mode-markup-syntax-table)
-  (modify-syntax-entry ?\' "\"" sgml-mode-markup-syntax-table))
 
 (defvar sgml-angle-distance 4000
   "*If non-nil, is the maximum distance to search for matching <.")
@@ -1477,11 +1106,11 @@ start tag, and the second / is the corresponding null end tag."
 	    (cons ?s (sgml-declaration))
 	    (cons ?v sgml-declaration)
 	    (cons ?d sgml-doctype))))
-      (loop for template in sgml-validate-command
+      (cl-loop for template in sgml-validate-command
 	    thereis
 	    (sgml-subst-expand template validate-subst))))
    (t
-    (apply 'format sgml-validate-command
+    (apply #'format sgml-validate-command
 	   (if sgml-validate-files
 	       (funcall sgml-validate-files)
 	     (list (or sgml-declaration "")
@@ -1506,10 +1135,6 @@ and move to the line in the SGML document that caused it."
 		    nil
 		    sgml-validate-error-regexps))
 
-(defalias 'sgml-restore-buffer-modified-p
-  (if (fboundp 'restore-buffer-modified-p)
-      'restore-buffer-modified-p	; doesn't update mode line
-    'set-buffer-modified-p))
 
 ;;;; Autoloads and hooks
 
@@ -1525,6 +1150,8 @@ and move to the line in the SGML document that caused it."
 (autoload 'sgml-load-dtd "psgml-parse" "Load a saved DTD from FILE." t)
 (autoload 'sgml-show-or-clear-log "psgml-parse" "Show the *SGML LOG* buffer if it is not showing, or clear and
 remove it if it is showing." t)
+(autoload 'sgml-load-doctype "psgml-parse" "Load the documents DTD.
+Either from parent document or by parsing the document prolog." t)
 (autoload 'sgml-parse-prolog "psgml-parse" "Parse the document prolog to learn the DTD." t)
 (autoload 'sgml-beginning-of-element "psgml-edit" "Move to after the start-tag of the current element.
 If the start-tag is implied, move to the start of the element." t)
@@ -1585,12 +1212,19 @@ after the first tag inserted." t)
 (autoload 'sgml-element-menu "psgml-edit" "Pop up a menu with valid elements and insert choice.
 If sgml-leave-point-after-insert is nil the point is left after the first
 tag inserted." t)
+(autoload 'sgml-add-element-menu "psgml-edit" nil t)
 (autoload 'sgml-start-tag-menu "psgml-edit" "Pop up a menu with valid start-tags and insert choice." t)
 (autoload 'sgml-end-tag-menu "psgml-edit" "Pop up a menu with valid end-tags and insert choice." t)
 (autoload 'sgml-tag-region-menu "psgml-edit" "Pop up a menu with valid elements and tag current region with the choice." t)
 (autoload 'sgml-entities-menu "psgml-edit" nil t)
 (autoload 'sgml-attrib-menu "psgml-edit" "Pop up a menu of the attributes of the current element
 \(or the element with start-tag before point)." t)
+(autoload 'sgml-right-menu "psgml-edit" "Pop up a menu with valid tags and insert the choosen tag.
+If the variable sgml-balanced-tag-edit is t, also inserts the
+corresponding end tag. If sgml-leave-point-after-insert is t, the point
+is left after the inserted tag(s), unless the element has som required
+content.  If sgml-leave-point-after-insert is nil the point is left
+after the first tag inserted." t)
 (autoload 'sgml-fill-element "psgml-edit" "Fill biggest enclosing element with mixed content.
 If current element has pure element content, recursively fill the
 subelements." t)
@@ -1623,6 +1257,8 @@ If called with a numeric argument, convert a character reference back
 to a normal character.  If called from a program, set optional
 argument INVERT to non-nil." t)
 (autoload 'sgml-expand-entity-reference "psgml-edit" "Insert the text of the entity referenced at point." t)
+(autoload 'sgml-trim-and-leave-element "psgml-edit" "Remove blanks at end of current element and move point to after element." t)
+(autoload 'sgml-edit-external-entity "psgml-edit" "Open	a new window and display the external entity at the point." t)
 (autoload 'sgml-complete "psgml-edit" "Complete the word/tag/entity before point.
 If it is a tag (starts with < or </) complete with valid tags.
 If it is an entity (starts with &) complete with declared entities.
@@ -1634,6 +1270,8 @@ If it is something else complete with ispell-complete-word." t)
 (autoload 'sgml-add-element-to-element "psgml-edit" "Add an element of type GI to the current element.
 The element will be added at the last legal position if FIRST is `nil',
 otherwise it will be added at the first legal position." t)
+(autoload 'sgml-show-current-element-type "psgml-edit" "Show information about the current element and its type." t)
+(autoload 'sgml-show-structure "psgml-edit" "Show the document structure in a separate buffer." t)
 (autoload 'sgml-save-dtd "psgml-dtd" "Save the parsed dtd on FILE." t)
 (autoload 'sgml-list-elements "psgml-info" "List the elements and their attributes in the current DTD." t)
 (autoload 'sgml-list-attributes "psgml-info" "List the attributes and in which elements they occur." t)
@@ -1642,15 +1280,10 @@ otherwise it will be added at the first legal position." t)
 (autoload 'sgml-list-occur-in-elements "psgml-info" "List all element types and where it can occur." t)
 (autoload 'sgml-describe-entity "psgml-info" "Describe the properties of an entity as declared in the current DTD." t)
 (autoload 'sgml-describe-element-type "psgml-info" "Describe the properties of an element type as declared in the current DTD." t)
-(autoload 'sgml-general-dtd-info "psgml-info" "Display information about the current DTD." t)
-(autoload 'sgml-charent-to-display-char "psgml-charent" "Replace character entities with their display character equivalents" t)
-(autoload 'sgml-display-char-to-charent "psgml-charent" "Replace displayable characters with their character entity equivalents" t)
+(autoload 'sgml-describe-dtd "psgml-info" "Display information about the current DTD." t)
 
 
 ;;;; Last provisions
 
 (provide 'psgml)
-(provide 'sgml-mode)
-
-
 ;;; psgml.el ends here
