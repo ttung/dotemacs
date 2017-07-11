@@ -1042,22 +1042,23 @@ If ARG is negative, delete that many comment characters instead."
 ;; Original code by Miles Bader <miles@gnu.org>
 (defun record-nice-file-name ()
   "Records a nice version of every visited file's file-name into the variable `nice-buffer-file-name'"
-  (set (make-local-variable 'nice-buffer-file-name)
-       (let ((buffer-name (buffer-name)))
-         (cond (buffer-file-name
-                (let ((shortened-file-name
-                       (limit-tree (abbreviate-file-name buffer-file-name) 1))
-                      (buffer-num
-                       (get-unique-tag buffer-file-name buffer-name)))
+  (save-match-data
+    (set (make-local-variable 'nice-buffer-file-name)
+         (let ((buffer-name (buffer-name)))
+           (cond (buffer-file-name
+                  (let ((shortened-file-name
+                         (limit-tree (abbreviate-file-name buffer-file-name) 1))
+                        (buffer-num
+                         (get-unique-tag buffer-file-name buffer-name)))
 
-                  (cond ((< emacs-version-num 24.04)
-                         (concat shortened-file-name buffer-num))
-                        ((find ?/ buffer-name)
-                         buffer-name)
-                        (t shortened-file-name))))
-               (t buffer-name))))
+                    (cond ((< emacs-version-num 24.04)
+                           (concat shortened-file-name buffer-num))
+                          ((find ?/ buffer-name)
+                           buffer-name)
+                          (t shortened-file-name))))
+                 (t buffer-name))))
 
-  nil)
+    nil))
 
 ;; Make the mode-line identify buffers using their `nice-buffer-file-name'
 ;; if such a variable exists, otherwise, the buffer's file name, if it
