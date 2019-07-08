@@ -1447,7 +1447,7 @@ it is put to the start of the list."
     (define-key function-key-map "[28~"	[insert])
     (define-key function-key-map "[1~"	[home])
     (define-key function-key-map "[4~"	[end])))
-(setq term-setup-hook 'keymap-setup)
+(setq tty-setup-hook 'keymap-setup)
 
 (global-set-key "\C-f"         'forward-word)
 (global-set-key "\C-b"         'backward-word)
@@ -1486,6 +1486,7 @@ it is put to the start of the list."
 
 (global-set-key [home]		'beginning-of-buffer)
 (global-set-key [end]		'end-of-buffer)
+(global-set-key [select]	'end-of-buffer)
 
 (global-set-key [27 deletechar]	'kill-word)
 
