@@ -1,3 +1,0 @@
-[submodule "elisp/d-mode"]
-	path = elisp/d-mode
-	url = git@github.com:Emacs-D-Mode-Maintainers/Emacs-D-Mode.git
