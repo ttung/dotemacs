@@ -39,7 +39,7 @@
   (let* ((args (append (list "-s" "elisp") pre-cmd-args (list cmd) post-cmd-args))
          (stdout-buffer (generate-new-buffer "*module stdout*"))
          (stderr-file (make-temp-file "module-stderr"))
-         (modulecmd-fullpath (reduce 'path-join (list "software" "pyenv" "modulecmd") :initial-value home-directory))
+         (modulecmd-fullpath (cl-reduce 'path-join (list "software" "pyenv" "modulecmd") :initial-value home-directory))
          (apply-args (append (list modulecmd-fullpath
                                    nil (list stdout-buffer stderr-file)
                                    't) args)))

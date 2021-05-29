@@ -1,4 +1,4 @@
-(require 'cl)
+(require 'cl-seq)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Version stuff
@@ -20,10 +20,10 @@
   (setq debug-on-error 't)
 
   (add-to-list 'load-path
-    (reduce 'path-join '("emacs" "elisp") :initial-value nep-base))
+    (cl-reduce 'path-join '("emacs" "elisp") :initial-value nep-base))
 
   (setq load-prefer-newer t)
   (require 'auto-compile)
   (auto-compile-on-load-mode 1)
   (auto-compile-on-save-mode 1)
-  (load (reduce 'path-join '("emacs" "settings") :initial-value nep-base)))
+  (load (cl-reduce 'path-join '("emacs" "settings") :initial-value nep-base)))

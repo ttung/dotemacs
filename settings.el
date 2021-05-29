@@ -67,13 +67,13 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up the paths for custom files
 (add-to-list 'exec-path
-             (reduce 'path-join '("emacs" "bin") :initial-value nep-base))
+             (cl-reduce 'path-join '("emacs" "bin") :initial-value nep-base))
 (add-to-list 'exec-path
-             (reduce 'path-join '("software" "bin") :initial-value nep-base))
+             (cl-reduce 'path-join '("software" "bin") :initial-value nep-base))
 (add-to-list 'exec-path
-             (reduce 'path-join '("opt" "local" "bin") :initial-value "/"))
+             (cl-reduce 'path-join '("opt" "local" "bin") :initial-value "/"))
 (setenv "PATH" (format "%s%s%s"
-                (reduce 'path-join '("opt" "local" "bin") :initial-value "/")
+                (cl-reduce 'path-join '("opt" "local" "bin") :initial-value "/")
                 path-separator
                 (getenv "PATH")))
 
@@ -108,7 +108,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 
 ;; set up the paths for psgml
 (add-to-list 'load-path
-             (reduce 'path-join '("emacs" "elisp" "psgml") :initial-value nep-base))
+             (cl-reduce 'path-join '("emacs" "elisp" "psgml") :initial-value nep-base))
 
 (when (and (> emacs-version-num 19.34) (locate-library "psgml"))
   (defvar sgml-data-directory (expand-file-name "~/emacs/etc/sgml"))
@@ -217,7 +217,7 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; D-mode
 ;; set up the paths for D-mode
 (add-to-list 'load-path
-             (reduce 'path-join '("emacs" "elisp" "d-mode") :initial-value nep-base))
+             (cl-reduce 'path-join '("emacs" "elisp" "d-mode") :initial-value nep-base))
 (when (locate-library "d-mode")
   (autoload 'd-mode "d-mode" "Major mode for editing D code." t)
   (add-to-list 'auto-mode-alist '("\\.d[i]?\\'" . d-mode))
@@ -1053,7 +1053,7 @@ If ARG is negative, delete that many comment characters instead."
 
                     (cond ((< emacs-version-num 24.04)
                            (concat shortened-file-name buffer-num))
-                          ((find ?/ buffer-name)
+                          ((cl-find ?/ buffer-name)
                            buffer-name)
                           (t shortened-file-name))))
                  (t buffer-name))))
@@ -1085,7 +1085,7 @@ If ARG is negative, delete that many comment characters instead."
      (if (string-equal (substring (buffer-name buffer) 0 1) " ") 0 1)))
 
 (defun kill-check ()
-  (if (> (reduce 'buffer-reducer (buffer-list) :initial-value 0) 25)
+  (if (> (cl-reduce 'buffer-reducer (buffer-list) :initial-value 0) 25)
       (funcall (if (fboundp 'yes-or-no-original-p)
                    'yes-or-no-original-p
                  'yes-or-no-p)
