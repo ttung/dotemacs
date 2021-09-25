@@ -202,11 +202,6 @@ See require. Return non-nil if FEATURE is or was loaded."
   (setq whitespace-style '(lines-tail))
   (autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t))
 
-;; actionscript mode
-(when (locate-library "actionscript-mode")
-  (autoload 'actionscript-mode "actionscript-mode" "Mode for editing Actionscript files" t)
-  (add-to-list 'auto-mode-alist '("\\.as$" . actionscript-mode)))
-
 ;; load pyenv support for elisp
 (when (want 'modulecmd)
   (let ((merly-init-module "org.merly.init.paths"))
@@ -241,12 +236,10 @@ See require. Return non-nil if FEATURE is or was loaded."
   (autoload 'rust-mode "rust-mode" "Major mode for editing Rust code." t)
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
 
-;; tbgs
-(let ((admin-master-emacs "/home/engshare/admin/scripts/emacs-packages"))
-  (when (and (string-match "facebook\\.com" system-name)
-	     (file-exists-p admin-master-emacs))
-    (add-to-list 'load-path admin-master-emacs)
-    (autoload 'tbgs "tbgX" nil t nil)))
+;; actionscript mode
+(when (locate-library "yaml-mode")
+  (autoload 'yaml-mode "yaml-mode" "Mode for editing YAML files" t)
+  (add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
