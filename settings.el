@@ -239,7 +239,13 @@ See require. Return non-nil if FEATURE is or was loaded."
 ;; actionscript mode
 (when (locate-library "yaml-mode")
   (autoload 'yaml-mode "yaml-mode" "Mode for editing YAML files" t)
-  (add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode)))
+  (add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
+
+  (defun my-yaml-mode-hook()
+    (cond ((and buffer-file-name (string-match "/Users/tony.tung/h/" buffer-file-name))
+           (setq yaml-indent-offset 4))))
+
+  (add-hook 'yaml-mode-hook 'my-yaml-mode-hook))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
